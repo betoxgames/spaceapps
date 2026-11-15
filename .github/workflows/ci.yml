@@ -18,6 +18,7 @@ jobs:
       - run: pnpm test
       - run: pnpm build
       - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:offline
       - run: |
           pnpm dev > /tmp/space-papers-vite.log 2>&1 &
           for i in $(seq 1 30); do curl -fsS http://127.0.0.1:4173/ > /dev/null && break; sleep 1; done
@@ -25,3 +26,4 @@ jobs:
           pnpm test:desk
           pnpm test:camera
           pnpm test:training
+          pnpm test:characters

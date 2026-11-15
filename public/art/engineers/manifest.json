@@ -1,0 +1,225 @@
+{
+  "format": "transparent-webp-atlas",
+  "frameWidth": 256,
+  "frameHeight": 256,
+  "columns": 8,
+  "rows": 3,
+  "clips": {
+    "idle": {
+      "row": 0,
+      "frames": 8,
+      "sourceFrames": [
+        1,
+        29
+      ],
+      "durationSeconds": 1.1666666666666667
+    },
+    "caminar": {
+      "row": 1,
+      "frames": 8,
+      "sourceFrames": [
+        1,
+        213
+      ],
+      "durationSeconds": 8.833333333333334
+    },
+    "Hablar": {
+      "row": 2,
+      "frames": 8,
+      "sourceFrames": [
+        1,
+        23
+      ],
+      "durationSeconds": 0.9166666666666666
+    }
+  },
+  "aliases": {
+    "idle": "idle",
+    "walk": "caminar",
+    "talk": "Hablar",
+    "greet": null
+  },
+  "template": {
+    "fileId": "158IHHPwkFcrW6acZPBDNuOX0OsIZYAHm",
+    "name": "Animaciones.blend",
+    "modifiedTime": "2026-11-15T00:48:46.976Z",
+    "sha256": "89c156319f9c39c4d4c8289876f2f454424f3e3f7da18c66ebe1c07f5ee0da8f"
+  },
+  "export": {
+    "blender": "5.3",
+    "engine": "EEVEE",
+    "samples": 8,
+    "cameraLensMultiplier": 1.5,
+    "sampling": "8 evenly spaced frames per action, excluding endpoint",
+    "webpQuality": 90
+  },
+  "warnings": [
+    "Source is Grease Pencil; transparent images preserve its strokes and fills.",
+    "No greeting action is present in the template.",
+    "Saul’s source has a blue suit; the Notion reference describes a yellow badge. The supplied artwork was retained."
+  ],
+  "engineers": {
+    "nico": {
+      "file": "nico.webp",
+      "source": {
+        "fileId": "1344RIPD0aik-uknekHI8SuXkpBauk5Cp",
+        "name": "Igeniero Nico.blend",
+        "modifiedTime": "2026-11-14T23:10:29.373Z",
+        "sha256": "16de9880ae8c93b9108a595fd1e8027e2550152d4f733fdd292ffde2d65d275f"
+      },
+      "bones": 18,
+      "greasePencilObjects": 20,
+      "camera": {
+        "type": "PERSP",
+        "lens": 75.0
+      },
+      "sourceFps": 24.0,
+      "bytes": 138854,
+      "maxBoneRestMatrixDifference": 0.0
+    },
+    "adan": {
+      "file": "adan.webp",
+      "source": {
+        "fileId": "1LsUR9eI35UP8J4hEpyZZyVZ1MdFlxuNW",
+        "name": "IngenieroAdan.blend",
+        "modifiedTime": "2026-11-14T23:23:21.454Z",
+        "sha256": "db8cac03050d7f4e90c57a4803b4dbd226d79493163a37e214839b7753b8afff"
+      },
+      "bones": 18,
+      "greasePencilObjects": 19,
+      "camera": {
+        "type": "PERSP",
+        "lens": 75.0
+      },
+      "sourceFps": 24.0,
+      "bytes": 126954,
+      "maxBoneRestMatrixDifference": 0.0
+    },
+    "leo": {
+      "file": "leo.webp",
+      "source": {
+        "fileId": "1mu7fzrmalcMDL53_k-3mhldHz5Vbgst9",
+        "name": "IngenieroLeo.blend",
+        "modifiedTime": "2026-11-14T23:28:05.174Z",
+        "sha256": "f85bb56a9699cedc2038fd5a259a8849df0a249810e293840747100c51804639"
+      },
+      "bones": 18,
+      "greasePencilObjects": 20,
+      "camera": {
+        "type": "PERSP",
+        "lens": 75.0
+      },
+      "sourceFps": 24.0,
+      "bytes": 126754,
+      "maxBoneRestMatrixDifference": 0.0
+    },
+    "max": {
+      "file": "max.webp",
+      "source": {
+        "fileId": "1o0H1-5tGHQ5KaIyCx7s4OTHXIMedbSZf",
+        "name": "IngenieroMax.blend",
+        "modifiedTime": "2026-11-14T23:34:47.670Z",
+        "sha256": "9f0247e2bb5756cbf348be7ab4d1dc4bfc6e143866ce6a160c8737454ae84081"
+      },
+      "bones": 18,
+      "greasePencilObjects": 19,
+      "camera": {
+        "type": "PERSP",
+        "lens": 75.0
+      },
+      "sourceFps": 24.0,
+      "bytes": 131504,
+      "maxBoneRestMatrixDifference": 0.0
+    },
+    "saul": {
+      "file": "saul.webp",
+      "source": {
+        "fileId": "1SY0UhHmMlINGXlj5hTDHIB3rDrLUH7pN",
+        "name": "IngenieroSaul.blend",
+        "modifiedTime": "2026-11-15T00:28:02.222Z",
+        "sha256": "b2b4658a4d193d98c7dc734c3bb15b03d4870c5d66b9f43677bac03614955ad3"
+      },
+      "bones": 18,
+      "greasePencilObjects": 18,
+      "camera": {
+        "type": "PERSP",
+        "lens": 75.0
+      },
+      "sourceFps": 24.0,
+      "bytes": 117930,
+      "maxBoneRestMatrixDifference": 0.0
+    },
+    "dante": {
+      "file": "dante.webp",
+      "source": {
+        "fileId": "1NK0qrMFWYGz3SamIzzzM9diBgYZtFKNH",
+        "name": "IngenieroDante.blend",
+        "modifiedTime": "2026-11-14T23:43:29.335Z",
+        "sha256": "57e3a8d24dc7b6918a7e53c1635f432093d3ff895c1b991662c4aca65d02c34c"
+      },
+      "bones": 18,
+      "greasePencilObjects": 20,
+      "camera": {
+        "type": "PERSP",
+        "lens": 75.0
+      },
+      "sourceFps": 24.0,
+      "bytes": 126050,
+      "maxBoneRestMatrixDifference": 0.0
+    },
+    "victor": {
+      "file": "victor.webp",
+      "source": {
+        "fileId": "1QUyWjp0QjxbHEZffndZf5vrZle7Jbjd6",
+        "name": "IngenieroVíctor.blend",
+        "modifiedTime": "2026-11-15T00:12:52.599Z",
+        "sha256": "e6c3b47b13dceeb79d15199e6d2fc9ce58e5a4ba9e63e17a54e526d01141b31a"
+      },
+      "bones": 18,
+      "greasePencilObjects": 19,
+      "camera": {
+        "type": "PERSP",
+        "lens": 75.0
+      },
+      "sourceFps": 24.0,
+      "bytes": 128128,
+      "maxBoneRestMatrixDifference": 0.0
+    },
+    "teo": {
+      "file": "teo.webp",
+      "source": {
+        "fileId": "1ZrjDtsq99TEtMuQWkoE7jidFEIR_SdOa",
+        "name": "IngenieroTeo.blend",
+        "modifiedTime": "2026-11-15T00:22:00.689Z",
+        "sha256": "73df60cb2de367465859f7e606f87820010a0ef6a461946e4a3d4ac5ddce6c16"
+      },
+      "bones": 18,
+      "greasePencilObjects": 20,
+      "camera": {
+        "type": "PERSP",
+        "lens": 75.0
+      },
+      "sourceFps": 24.0,
+      "bytes": 129358,
+      "maxBoneRestMatrixDifference": 0.0
+    },
+    "ren": {
+      "file": "ren.webp",
+      "source": {
+        "fileId": "1b7waEkFyGxbVxa3ExwNsdqpSpXBpeER8",
+        "name": "IngenieroRen.blend",
+        "modifiedTime": "2026-11-15T00:26:19.255Z",
+        "sha256": "b0ff8632f75111620ffce56f2cf504cb311ebe5a6cfb3787c8248152862692c7"
+      },
+      "bones": 18,
+      "greasePencilObjects": 20,
+      "camera": {
+        "type": "PERSP",
+        "lens": 75.0
+      },
+      "sourceFps": 24.0,
+      "bytes": 126288,
+      "maxBoneRestMatrixDifference": 0.0
+    }
+  }
+}

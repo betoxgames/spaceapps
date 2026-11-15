@@ -1,28 +1,21 @@
 # Space Papers
 
-A work-in-progress lunar operations game for children ages 7–12. Review expedition papers, compare them with a manual, and stamp a decision. The supplied Blender room is rendered as a layered 2.5D scene with room and desk views. The current engineers are temporary; final integration is planned.
+A work-in-progress lunar operations game for children ages 7–12. Review expedition papers, compare them with a manual, and stamp a decision. The supplied Blender room is rendered as a layered 2.5D scene with room and desk views. Nine supplied engineers are integrated using their original artwork and animations.
 
+## Play
 
-## Jugar sin instalar herramientas
+Pull the latest repository changes, then open `index.html` directly in a browser. The game is contained in this one file and needs no installation, server, account or network connection. Campaigns reset on reload; preferences are stored locally.
 
-1. Descarga el repositorio con **Code → Download ZIP** y descomprímelo.
-2. Abre **Space-Papers.html** con doble clic en Chrome, Edge o Safari actualizado.
-3. Selecciona **Begin shift** o **Training**. Usa una pantalla de computadora, preferiblemente de al menos 1280 × 720.
+## Develop
 
-El archivo funciona sin Node.js, pnpm ni servidor. Es una versión generada del juego en este repositorio; la campaña no se guarda al cerrar. Los enlaces externos de las fuentes científicas requieren internet.
-
-Para regenerar el archivo después de modificar el juego: ejecuta `pnpm install --frozen-lockfile`, `pnpm build` y `node scripts/build-portable.mjs`; luego comprueba que `Space-Papers.html` abre mediante doble clic y confirma el archivo actualizado junto al código.
-
-## Run locally
-
-Install Node.js 24 and pnpm 11.25.0, then:
+For source changes, install Node.js 24 and pnpm 11.25.0:
 
 ```sh
 pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Open the local address printed by Vite (normally http://127.0.0.1:4173/). Campaigns reset on reload; preferences are stored locally. `pnpm preview` serves a production build after `pnpm build`.
+Open the local address printed by Vite (normally http://127.0.0.1:4173/). `dev.html` is the source entry. The tracked root `index.html` is generated: do not edit it by hand. Run `pnpm build` after changes to regenerate it and `dist/index.html` using `scripts/build-offline.mjs`.
 
 ## Verify
 
@@ -49,6 +42,6 @@ Drag sheets, manual and stamps. Select a stamp then click a sheet; keyboard focu
 
 ## Handoff and sources
 
-[Engineering handoff](HANDOFF_COPILOT.md) records current rules, architecture and planned work. [NASA reference metadata](public/science.json) archives sources and their limits. Resource costs and probabilities are fictional game balance, not NASA predictions. The game has no runtime network dependency. Scene art was supplied by the team; other graphics and synthesized sound are provisional. Human usability testing and final asset/license verification remain pending. Code and documentation were assisted by OpenAI Codex.
+[Engineering handoff](HANDOFF_COPILOT.md) records current rules, architecture and planned work. [NASA reference metadata](public/science.json) archives sources and their limits. Resource costs and probabilities are fictional game balance, not NASA predictions. The game has no runtime network dependency. Scene art and engineer artwork were supplied by the team; synthesized sound is provisional. The updated room and font, and the planet monitor, are deferred. See [sound priorities](SOUND_EFFECTS.md). Human usability testing and final asset/license verification remain pending. Code and documentation were assisted by OpenAI Codex.
 
 Original Blender source files remain in the team’s shared drive; commit only optimized runtime assets directly to Git. Git LFS is not needed for the current repository.

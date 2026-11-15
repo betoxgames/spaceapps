@@ -36,7 +36,15 @@ export const OPERATIONS: Operation[] = [
  {id:'B03',title:'Food supply',afterSuccess:3,choices:[{id:'A',name:'Grow local food',description:'Use water and energy to grow food for local use after the fourth success.',cost:vector(0,1000,0,0,10000),effect:'Food is growing for local use, without replenishing mission stock.'},{id:'B',name:'Use stored rations',description:'Use stored food and energy immediately; local growing waits.',cost:vector(500,0,0,0,2000),effect:'Stored rations used locally; growing waits.'}]}
 
 ];
-export interface Engineer {id:string;name:string;trait:string;greeting:string}
+export interface Engineer {id:string;name:string;trait:string;greeting:string;color:string;appearance:string}
 export const ENGINEERS: Engineer[] = [
- {id:'nico',name:'Nico',trait:'funny',greeting:'I brought a plan and an emergency joke.'}, {id:'ada',name:'Ada',trait:'analytical',greeting:'The figures are ready for your review.'}, {id:'leo',name:'Leo',trait:'shy',greeting:'I think this route could work.'}, {id:'max',name:'Max',trait:'bold',greeting:'A planet is waiting!'}, {id:'sol',name:'Sol',trait:'optimistic',greeting:'One step closer today.'}, {id:'dante',name:'Dante',trait:'dramatic',greeting:'The crew’s plan is in this folder.'}, {id:'vera',name:'Vera',trait:'formal',greeting:'The request is ready for inspection.'}, {id:'teo',name:'Teo',trait:'absent-minded',greeting:'Here is the plan. This is the right folder.'}, {id:'ren',name:'Ren',trait:'competitive',greeting:'Let’s aim for a careful mission.'}
+ {id:'nico',name:'Nico',trait:'funny, outgoing and witty',greeting:'One careful check for the crew. One giant pile of paperwork for me.',color:'#E98662',appearance:'Backward cap and star badge'},
+ {id:'adan',name:'Adán',trait:'analytical, methodical and observant',greeting:'The request is ready. Let’s check each figure in order.',color:'#79ADA5',appearance:'Large rectangular glasses'},
+ {id:'leo',name:'Leo',trait:'shy, kind and careful',greeting:'Hello. Could you take a careful look at our supplies?',color:'#DFAC65',appearance:'Headphones around the neck'},
+ {id:'max',name:'Max',trait:'adventurous, brave and enthusiastic',greeting:'Ready for a new route! First, the paperwork.',color:'#DB765F',appearance:'Pilot goggles on the forehead'},
+ {id:'saul',name:'Saúl',trait:'optimistic, patient and helpful',greeting:'Good to see you. Let’s take this one step at a time.',color:'#E3B34F',appearance:'Vest with sun emblem'},
+ {id:'dante',name:'Dante',trait:'dramatic, expressive and passionate',greeting:'A grand journey awaits! Its first chapter is on your desk.',color:'#7C9EAB',appearance:'Dramatic neck scarf'},
+ {id:'victor',name:'Víctor',trait:'formal, disciplined and organized',greeting:'Mission request submitted for your inspection.',color:'#C98678',appearance:'Service cap with insignia'},
+ {id:'teo',name:'Teo',trait:'distracted, creative and curious',greeting:'The tools are here, the folder is here… yes, this is your copy.',color:'#8FB49A',appearance:'Pencil behind ear and tool pocket'},
+ {id:'ren',name:'Ren',trait:'competitive, determined and confident',greeting:'A careful review makes a strong crew. Here’s our request.',color:'#D99952',appearance:'Chest emblem'}
 ];

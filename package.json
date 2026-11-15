@@ -5,20 +5,23 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && node scripts/build-offline.mjs",
     "preview": "vite preview --host 127.0.0.1",
     "test": "tsx --test tests/domain.test.ts tests/clock.test.ts",
     "test:browser": "node tests/browser.mjs",
     "test:desk": "node tests/desk-browser.mjs",
     "test:camera": "node tests/camera-browser.mjs",
-    "test:training": "node tests/training-browser.mjs"
+    "test:training": "node tests/training-browser.mjs",
+    "test:characters": "node tests/characters-browser.mjs",
+    "test:offline": "node tests/offline-browser.mjs"
   },
   "devDependencies": {
-    "typescript": "~5.9.3",
-    "vite": "^7.2.2",
-    "tsx": "^4.20.6",
     "@types/node": "^22.19.0",
-    "playwright": "^1.56.1"
+    "playwright": "^1.56.1",
+    "sharp": "^0.35.5",
+    "tsx": "^4.20.6",
+    "typescript": "~5.9.3",
+    "vite": "^7.2.2"
   },
   "packageManager": "pnpm@11.25.0",
   "engines": {

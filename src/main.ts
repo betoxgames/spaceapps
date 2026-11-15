@@ -1,4 +1,6 @@
 import './style.css';
+import { assetUrl } from './assets';
+import scienceArchive from '../public/science.json';
 import { PROTOCOLS, protocolMarkup } from './protocols';
 import { DESTINATIONS, ENGINEERS, EVENTS, OPERATIONS, RESOURCES, RESOURCE_LABELS, format, units, vector, type Resource, type Resources } from './catalog';
 import { createCampaign, nextProposal, approve, returnProposal, resolveEmergency, authorizeOperation, nextInterlude, finalGrade, type Campaign, type Resolution } from './domain';
@@ -7,6 +9,7 @@ import { GameClock } from './clock';
 import { Sound } from './audio';
 import { planet, ship, baseView, resourceIcon } from './art';
 import { Camera } from './camera';
+import { EngineerViewer } from './characters';
 
 type Phase = 'menu'|'desk'|'transition'|'cinema'|'report'|'emergency'|'operation'|'final';
 interface Preferences {volume:number; muted:boolean; reduced:boolean; clickPlacement:boolean}
@@ -53,13 +56,15 @@ const desk=new Desk(stage,{
   onSelect:()=>{},
 });
 const camera = new Camera(stage, () => desk.cancel());
+const engineerViewer = new EngineerViewer($('#visitor-portrait'),state=>$('#visitor-portrait').dataset.viewerState=state);
+window.addEventListener('pagehide',()=>engineerViewer.dispose(),{once:true});
 applyPreferences();
-fetch(new URL('science.json',document.baseURI)).then(r=>{if(!r.ok)throw new Error('Science file unavailable');return r.json();}).then(data=>{science=data.sources??[];}).catch(()=>{science=[];});
+science = scienceArchive.sources as unknown as Science[];
 
 function announce(message:string){$('#announcement').textContent=message;}
 let toastTimer=0;
 function toast(message:string){const el=$('#toast');el.textContent=message;el.hidden=false;clock.cancel(toastTimer);toastTimer=clock.after(3500,()=>el.hidden=true);announce(message);}
-function applyPreferences(){sound.volume=prefs.volume;sound.muted=prefs.muted;desk.clickPlacement=prefs.clickPlacement;stage.classList.toggle('reduced-motion',prefs.reduced);try{localStorage.setItem('space-papers-preferences-v1',JSON.stringify(prefs));}catch{}}
+function applyPreferences(){engineerViewer.setReducedMotion(prefs.reduced);sound.volume=prefs.volume;sound.muted=prefs.muted;desk.clickPlacement=prefs.clickPlacement;stage.classList.toggle('reduced-motion',prefs.reduced);try{localStorage.setItem('space-papers-preferences-v1',JSON.stringify(prefs));}catch{}}
 function scale(){desk.cancel();const width=window.innerWidth,height=window.innerHeight;const s=Math.min(width/1600,height/900);stage.style.transform=`scale(${s})`;$('#viewport').style.width=`${1600*s}px`;$('#viewport').style.height=`${900*s}px`;const small=width<1000||height<600;$('#small-screen').hidden=!small;if(small&&phase!=='menu'&&!paused)pause();}
 window.addEventListener('resize',scale);
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&phase!=='menu')pause();});
@@ -80,11 +85,13 @@ function showVisitor(id:string){
   const engineer=ENGINEERS.find(e=>e.id===id)??ENGINEERS[1];
   const visitor=$('.visitor-area'),door=$('.scene-door');
   doorTasks.forEach(task=>clock.cancel(task));doorTasks=[];
+  void engineerViewer.show(engineer.id);$('#visitor-portrait').dataset.engineer=engineer.id;
+  $('.visitor-area').style.setProperty('--engineer-color',engineer.color);
   $('#visitor-name').textContent=engineer.name;$('#speech').textContent=engineer.greeting;visitor.classList.remove('departing');
-  const frame=(n:string)=>door.style.setProperty('--door-frame',`url("${new URL(`art/scene/door-${n}.webp`,document.baseURI).href}")`);
+  const frame=(n:string)=>door.style.setProperty('--door-frame',`url("${assetUrl(`art/scene/door-${n}.webp`)}")`);
   if(prefs.reduced){frame('0032');delete visitor.dataset.arriving;return;}
   visitor.dataset.arriving='true';frame('0001');
-  ['0008','0016','0024','0032'].forEach((n,index)=>doorTasks.push(clock.after((index+1)*160,()=>{frame(n);if(n==='0032')delete visitor.dataset.arriving;})));
+  ['0008','0016','0024','0032'].forEach((n,index)=>doorTasks.push(clock.after((index+1)*160,()=>{frame(n);if(n==='0032'){delete visitor.dataset.arriving;engineerViewer.setAnimation('arrive');}})));
 }
 function updateStatus(){
   $('#performance').innerHTML=`<span>SUCCESSFUL RETURNS</span><strong>${visible.completed.length}<small>/5</small></strong><span>${visible.approvals?`${visible.approvals} approved · ${Math.round(visible.completed.length/visible.approvals*100)}% success`:'Not yet evaluated'}</span>`;
@@ -192,7 +199,7 @@ function stampDecision(stamp:'approve'|'return',target:string){
   });
 }
 function beginStamp(stamp:'approve'|'return',target:string,done:()=>void){
-  busy=true;phase='transition';setStampAvailability();sound.play('stamp');
+  busy=true;phase='transition';engineerViewer.setAnimation('depart');setStampAvailability();sound.play('stamp');
   const el=desk.items.get(target)?.el;if(el){const ink=el.querySelector('.ink-mark')??el.appendChild(Object.assign(document.createElement('div'),{className:'ink-mark'}));ink.textContent=stamp==='approve'?'AUTHORIZED':'RETURNED';ink.classList.add('visible',stamp);}
   clock.after(prefs.reduced?80:260,()=>{for(const id of ['flight','life','power','order'])desk.items.get(id)?.el.classList.add('collecting');$('.visitor-area').classList.add('departing');});
   clock.after(prefs.reduced?150:650,()=>{for(const id of ['flight','life','power','order'])desk.remove(id);done();});
@@ -208,7 +215,7 @@ function showEmergency(id:string){
   camera.set('desk');
   phase='emergency';busy=false;emergencyId=id;remaining=30000;contribution=0;alarmSecond=-1;protocolSelection=null;desk.remove('order');desk.remove('worksheet');stage.dataset.incident=id;
   const e=EVENTS.find(e=>e.id===id)!;const max=Math.min(100,Math.floor(campaign.stock[e.resource]*100/e.cost));
-  showVisitor('vera');$('#speech').textContent='An incident needs your attention. Choose a contribution, then confirm.';
+  showVisitor('victor');$('#speech').textContent='An incident needs your attention. Choose a contribution, then confirm.';
   const practice=training?.lesson===3&&training.practice!=='timed';
   mount('emergency',`<header class="emergency-header"><span class="emergency-light"></span><span>PRIORITY TRANSMISSION / ${id}</span><span class="grab-caption">DRAG TO MOVE</span></header><div class="emergency-body"><div class="emergency-heading"><div><span class="eyebrow">LUNAR BASE / RESPONSE REQUIRED</span><h2>${e.title}</h2></div><div class="timer" role="timer" aria-label="Emergency time remaining"><strong id="seconds">${practice?'—':'30'}</strong><span>${practice?'PRACTICE':'SECONDS'}</span></div></div><p>${e.description}</p><div class="emergency-cost"><span>Full intervention</span><strong>${format(e.cost)} ${RESOURCE_LABELS[e.resource].unit} ${RESOURCE_LABELS[e.resource].label.toLowerCase()}</strong></div><label class="contribution-label" for="contribution">Your contribution <strong id="contribution-percent">0%</strong></label><input id="contribution" type="range" min="0" max="${max}" value="0" step="1" aria-describedby="contribution-help"><div class="contribution-scale"><span>0%</span><span>${max}% available</span></div><div class="contribution-summary"><span id="contribution-amount">0 ${RESOURCE_LABELS[e.resource].unit}</span><span><strong id="probability">0%</strong> chance of recovery</span></div><p id="contribution-help" class="fine-print">Only confirming spends stock. Zero contribution always fails.</p><div class="emergency-actions">${button('Stock ledger','inventory')}${PROTOCOLS[id]?button('Inspect report','inspect-incident'):''}${button(practice?'Test this amount':'Confirm contribution','confirm-emergency','primary')}</div></div>`,'emergency',220,245,800,460,'emergency');
   sound.play('alert');setStampAvailability();renderTraining();announce(practice?'Emergency practice. No time limit.':'Emergency. Thirty seconds. Contribution starts at zero.');
@@ -239,7 +246,7 @@ function confirmEmergency(expired=false){
 function showOperation(id:string){
   camera.set('desk');
   phase='operation';busy=false;operationId=id;operationChoice=null;desk.remove('emergency');
-  const op=OPERATIONS.find(o=>o.id===id)!;showVisitor('ada');$('#speech').textContent='A decision for the base. Compare the costs, choose one option, then approve this order.';
+  const op=OPERATIONS.find(o=>o.id===id)!;showVisitor('adan');$('#speech').textContent='A decision for the base. Compare the costs, choose one option, then approve this order.';
   mount('order',`<header class="order-header"><span>INTERNAL ORDER / ${id}</span><span>SHARED STOCK</span></header><h2>${op.title}</h2><p class="order-intro">Choose one plan. Stamp this order to authorize its cost.</p><div class="order-choices">${op.choices.map(c=>`<button class="order-choice" data-action="choice-${c.id}" aria-pressed="false"><span class="choice-letter">${c.id}</span><div><strong>${c.name}</strong><p>${c.description}</p><span class="choice-cost">${costText(c.cost)}</span></div></button>`).join('')}</div><div id="message-status" class="message-status">${id==='B02'?'↗ Consulting Earth… ideal signal round trip: 2.6 seconds.':'Resources are spent once. No mission approval is counted.'}</div><p class="fine-print">Fictional operation packages. Compare costs with the stock ledger. Insufficient stock ends your shift.</p><div class="order-bottom">${button('Stock ledger','inventory')}${button('NASA field notes','operation-science')}<span id="order-selected">SELECT A OR B</span></div><div class="ink-mark" aria-hidden="true"></div>`,'order paper',385,325,740,455,'order');
   if(id==='B02'){communication=2600;messageSent=true;}else{communication=0;messageSent=false;}
   setStampAvailability();renderTraining();
@@ -300,7 +307,7 @@ function setupTraining(lesson:number){
   camera.set('desk');training={lesson,step:0,practice:'half',error:false};stage.classList.remove('menu-mode');
   for(const id of ['flight','life','power','order','emergency','worksheet'])desk.remove(id);
   campaign=createCampaign(`training-${lesson}`);campaign.stock=vector(200000,400000,100000,20000000,20000000);campaign.initial={...campaign.stock};campaign.events.forEach(e=>e.resolved=true);
-  if(lesson===1||lesson===2){const d=DESTINATIONS.find(d=>d.id===(lesson===1?'earth':'mars'))!;campaign.proposal={id:`practice-${lesson}`,destinationId:d.id,engineerId:lesson===1?'ada':'leo',minimum:{...d.minimum},requested:{...d.minimum,...(lesson===2?{food:units(6900)}:{})}};visible=campaign;renderProposal();}
+  if(lesson===1||lesson===2){const d=DESTINATIONS.find(d=>d.id===(lesson===1?'earth':'mars'))!;campaign.proposal={id:`practice-${lesson}`,destinationId:d.id,engineerId:lesson===1?'adan':'leo',minimum:{...d.minimum},requested:{...d.minimum,...(lesson===2?{food:units(6900)}:{})}};visible=campaign;renderProposal();}
   if(lesson===3){campaign.events=[{id:'E02',afterSuccess:0,resolved:false}];visible=campaign;showEmergency('E02');}
   if(lesson===4){campaign.completed=['earth'];visible=campaign;showOperation('B01');}
   updateStatus();renderTraining();setStampAvailability();
@@ -329,7 +336,7 @@ function pause(){if(phase==='menu'||paused)return;paused=true;lastFocus=document
 function showPause(){showModal('pause',`<section class="small-panel"><span class="eyebrow">LUNAR OPERATIONS / ON HOLD</span><h1>Take a breath.</h1><p>Your papers, the mission and the emergency clock are paused.</p>${button('Continue shift →','resume','primary')}${button('Options','options')}${button('Return to menu','leave')}<p class="fine-print">Your shift is not saved when you leave.</p></section>`);}
 function resume(){closeModal();paused=false;stage.classList.remove('paused');clock.setPaused(false);sound.pause(false);setStampAvailability();if(phase==='report')showReport();else if(phase==='final')showFinal(finalGrade(campaign.completed.length,campaign.approvals,!!campaign.terminal));else lastFocus?.isConnected&&lastFocus.focus({preventScroll:true});}
 function options(){showModal('options',`<section class="small-panel options-panel"><span class="eyebrow">PERSONAL EQUIPMENT SETTINGS</span><h1>Make it yours.</h1><label class="setting"><span>Sound volume</span><input type="range" id="volume" min="0" max="100" value="${Math.round(prefs.volume*100)}"></label><label class="setting"><span>Mute sound</span><input type="checkbox" id="muted" ${prefs.muted?'checked':''}></label><label class="setting"><span>Reduce motion</span><input type="checkbox" id="reduced" ${prefs.reduced?'checked':''}></label><label class="setting"><span>Place objects with two clicks</span><input type="checkbox" id="click-placement" ${prefs.clickPlacement?'checked':''}></label><p class="fine-print">You can always use the keyboard. English edition. Campaigns are not saved; these preferences are.</p>${button('Full screen','fullscreen')}${button('Done','settings-done','primary')}</section>`);}
-function credits(){showModal('credits',`<section class="credits-panel"><span class="eyebrow">SPACE PAPERS / LOS VALAR</span><h1>Science behind<br>the paperwork.</h1><div class="credits-columns"><div><h3>An original lunar desk</h3><p>Game concept and direction: Los valar. Implementation and original vector stand-ins: assisted by OpenAI Codex and Terra agents.</p><p>Room, desk and door: original Blender renders supplied by Los valar, integrated as layered WebP images. Engineer figures and remaining procedural illustrations are temporary stand-ins awaiting the team’s final assets.</p><p>Interaction research references Papers, Please by Lucas Pope. No art, text, audio or code from that game is used.</p><p>Sound cues are synthesized locally. System fonts. No player analytics, account or live API connection.</p></div><div><h3>NASA field references</h3><ul><li><a href="https://ccmc.gsfc.nasa.gov/DONKI/events/30666/2/" target="_blank" rel="noopener">DONKI · May 10, 2024 · X3.9</a></li><li><a href="https://www.nasa.gov/missions/station/nasa-achieves-water-recovery-milestone-on-international-space-station/" target="_blank" rel="noopener">ISS water-recovery milestone</a></li><li><a href="https://www.nasa.gov/missions/station/veggie-plant-growth-system-activated-on-international-space-station/" target="_blank" rel="noopener">Veg-01 growing experiment</a></li><li><a href="https://science.nasa.gov/science-research/heliophysics/how-nasa-will-protect-astronauts-from-space-radiation-at-the-moon/" target="_blank" rel="noopener">Radiation protection at the Moon</a></li><li><a href="https://science.nasa.gov/mission/webb/science-overview/science-explainers/how-does-webb-see-back-in-time/" target="_blank" rel="noopener">Light travel time</a></li></ul><p>All economic costs and survival probabilities are fictional game balance. Scientific observations remain separate. NASA does not endorse this game.</p></div></div>${button('Back','settings-done','primary')}</section>`);}
+function credits(){showModal('credits',`<section class="credits-panel"><span class="eyebrow">SPACE PAPERS / LOS VALAR</span><h1>Science behind<br>the paperwork.</h1><div class="credits-columns"><div><h3>An original lunar desk</h3><p>Game concept and direction: Los valar. Implementation and original vector stand-ins: assisted by OpenAI Codex and Terra agents.</p><p>Room, desk and door: original Blender renders supplied by Los valar, integrated as layered WebP images. The nine engineers use the team’s original rigged Grease Pencil art and template animations, exported as transparent atlases. Remaining procedural illustrations are provisional.</p><p>Interaction research references Papers, Please by Lucas Pope. No art, text, audio or code from that game is used.</p><p>Sound cues are synthesized locally. System fonts. No player analytics, account or live API connection.</p></div><div><h3>NASA field references</h3><ul><li><a href="https://ccmc.gsfc.nasa.gov/DONKI/events/30666/2/" target="_blank" rel="noopener">DONKI · May 10, 2024 · X3.9</a></li><li><a href="https://www.nasa.gov/missions/station/nasa-achieves-water-recovery-milestone-on-international-space-station/" target="_blank" rel="noopener">ISS water-recovery milestone</a></li><li><a href="https://www.nasa.gov/missions/station/veggie-plant-growth-system-activated-on-international-space-station/" target="_blank" rel="noopener">Veg-01 growing experiment</a></li><li><a href="https://science.nasa.gov/science-research/heliophysics/how-nasa-will-protect-astronauts-from-space-radiation-at-the-moon/" target="_blank" rel="noopener">Radiation protection at the Moon</a></li><li><a href="https://science.nasa.gov/mission/webb/science-overview/science-explainers/how-does-webb-see-back-in-time/" target="_blank" rel="noopener">Light travel time</a></li></ul><p>All economic costs and survival probabilities are fictional game balance. Scientific observations remain separate. NASA does not endorse this game.</p></div></div>${button('Back','settings-done','primary')}</section>`);}
 function help(){if(phase!=='menu'&&!paused)pause();showModal('help',`<section class="small-panel"><span class="eyebrow">YOUR DESK / QUICK REFERENCE</span><h1>Every paper<br>has a place.</h1><dl class="controls-list"><dt>Hold + drag</dt><dd>Move a sheet, book or stamp</dd><dt>Click stamp, then sheet</dt><dd>Stamp without dragging</dd><dt>B / I / R</dt><dd>Manual / inventory / record</dd><dt>1 / 2 / 3</dt><dd>Find a covered sheet</dd><dt>Tab · Enter · arrows</dt><dd>Focus, take, move and place</dd><dt>Escape / F</dt><dd>Pause / full screen</dd></dl><p>Store sheets by dropping them into the tray. No double-click zoom. Options includes two-click placement.</p>${button('Back to desk','resume','primary')}</section>`);}
 
 document.addEventListener('click',event=>{
@@ -385,6 +392,8 @@ document.addEventListener('keydown',event=>{
   if(['1','2','3'].includes(key)){event.preventDefault();camera.set('desk');desk.focus(['flight','life','power'][Number(key)-1]);}
 });
 clock.subscribe(dt=>{
+  engineerViewer.setVisible(camera.position==='room'&&phase==='desk');
+  engineerViewer.tick(dt);
   if(phase==='emergency'&&!(training?.lesson===3&&training.practice!=='timed')){
     remaining=Math.max(0,remaining-dt);const sec=Math.ceil(remaining/1000);const counter=$('#seconds');if(counter)counter.textContent=String(sec);
     desk.items.get('emergency')?.el.classList.toggle('urgent',remaining<=10000);
@@ -404,10 +413,10 @@ scale();menu();clock.start();
 if(import.meta.env.DEV){
   Object.assign(window,{__SPACE_PAPERS__:{
     state:()=>structuredClone(campaign),view:()=>({phase,paused,camera:camera.position,remaining,contribution,bookDestination,training:training&&{...training},pending:pending&&{...pending}}),
-    start,training:setupTraining,
+    start,training:setupTraining,engineer:(id:string)=>{if(ENGINEERS.some(e=>e.id===id)){showVisitor(id);camera.set('room');}},
     scenario:(kind:string)=>{start('qa-scenario');campaign.events.forEach(e=>e.resolved=true);campaign.stock=vector(200000,400000,100000,30000000,30000000);
       if(kind.startsWith('emergency')){const eventId=kind.split(':')[1]||'E02';campaign.events=[{id:eventId,afterSuccess:0,resolved:false}];visible=campaign;for(const id of ['flight','life','power'])desk.remove(id);showEmergency(eventId);}
       else if(kind==='operation'){campaign.completed=['earth'];visible=campaign;for(const id of ['flight','life','power'])desk.remove(id);showOperation('B01');}
-      else{const d=DESTINATIONS.find(d=>d.id==='earth')!;campaign.proposal={id:'qa',destinationId:d.id,engineerId:'ada',minimum:{...d.minimum},requested:{...d.minimum}};if(kind==='short')campaign.proposal.requested.food=units(6900);if(kind==='stock')campaign.stock.energy=0;visible=campaign;renderProposal();}updateStatus();},
+      else{const d=DESTINATIONS.find(d=>d.id==='earth')!;campaign.proposal={id:'qa',destinationId:d.id,engineerId:'adan',minimum:{...d.minimum},requested:{...d.minimum}};if(kind==='short')campaign.proposal.requested.food=units(6900);if(kind==='stock')campaign.stock.energy=0;visible=campaign;renderProposal();}updateStatus();},
   }});
 }
