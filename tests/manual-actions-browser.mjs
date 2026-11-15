@@ -14,7 +14,7 @@ async function exercise(page, native) {
   await page.keyboard.press('b');
   if (native) assert.equal(await page.locator('#manual-reader').isVisible(), true);
 
-  await click('manual-flight');
+  await click('book-destinations');await click('manual-flight');
   assert.equal((await view()).bookTab, 'flight');
   assert.match(await page.locator('.guide-flight-destination').innerText(), /Earth/);
   assert.match(await page.locator('.guide-flight-facts').innerText(), /4 crew members/);
@@ -24,10 +24,10 @@ async function exercise(page, native) {
   assert.equal(await page.locator('.guide-planet-card:visible').count(), 8);
   await click('destination-mars');await click('book-index');await click('manual-choose-route');
   assert.equal((await view()).bookDestination, null, 'Find minimums opens the atlas instead of silently reusing an old reference');
-  await click('book-index');await click('manual-compare');
+  await click('destination-earth');await click('manual-compare');
   assert.equal((await view()).bookTab, 'compare');
   assert.equal(await page.locator('.guide-comparison-table tbody tr').count(), 5);
-  assert.equal(await page.locator('[data-value="minimum"] strong').evaluateAll(es => es.every(el => el.textContent === '—')), true);
+  assert.equal((await view()).bookDestination, 'earth');
   await click('manual-compare-reference');await click('destination-earth');
   assert.equal((await view()).bookTab, 'compare', 'reference selection returns to comparison');
   for (const [resource, amount] of Object.entries(before.proposal.requested)) {
@@ -51,13 +51,17 @@ async function exercise(page, native) {
   await page.keyboard.press('i');assert.equal(await page.locator('.guide-inventory-table').isVisible(), true);
   await page.keyboard.press('r');assert.equal(await page.locator('.guide-turn-record').isVisible(), true);
   assert.equal(await page.locator('.ledger-tool,.log-tool,#ledger').count(), 0, 'shortcuts navigate inside the manual');
-  assert.deepEqual(await page.evaluate(() => window.__SPACE_PAPERS__.state()), before, 'all four steps are inspection only');
+  assert.deepEqual(await page.evaluate(() => window.__SPACE_PAPERS__.state()), before, 'manual navigation is inspection only');
 
   await page.evaluate(() => window.__SPACE_PAPERS__.scenario('operation:B01'));
   await click('open-dispatch');await page.keyboard.press('b');await click('book-index');
-  assert.equal(await page.locator('[data-action="manual-flight"]').isDisabled(), true);
-  assert.equal(await page.locator('[data-action="manual-compare"]').isDisabled(), true);
-  assert.match(await page.locator('.guide-review-steps').innerText(), /Available when a mission proposal arrives/);
+  assert.equal(await page.locator('.guide-review-steps').count(), 0);
+  assert.equal(await page.locator('.guide-inventory-link').isEnabled(), true);
+  await click('manual-choose-route');
+  assert.equal(await page.locator('[data-action="manual-flight"]').count(), 0);
+  await click('destination-earth');
+  assert.equal(await page.locator('[data-action="manual-compare"]').count(), 0);
+  await click('book-index');
   await click('manual-stock');assert.equal(await page.locator('.guide-inventory-table').isVisible(), true, 'inventory remains available for base orders');
   await click('close-manual');
   assert.equal(await page.evaluate(() => document.activeElement.dataset.action), 'manual');
@@ -70,14 +74,14 @@ try {
     await page.close();
   }
 
-  // The four manual actions also complete the guided review without legacy books.
+  // Contextual route actions and the home inventory row complete the guided review.
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 }, reducedMotion: 'reduce' });
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(url);
   await page.evaluate(() => { window.__SPACE_PAPERS__.manualTime();window.__SPACE_PAPERS__.training(1); });
   const click = action => page.locator(`[data-action="${action}"]`).first().click();
-  await page.keyboard.press('b');await click('manual-flight');await click('book-index');
-  await click('manual-choose-route');await click('destination-earth');await click('book-index');
+  await page.keyboard.press('b');await click('book-destinations');await click('manual-flight');
+  await click('manual-choose-route');await click('destination-earth');
   await click('manual-compare');await click('book-index');await click('manual-stock');
   assert.equal(await page.evaluate(() => window.__SPACE_PAPERS__.view().training.step), 5);
   assert.match(await page.locator('#training-guide').innerText(), /Take APPROVE/);
@@ -102,5 +106,5 @@ try {
   assert.equal(await page.locator('#ledger,.ledger-tool,.log-tool').count(), 0);
   await page.close();
   assert.deepEqual(errors, []);
-  console.log('PASS: all four manual steps, fresh atlas, both request sheets, inventory/log only inside manual, keyboard/native reading, no-proposal states, guided review and record pagination at four screen sizes.');
+  console.log('PASS: contextual route actions, fresh atlas, both request sheets, home inventory access, keyboard/native reading, no-proposal states, guided review and record pagination at four screen sizes.');
 } finally { await browser.close(); }

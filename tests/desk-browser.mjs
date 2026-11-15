@@ -5,7 +5,7 @@ const page=await browser.newPage({viewport:{width:1600,height:900}});
 await page.goto(process.env.PREVIEW_URL||'http://127.0.0.1:4173');
 await page.evaluate(async()=>{
  document.body.innerHTML='<div id="s" style="position:relative;width:1600px;height:900px"><button data-stamp-tool="approve" style="position:absolute;left:30px;top:700px">stamp</button></div>';
- const {Desk}=await import('/src/desk.ts');const s=document.querySelector('#s');window.calls=[];
+ const {Desk}=await import('/src/ui/desk.ts');const s=document.querySelector('#s');window.calls=[];
  window.desk=new Desk(s,{announce:()=>{},onPaper:()=>{},onSelect:()=>{},canStamp:()=>true,onStamp:(...args)=>window.calls.push(args)});
  for(const [id,x,y,kind,stored] of [['paper',1100,200,'paper',true],['manual',100,100,'book',false]]) {const el=document.createElement('div');el.style.cssText='position:absolute;left:0;top:0;transform-origin:top left;background:#ddd';s.append(el);window.desk.register({id,el,x,y,width:300,height:300,kind,stored,tray:{x:1100,y:200}});}
 });

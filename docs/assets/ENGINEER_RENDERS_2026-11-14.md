@@ -26,7 +26,7 @@ No se encontraron renders nuevos de caminata en ninguna de las nueve carpetas: s
 
 ## Preparación y registro
 
-`public/art/engineers/manifest.json` registra por imagen su ID de Drive, hash SHA-256, tamaño, límites alfa y procedencia. Incluye los hashes de las fuentes Blender, cámara, muestreo, frecuencia y registro del ciclo de marcha. `src/engineer-clips.json` contiene solo los metadatos que necesita el juego.
+`public/assets/images/engineers/manifest.json` registra por imagen su ID de Drive, hash SHA-256, tamaño, límites alfa y procedencia. Incluye los hashes de las fuentes Blender, cámara, muestreo, frecuencia y registro del ciclo de marcha. `src/data/engineer-clips.json` contiene solo los metadatos que necesita el juego.
 
 Los fotogramas se recortan por sus límites alfa y se ajustan a la resolución de uso con proporción conservada. No se cambian colores, trazos, ropa ni rasgos (se conserva, por ejemplo, el traje azul de Saúl). WebP usa compresión sin pérdida **después del remuestreo de resolución**. Los rectángulos se empaquetan con margen transparente para reducir la memoria de decodificación; no se rasterizan grandes celdas vacías repetidas.
 

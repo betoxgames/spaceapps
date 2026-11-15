@@ -74,7 +74,7 @@ try {
     for (let index = 0; index < fixtures.length; index++) {
       const fixture = fixtures[index];
       await page.evaluate(async ({ resolution, destination }) => {
-        const { reportMarkup } = await import('/src/report.ts');
+        const { reportMarkup } = await import('/src/ui/report.ts');
         const layer = document.querySelector('#modal-layer');layer.hidden = false;layer.dataset.modal = 'report';
         layer.innerHTML = reportMarkup(resolution, destination, false);layer.querySelector('h1').id = 'modal-title';
       }, fixture);
@@ -87,7 +87,7 @@ try {
     }
   }
   await page.evaluate(async fixture => {
-    const { reportMarkup } = await import('/src/report.ts');
+    const { reportMarkup } = await import('/src/ui/report.ts');
     document.querySelector('#modal-layer').innerHTML = reportMarkup(fixture.resolution, fixture.destination, true);
   }, fixtures[1]);
   assert.match(await page.locator('[data-action="archive"]').innerText(), /Try lesson again/);

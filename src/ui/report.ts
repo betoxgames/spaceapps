@@ -1,8 +1,8 @@
-import { RESOURCES, RESOURCE_LABELS, OPERATIONS } from './catalog';
+import { esc } from './helpers';
+import { RESOURCES, RESOURCE_LABELS, OPERATIONS } from '../data/catalog';
 import { baseView, planet, resourceIcon } from './art';
-import type { Resolution } from './domain';
+import type { Resolution } from '../game/campaign';
 
-const esc = (value:unknown) => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
 
 /** A consequence summary. Exact expenditure and balances belong to the stock ledger. */
 export function reportMarkup(r:Resolution, destination:string, retry:boolean):string {

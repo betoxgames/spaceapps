@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { GameClock } from '../src/clock.ts';
+import { GameClock } from '../src/core/clock.ts';
 test('hidden and paused time does not expire tasks or advance scenes', () => {
   const clock = new GameClock(); let fired = 0, elapsed = 0;
   clock.subscribe(dt => elapsed += dt); clock.after(30000, () => fired++);

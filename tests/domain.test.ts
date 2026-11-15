@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { BASE_BUDGET, DESTINATIONS, EVENTS, OPERATIONS, RESOURCES, units, vector } from '../src/catalog';
-import { approve, authorizeOperation, createCampaign, finalGrade, nextInterlude, nextProposal, resolveEmergency, returnProposal, type Campaign } from '../src/domain';
+import { BASE_BUDGET, DESTINATIONS, EVENTS, OPERATIONS, RESOURCES, units, vector } from '../src/data/catalog';
+import { approve, authorizeOperation, createCampaign, finalGrade, nextInterlude, nextProposal, resolveEmergency, returnProposal, type Campaign } from '../src/game/campaign';
 const clone=<T>(v:T):T=>structuredClone(v);
 function ready():Campaign {let s=nextProposal(createCampaign('fixture'));s.proposal!.destinationId='earth';s.proposal!.minimum=clone(DESTINATIONS.find(d=>d.id==='earth')!.minimum);s.proposal!.requested=clone(s.proposal!.minimum);return s;}
 function dueEvent():Campaign {const s=createCampaign('emergency');s.completed=['earth'];s.approvals=1;s.events=[{id:'E02',afterSuccess:1,resolved:false},{id:'E04',afterSuccess:4,resolved:false}];return s;}

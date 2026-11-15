@@ -23,15 +23,28 @@ jobs:
       - run: pnpm test
       - run: pnpm exec playwright install --with-deps chromium
       - name: Verify committed game opens without building
-        run: pnpm test:offline
+        run: |
+          pnpm test:offline
+          pnpm test:audio-offline
       - run: pnpm build
       - name: Verify committed game matches source
-        run: git diff --exit-code -- index.html
-      - run: pnpm test:offline
+        run: git diff --exit-code -- index.html runtime/
+      - run: |
+          pnpm test:offline
+          pnpm test:audio-offline
+          PLAY_HTML=dist/index.html pnpm test:audio-offline
+          node tests/distribution.mjs
       - run: |
           pnpm dev > /tmp/space-papers-vite.log 2>&1 &
           for i in $(seq 1 30); do curl -fsS http://127.0.0.1:4173/ > /dev/null && break; sleep 1; done
           curl -fsS http://127.0.0.1:4173/ > /dev/null
+          pnpm test:audio
+          pnpm test:dispatch
+          pnpm test:manual
+          pnpm test:manual-actions
+          pnpm test:reports
+          pnpm test:stamps
+          pnpm test:desk-layout
           pnpm test:browser
           pnpm test:desk
           pnpm test:camera
@@ -43,6 +56,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: offline-build
-          path: dist/index.html
+          path: dist/
           if-no-files-found: error
           retention-days: 14

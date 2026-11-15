@@ -1,4 +1,4 @@
-import { BASE_BUDGET, DESTINATIONS, ENGINEERS, EVENTS, OPERATIONS, RESOURCES, vector, type Resource, type Resources } from './catalog';
+import { BASE_BUDGET, DESTINATIONS, ENGINEERS, EVENTS, OPERATIONS, RESOURCES, vector, type Resource, type Resources } from '../data/catalog';
 
 export interface Proposal { id:string; destinationId:string; engineerId:string; minimum:Resources; requested:Resources }
 export type Stage = 'launch'|'outbound'|'destination'|'return'|'base';

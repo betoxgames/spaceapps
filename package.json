@@ -8,12 +8,15 @@
     "build": "tsc --noEmit && node scripts/build-offline.mjs",
     "preview": "vite preview --host 127.0.0.1",
     "test": "tsx --test tests/domain.test.ts tests/clock.test.ts",
+    "test:audio": "node tests/audio-browser.mjs",
+    "test:audio-offline": "node tests/audio-offline-browser.mjs",
     "test:browser": "node tests/browser.mjs",
     "test:dispatch": "node tests/dispatch-browser.mjs",
     "test:manual": "node tests/manual-browser.mjs",
     "test:manual-actions": "node tests/manual-actions-browser.mjs",
     "test:reports": "node tests/report-browser.mjs",
     "test:desk": "node tests/desk-browser.mjs",
+    "test:stamps": "node tests/stamps-browser.mjs",
     "test:desk-layout": "node tests/desk-layout-browser.mjs",
     "test:camera": "node tests/camera-browser.mjs",
     "test:training": "node tests/training-browser.mjs",
@@ -22,7 +25,8 @@
     "test:visitors": "node tests/visitor-browser.mjs",
     "test:ux": "node tests/ux-browser.mjs",
     "test:accessibility": "node tests/desk-accessibility-browser.mjs",
-    "release:package": "pnpm build && node scripts/package-release.mjs"
+    "release:package": "pnpm build && node scripts/package-release.mjs",
+    "test:distribution": "node tests/distribution.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.19.0",

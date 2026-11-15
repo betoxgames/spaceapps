@@ -1,0 +1,50 @@
+{
+  "sourceFolder": "https://drive.google.com/drive/folders/1HGmsCmLKqGfNKUZX8IJ8vGxLojD-DRnc",
+  "attribution": "Original graphics and stamp recording supplied by Los valar for Space Papers.",
+  "sourceCanvas": [
+    600,
+    720
+  ],
+  "runtimeCanvas": [
+    300,
+    360
+  ],
+  "registration": "Preserve the full transparent canvas across both poses; no independent trimming.",
+  "sources": [
+    {
+      "original": "APROBADOidle.png",
+      "output": "assets/images/ui/approve-idle.webp",
+      "driveId": "1Smh56cD877wP8We6s6wx7q4m3yD-Qzmi",
+      "bytes": 76858,
+      "sha256": "410854693aed5eef7a7248ede9020cfa39f47a77a25911fa085d8f720369067e"
+    },
+    {
+      "original": "CANCELADOidle.png",
+      "output": "assets/images/ui/return-idle.webp",
+      "driveId": "1lXrSpXViWwzgLKS1oDCRnsmc_ghr1Vpu",
+      "bytes": 76788,
+      "sha256": "a4bcc680bc32bb104b312abdacd74ec809c5f11cac87d6bbe94f32ba24907af3"
+    },
+    {
+      "original": "APROBADO.png",
+      "output": "assets/images/ui/approve-held.webp",
+      "driveId": "1UUWLGMdSj9EGqxmpkYfxcIKL08WK6qRB",
+      "bytes": 107872,
+      "sha256": "8e37ab1acaf1102aaadd4aa3d13850a5128f0d432527c64d1600ed7db8386e47"
+    },
+    {
+      "original": "cancelado.png",
+      "output": "assets/images/ui/return-held.webp",
+      "driveId": "1tkIVYpSE6LlDaBux8VxbT6wALa2sXi03",
+      "bytes": 107626,
+      "sha256": "5baf5973e9cda9414c85280fd3d9e01da21751f72eb827fbb49683c87ba1eb78"
+    },
+    {
+      "original": "Sello.mp3",
+      "output": "assets/audio/stamp.mp3",
+      "driveId": "1lGgMNnQ4bVHVMySbrfNRXn6LlIhpnmnm",
+      "bytes": 33120,
+      "sha256": "8ebefdd86e4c5676888aaf8a50b39453200ae9bfc7f8f815e1874c9d1830213d"
+    }
+  ]
+}

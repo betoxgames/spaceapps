@@ -1,5 +1,5 @@
-import { assetUrl } from './assets';
-import type { EngineerViewer, EngineerAnimation } from './characters';
+import { assetUrl } from '../core/assets';
+import type { EngineerViewer, EngineerAnimation } from '../characters/engineer-viewer';
 
 export type VisitorPhase = 'loading' | 'opening' | 'entering' | 'closing' | 'walking' | 'settling' | 'ready'
   | 'reacting' | 'approved' | 'leaving' | 'exit-opening' | 'exiting' | 'exit-closing' | 'hidden';
@@ -51,6 +51,7 @@ export class VisitorSequence {
     private readonly door: HTMLElement,
     private readonly viewer: EngineerViewer,
     private readonly onReady?: () => void,
+    private readonly onDoorMove?: () => void,
   ) { this.render(); }
 
   /** Resolves when local assets have loaded and opening can begin. */
@@ -133,6 +134,7 @@ export class VisitorSequence {
   private enter(phase: VisitorPhase): void {
     this.phase = phase;
     this.elapsed = 0;
+    if (['opening', 'closing', 'exit-opening', 'exit-closing'].includes(phase)) this.onDoorMove?.();
     const animation: EngineerAnimation = phase === 'approved' ? 'approve' : phase === 'reacting' ? this.reaction
       : ['entering', 'closing', 'walking', 'settling', 'leaving', 'exiting'].includes(phase) ? 'depart' : 'idle';
     this.animation = animation;
@@ -202,7 +204,7 @@ export class VisitorSequence {
     if (this.doorPose === pose && this.door.style.getPropertyValue('--door-frame')) return;
     this.doorPose = pose;
     this.door.dataset.doorPose = pose;
-    this.door.style.setProperty('--door-frame', `url("${assetUrl(`art/scene/door-${pose}.webp`)}")`);
+    this.door.style.setProperty('--door-frame', `url("${assetUrl(`assets/images/scene/door-${pose}.webp`)}")`);
   }
 
   private preloadDoors(): Promise<void> {
@@ -218,7 +220,7 @@ export class VisitorSequence {
           resolve();
         };
         image.onerror = () => resolve();
-        image.src = assetUrl(`art/scene/door-${pose}.webp`);
+        image.src = assetUrl(`assets/images/scene/door-${pose}.webp`);
       }))).then(() => {
         this.door.dataset.assetState = this.availableDoors.size === DOOR_POSES.length ? 'ready' : 'fallback';
       });

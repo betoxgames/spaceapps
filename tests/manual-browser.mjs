@@ -17,7 +17,12 @@ try {
   const initial = await state();
   await page.keyboard.press('b');
   assert.equal((await view()).bookDestination, null, 'opening the guide does not choose the mission’s answer');
-  assert.equal(await page.locator('.guide-review-steps li').count(), 4);
+  assert.equal(await page.locator('.guide-review-steps').count(), 0);
+  assert.equal((await page.locator('.guide-content').innerText()).includes('Before you stamp'), false);
+  assert.equal(await page.locator('.guide-inventory-link').count(), 1);
+  await page.locator('.guide-inventory-link').focus();await page.keyboard.press('Enter');
+  assert.equal(await page.locator('.guide-inventory-table tbody tr').count(), 5);
+  await click('book-index');
   assert.deepEqual(await fits(page.locator('.guide-content')), { vertical: true, horizontal: true });
   await click('book-destinations');
   assert.equal(await page.locator('.guide-planet-card:visible').count(), 8);
@@ -37,7 +42,7 @@ try {
   await page.screenshot({ path: 'test-results/manual-atlas-desktop.png' });
 
   // Verify every resource, unit and orbit restriction against the game catalog.
-  const destinations = await page.evaluate(async () => (await import('/src/catalog.ts')).DESTINATIONS);
+  const destinations = await page.evaluate(async () => (await import('/src/data/catalog.ts')).DESTINATIONS);
   for (const destination of destinations) {
     await click(`destination-${destination.id}`);
     const rows = await page.locator('.guide-resource-table tbody tr').evaluateAll(rows => rows.map(row => ({ resource: row.dataset.resource, amount: row.querySelector('td strong').textContent, unit: row.querySelector('td span').textContent })));
@@ -120,6 +125,13 @@ try {
     mobile.on('pageerror', error => errors.push(error.message));
     await mobile.goto(url);await mobile.locator('[data-action="new-shift"]').click();await mobile.keyboard.press('b');
     assert.equal(await mobile.locator('#manual-reader').isVisible(), true, 'compact screens open directly in reading view');
+    assert.equal((await fits(mobile.locator('.guide-content'))).horizontal, true);
+    const inventory = await mobile.locator('.guide-inventory-link').boundingBox();
+    const hero = await mobile.locator('.guide-home-hero').boundingBox();
+    assert.ok(Math.abs(inventory.width - hero.width) <= 1, 'inventory spans the same width as the hero');
+    await mobile.screenshot({ path: `test-results/manual-home-${viewport.width}.png` });
+    await mobile.locator('.guide-inventory-link').click();
+    assert.equal(await mobile.locator('.guide-inventory-table tbody tr').count(), 5);
     for (const target of ['.guide-chrome','.guide-footer']) {
       const bounds = await mobile.locator(target).boundingBox();
       assert.ok(bounds.x >= 0 && bounds.y >= 0 && bounds.x + bounds.width <= viewport.width + 1 && bounds.y + bounds.height <= viewport.height + 1);

@@ -7,7 +7,7 @@ const page = await browser.newPage();
 try {
   await page.goto(base);
   const result = await page.evaluate(async () => {
-    const { EngineerViewer } = await import('/src/characters.ts');
+    const { EngineerViewer } = await import('/src/characters/engineer-viewer.ts');
     const host = document.createElement('div');
     Object.assign(host.style, { position: 'fixed', width: '290px', height: '495px' });
     host.innerHTML = '<svg viewBox="0 0 10 10"><circle cx="5" cy="5" r="4"/></svg>';

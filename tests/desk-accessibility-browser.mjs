@@ -15,7 +15,7 @@ try {
       <button data-stamp-tool="approve" style="position:absolute;left:30px;top:700px;width:140px;height:50px;touch-action:none">Approve</button>
       <button data-stamp-tool="return" style="position:absolute;left:200px;top:700px;width:140px;height:50px;touch-action:none">Return</button>
     </div>`;
-    const { Desk } = await import('/src/desk.ts');
+    const { Desk } = await import('/src/ui/desk.ts');
     window.announcements = [];window.stamps = [];window.paperChanges = 0;window.escapeBubbled = 0;
     const stage = document.querySelector('#test-desk');
     window.testDesk = new Desk(stage, {

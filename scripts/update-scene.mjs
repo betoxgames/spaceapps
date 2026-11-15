@@ -19,7 +19,7 @@ for (const [input, output, driveId, modifiedTime] of sources) {
   if (metadata.width !== 1920 || metadata.height !== 1080) throw new Error(`Unexpected canvas: ${input}`);
   const image = sharp(original);
   if (output.startsWith('door-')) image.composite([{ input: wallOcclusion, blend: 'dest-in' }]);
-  await image.webp({ lossless: true, effort: 6 }).toFile(`public/art/scene/${output}.webp`);
+  await image.webp({ lossless: true, effort: 6 }).toFile(`public/assets/images/scene/${output}.webp`);
   manifest.sources.push({ output: `${output}.webp`, original: input === 'wall-final' ? 'Escenario Final.png' : `${input}.png`, driveId, modifiedTime, bytes: original.length, sha256: createHash('sha256').update(original).digest('hex') });
 }
-await writeFile('public/art/scene/manifest.json', `${JSON.stringify(manifest, null, 2)}\n`);
+await writeFile('public/assets/images/scene/manifest.json', `${JSON.stringify(manifest, null, 2)}\n`);

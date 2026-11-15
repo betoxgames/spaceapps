@@ -238,7 +238,7 @@ try {
   delayed.on('pageerror', error => errors.push(error.message));
   let release;
   const gate = new Promise(resolve => { release = resolve; });
-  await delayed.route('**/art/engineers/*.webp', async route => { await gate; await route.continue(); });
+  await delayed.route('**/assets/images/engineers/*.webp', async route => { await gate; await route.continue(); });
   await load(delayed);
   await delayed.locator('[data-action="new-shift"]').click();
   await delayed.waitForFunction(() => window.__SPACE_PAPERS__.visitor().phase === 'loading');
@@ -252,7 +252,7 @@ try {
   const failedContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
   const failed = await failedContext.newPage();
   failed.on('pageerror', error => errors.push(error.message));
-  await failed.route('**/art/engineers/*.webp', route => route.abort());
+  await failed.route('**/assets/images/engineers/*.webp', route => route.abort());
   await load(failed);
   await failed.locator('[data-action="new-shift"]').click();
   await failed.waitForFunction(() => document.querySelector('#visitor-portrait')?.dataset.viewerState === 'fallback');

@@ -1,5 +1,5 @@
-import { assetUrl } from './assets';
-import atlasMetadata from './engineer-clips.json';
+import { assetUrl } from '../core/assets';
+import atlasMetadata from '../data/engineer-clips.json';
 
 export type EngineerViewerStatus = 'loading' | 'ready' | 'fallback';
 export type EngineerAnimation = 'arrive' | 'idle' | 'depart' | 'approve' | 'return';
@@ -79,7 +79,7 @@ export class EngineerViewer {
             } catch (error) { reject(error); }
           };
           image.onerror = () => reject(new Error('Character atlas unavailable'));
-          image.src = assetUrl(`art/engineers/${atlas.file}`);
+          image.src = assetUrl(`assets/images/engineers/${atlas.file}`);
         });
         this.cache.set(slug, promise);
         promise.catch(() => { if (this.cache.get(slug) === promise) this.cache.delete(slug); });

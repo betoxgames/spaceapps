@@ -10,7 +10,7 @@ import path from 'node:path';
 const root=fileURLToPath(new URL('../',import.meta.url));
 const source=path.join(root,'asset-sources/team-renders');
 const jobs=JSON.parse(await readFile(path.join(source,'downloads.json'),'utf8'));
-const output=path.join(root,'public/art/engineers');
+const output=path.join(root,'public/assets/images/engineers');
 await mkdir(output,{recursive:true});
 const runtime={},engineers={};
 const columns=8,cellHeight=544,footY=520;
@@ -118,5 +118,5 @@ for(const slug of [...new Set(jobs.map(j=>j.slug))].sort()){
  engineers[slug]={...runtime[slug],bytes:bytes.length,sha256:sha(bytes),registration:{sourcePivotX:pivot,sourceFootY:baseline,idleFootY:idleBaseline,sourceBounds:union,scale,outputFoot:[cellWidth/2,footY]},clips:audit,walk:{...walkManifest,registration:{scale:walkScale,sourcePivotX:walkPivot,sourceFootY:walkBaseline,outputFootY:walkFootY}}};
  console.log(`${slug}: ${frames.length} supplied PNGs, ${width}x${height}, ${(bytes.length/1024/1024).toFixed(2)} MB`);
 }
-await writeFile(path.join(root,'src/engineer-clips.json'),JSON.stringify(runtime,null,2)+'\n');
+await writeFile(path.join(root,'src/data/engineer-clips.json'),JSON.stringify(runtime,null,2)+'\n');
 await writeFile(path.join(output,'manifest.json'),JSON.stringify({format:'team-render-packed-atlases-v2',sourceFolder:'https://drive.google.com/drive/folders/18ary3tO44csa7YWqPtnE2IqQTt2BXYRN',encoding:'WebP lossless after display-resolution resampling; all supplied frames retained',fps:24,fpsEvidence:'Assumed from the original Blender animation template (24 fps). PNG sequences do not encode playback fps; confirm with art team.',warnings:['No new walk renders present in any of the nine engineer folders: original compatible caminar cycle re-rendered, frames 86–125 at 24 fps; source has stylized airborne steps and a small loop seam.','Door upper geometry remains incomplete; scene masking/layering is temporary, not a model repair.'],engineers},null,2)+'\n');

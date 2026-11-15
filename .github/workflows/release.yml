@@ -41,6 +41,6 @@ jobs:
           args=(--draft --verify-tag --generate-notes --title "Space Papers $RELEASE_TAG")
           if [[ "$RELEASE_TAG" == *-* ]]; then args+=(--prerelease); fi
           gh release create "$RELEASE_TAG" "${args[@]}" \
-            "release/$RELEASE_TAG/Space-Papers-$RELEASE_TAG.html" \
+            "release/$RELEASE_TAG/Space-Papers-$RELEASE_TAG.zip" \
             "release/$RELEASE_TAG/SHA256SUMS" \
             "release/$RELEASE_TAG/release.json"

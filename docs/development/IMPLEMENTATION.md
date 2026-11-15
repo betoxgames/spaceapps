@@ -1,19 +1,18 @@
 # Space Papers: implementación y entrega
 
-[Espacio de coordinación del equipo](https://app.notion.com/p/41888b30c7518133a4d7c02aee475e0c?pvs=204) · [Inventario de producción](../assets/ASSETS.md) · [Referencias científicas](../../public/science.json)
+[Espacio de coordinación del equipo](https://app.notion.com/p/41888b30c7518133a4d7c02aee475e0c?pvs=204) · [Inventario de producción](../assets/ASSETS.md) · [Referencias científicas](../../src/data/science.json)
 
 ## Estado y decisiones
 
 La versión está en construcción. Las reglas y el alcance indicados aquí son un contrato de implementación, no una declaración de que todas las pantallas, animaciones, pruebas o arte ya estén terminados. Los SVG provisionales son originales y se construyen con código; no son imágenes generadas por IA ni entregas del arte final del equipo. Registrar la asistencia de IA para el código y documentación con precisión en los créditos, junto con autores y licencias reales conforme se incorporen. El equipo produce y aprueba el arte final. No se han documentado pruebas con menores o evaluaciones de comprensión humana: planificarlas y registrar sus resultados sin inventarlos. No usar fotografías, grabaciones ni voces de menores en la entrega.
 
-**Elegibilidad sin resolver:** hubo prototipo, cálculos, diseño y documentos previos al evento. Consultar al Local Lead/GO Team, describir su existencia y fechas honestamente, conservar la respuesta y confirmar qué materiales y trabajo pueden utilizarse. Una implementación nueva o una carpeta nueva no constituyen autorización. Hasta obtener una resolución y las aprobaciones humanas correspondientes, no enviar a una competencia ni afirmar que el proyecto es elegible. La membresía de cada recurso NASA en la pestaña Resources y los requisitos de elegibilidad también deben verificarse con fuentes oficiales vigentes.
 
 ## Estructura prevista
 
-- `src/catalog.ts`: ocho destinos, nueve ingenieros, cinco unidades de recurso, E01–E08 y operaciones B01–B03. Los datos de juego son ficción de balance, no datos medidos por NASA.
-- `src/domain.ts`: estado de campaña y transiciones puras para generación, devolución, aprobación, incidentes, operaciones y finales. La contabilidad utiliza milésimas enteras; identificadores de comando evitan cobros repetidos. Semilla y flujos aleatorios permiten revisión reproducible. El estado de campaña no es persistente entre sesiones.
-- `src/desk.ts`, `src/art.ts`, `src/audio.ts`, `src/clock.ts` y la interfaz integran objetos, presentación, audio y control temporal. La capa de presentación debe mantener privado el resultado hasta la consecuencia; el dominio ya puede haberlo resuelto. Pausa y pestaña oculta deben detener relojes y movimiento.
-- `public/science.json`: cinco referencias archivadas, su unidad, transformación y límites; no requiere telemetría en vivo. Los archivos estáticos finales y rutas de carga deben funcionar en el hosting elegido.
+- `src/data/catalog.ts`: ocho destinos, nueve ingenieros, cinco unidades de recurso, E01–E08 y operaciones B01–B03. Los datos de juego son ficción de balance, no datos medidos por NASA.
+- `src/game/campaign.ts`: estado de campaña y transiciones puras para generación, devolución, aprobación, incidentes, operaciones y finales. La contabilidad utiliza milésimas enteras; identificadores de comando evitan cobros repetidos. Semilla y flujos aleatorios permiten revisión reproducible. El estado de campaña no es persistente entre sesiones.
+- `src/ui/desk.ts`, `src/ui/art.ts`, `src/audio/sound.ts`, `src/core/clock.ts` y la interfaz integran objetos, presentación, audio y control temporal. La capa de presentación debe mantener privado el resultado hasta la consecuencia; el dominio ya puede haberlo resuelto. Pausa y pestaña oculta deben detener relojes y movimiento.
+- `src/data/science.json`: cinco referencias archivadas, su unidad, transformación y límites; no requiere telemetría en vivo. Los archivos estáticos finales y rutas de carga deben funcionar en el hosting elegido.
 - `tests/`: pruebas automatizadas del dominio y del reloj; agregar y ejecutar pruebas de interacción de navegador para los recorridos y situaciones de fallo. No confundir una prueba unitaria con una sesión completa validada.
 
 ## Reglas críticas
@@ -30,7 +29,7 @@ Con cinco éxitos y dos emergencias resueltas, la tasa es éxitos/aprobaciones; 
 
 ## Ciencia, seguridad de contenido y créditos
 
-Cada fuente en `public/science.json` indica qué información real se usa y qué no puede inferirse. DONKI es un evento histórico, no una dosis lunar ni predicción; recuperación de agua en la ISS no valida las cantidades de la base; VEG-01 no fija rendimientos de cultivo del juego. Los tiempos de crecimiento, costos de juego, presupuestos y probabilidades son reglas de ficción. La luz Luna–Tierra tarda aproximadamente 1.3 s en un sentido; 2.6 s de ida y vuelta es una simplificación que excluye procesamiento. Mostrar fuente y distinción entre ciencia y balance en la experiencia y créditos. Evitar insinuar aval de NASA y verificar derechos y licencias de cada material, dependencia, fuente y tipografía antes de publicar.
+Cada fuente en `src/data/science.json` indica qué información real se usa y qué no puede inferirse. DONKI es un evento histórico, no una dosis lunar ni predicción; recuperación de agua en la ISS no valida las cantidades de la base; VEG-01 no fija rendimientos de cultivo del juego. Los tiempos de crecimiento, costos de juego, presupuestos y probabilidades son reglas de ficción. La luz Luna–Tierra tarda aproximadamente 1.3 s en un sentido; 2.6 s de ida y vuelta es una simplificación que excluye procesamiento. Mostrar fuente y distinción entre ciencia y balance en la experiencia y créditos. Evitar insinuar aval de NASA y verificar derechos y licencias de cada material, dependencia, fuente y tipografía antes de publicar.
 
 ## Pruebas y despliegue pendientes
 

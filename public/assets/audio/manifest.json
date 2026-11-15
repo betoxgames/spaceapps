@@ -1,0 +1,23 @@
+{
+  "sourceFolder": "https://drive.google.com/drive/folders/1JuziOtiKwVmEtsiEWtuEM44Av8ZNCX4V",
+  "provenance": "Audio files supplied by Los valar through the project Drive. Authorship and license are not established by this import.",
+  "encoding": "Original audio/mpeg bytes; no transcoding.",
+  "sources": [
+    {
+      "original": "Puerta.mp3",
+      "output": "door.mp3",
+      "driveId": "19Z4Mtag-pQwZYBQ5kbbryTGbHL133YJ2",
+      "sourcePath": "Space Papers/Arte/Escenario principal/Puerta/sonido/Puerta.mp3",
+      "bytes": 58514,
+      "sha256": "b001836f0ef73ae65d8ceb3fa83665d7e7b31bf1d098d2adbf3b09d048794357"
+    },
+    {
+      "original": "ambinetMusic.mp3",
+      "output": "ambient-music.mp3",
+      "driveId": "1r4KKRr8lzEp28bJd29-_t9jNUPDZyQm0",
+      "sourcePath": "Space Papers/Arte/Escenario principal/ambinetMusic.mp3",
+      "bytes": 7189733,
+      "sha256": "6186bbc6c41e240d998976eaac949fc49f16063b61b96f2278636d8bb0c198df"
+    }
+  ]
+}

@@ -1,10 +1,10 @@
 # Datos esenciales de nave y misiones
 
-Compilación: 13 de noviembre de 2026, hora de Ciudad de México. Archivo autónomo: se puede mover sin sus fuentes locales. Las comas separan miles; el punto indica decimales.
+Archivo autónomo: se puede mover sin sus fuentes locales. Las comas separan miles; el punto indica decimales.
 
 ## Fuente de cantidades para reconstruir el juego
 
-**Usar directamente la tabla siguiente. Son los valores redondeados acordados e implementados en `orbita-lunar/data.js`, comprobados con su motor y el registro de decisiones del 9 de noviembre. No regenerarlos con ecuaciones científicas, añadirles otro margen ni sustituirlos por tablas orbitales anteriores.**
+**Usar directamente la tabla siguiente. Son los valores redondeados acordados. No regenerarlos con ecuaciones científicas, añadirles otro margen ni sustituirlos por tablas orbitales anteriores.**
 
 Escenario activo: base en la **Luna**, **4 personas por expedición**, ocho destinos. Los cinco recursos son independientes: comida en kg, agua en L, oxígeno respirable en kg, propelente en kg y electricidad en kWh.
 

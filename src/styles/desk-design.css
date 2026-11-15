@@ -94,9 +94,7 @@
 .book-tool .tool-edition { font-size: 8px; }
 .book-tool .tool-description { margin-top: 9px; font-size: 10px; }
 .stamp-rack { right: 42px; width: 350px; height: 79px; gap: 17px; padding: 5px 11px; }
-.stamp { height: 56px; }
-.stamp strong { font-size: 19px; }
-.stamp small { font-size: 7px; }
+.stamp small { font-size: 8px; }
 .desk-caption { left: 596px; bottom: 49px; font-size: 10px; }
 
 /* The wall display owns mission progress, leaving the desk devoted to papers. */

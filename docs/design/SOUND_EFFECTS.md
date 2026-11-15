@@ -2,6 +2,8 @@
 
 These are production priorities, not completed assets. Existing synthesized cues are provisional. Check rights and attribution before incorporating new sounds, keep volume adjustable, and retain clear visual feedback when sound is muted.
 
+Integrated on November 15: the team's stamp recording, door movement recording and ambient music. Door cues follow visitor opening/closing phases; ambient music loops at a subdued level with its own volume control. Playback starts after interaction, suspends during pause or hidden tabs, and remains available offline. See [audio provenance and verification](../assets/AUDIO_2026-11-15.md). The remaining priorities below are still provisional.
+
 ## P0 — essential interaction and feedback
 
 - Paper pickup, movement and placement; manual opening and page turns.

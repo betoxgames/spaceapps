@@ -1,6 +1,8 @@
-# Space Papers: arte provisional
+# Imágenes de Space Papers
 
-Los SVG generados por `src/art.ts` son marcadores originales y editables por código. No son el arte final del equipo ni representan recursos aportados por NASA. Sustituirlos después de aprobar composición, lectura y estados; el juego no debe depender de cifras ni texto horneados en imágenes.
+Las exportaciones listas para ejecución están en `scene/` (capas y puerta), `engineers/` (nueve atlas transparentes) y `ui/` (sellos). Sus manifiestos registran la procedencia; los originales permanecen en `asset-sources/`. El contrato siguiente documenta las ilustraciones vectoriales provisionales y sus referencias de producción; no reemplaza los metadatos de los atlas integrados.
+
+Los SVG generados por `src/ui/art.ts` son marcadores originales y editables por código. No son el arte final del equipo ni representan recursos aportados por NASA. Sustituirlos después de aprobar composición, lectura y estados; el juego no debe depender de cifras ni texto horneados en imágenes.
 
 ## Contrato actual
 

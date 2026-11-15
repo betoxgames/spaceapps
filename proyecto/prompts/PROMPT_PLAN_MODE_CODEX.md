@@ -1,12 +1,12 @@
 # Prompt autónomo para otro chat de Codex · Plan mode
 
-Copia desde la siguiente línea hasta el final en un chat nuevo en Plan mode y adjunta `DATOS_ESENCIALES_NAVE_Y_MISIONES.md`. No se necesita ningún otro archivo del proyecto anterior.
+Copia desde la siguiente línea hasta el final en un chat nuevo en Plan mode y adjunta `DATOS_ESENCIALES_NAVE_Y_MISIONES.md`. No se necesita ningún otro archivo del proyecto.
 
 ---
 
 Trabaja en **Plan mode**. Quiero que prepares el plan concreto y viable para construir desde cero **ÓRBITA**, un videojuego de navegador del equipo **Los valar**, para NASA Space Apps 2026, desafío **Build a Junior Astronaut Mission Trainer**. Por ahora planifica; no construyas ni publiques la nueva versión. Usa subagentes con **modelo Terra** para pequeñas revisiones delimitadas de reglas, ciencia, assets o viabilidad. Tú integra y verifica sus conclusiones.
 
-Solo tendrás este prompt y el archivo adjunto **`DATOS_ESENCIALES_NAVE_Y_MISIONES.md`**. No tendrás código, conversaciones, documentación anterior ni assets previos. No dependas de “revisar el juego anterior”. Este prompt describe las mecánicas que el equipo quiere conservar. Si el Markdown no está disponible, indícalo: no inventes sus cantidades.
+Solo tendrás este prompt y el archivo adjunto **`DATOS_ESENCIALES_NAVE_Y_MISIONES.md`**.  Este prompt describe las mecánicas que el equipo quiere conservar. Si el Markdown no está disponible, indícalo: no inventes sus cantidades.
 
 ## 1. Dirección fundamental del producto
 
@@ -18,7 +18,7 @@ La experiencia debe sentirse casi como trasladar ese tipo de videojuego al naveg
 
 Arte, personajes, música, textos e identidad propios. *Papers, Please* es referencia de experiencia e interacción, no una biblioteca de contenido para copiar. El arte final lo producirá nuestro equipo; el plan debe permitir integrarlo y comprobar sus estados sin rehacer la interacción.
 
-## 2. Fuentes oficiales, horario y trabajo previo
+## 2. Fuentes oficiales y horario
 
 Estas fuentes se revisaron el 13 de noviembre de 2026; vuelve a comprobar anuncios y cambios relevantes:
 
@@ -34,7 +34,6 @@ Estas fuentes se revisaron el 13 de noviembre de 2026; vuelve a comprobar anunci
 
 El evento es **14–15 de noviembre de 2026**. Puebla/UDLAP programa el sábado registro 08:00, ceremonia 09:00, arranque oficial local 10:00, trabajo remoto desde 18:00; domingo trabajo desde 08:30, **entrega local 15:30**, cierre 17:00. La plataforma abre Project el sábado a las 09:00 y cierra el domingo a las **23:59 de la zona de la sede**. Planifica para la entrega local de las 15:30, con envío hacia las 15:00; no la sustituyas por el cierre global. Referencia horaria: America/Mexico_City. Distingue horarios oficiales de tus bloques propuestos.
 
-**Hay trabajo previo real:** antes del evento se había construido un prototipo y se prepararon diseño, cálculos y estos materiales. Empezar sin su código en una carpeta nueva no garantiza elegibilidad. FAQ y guía de equipos prohíben trabajar en el proyecto antes del hackathon; Puebla advierte descalificación por ello. No se obtuvo una excepción o permiso de reutilización. El prompt y los datos también son materiales previos: no asumas que se pueden transportar por ser Markdown. Incluye como primer asunto del plan obtener una aclaración del Local Lead/GO Team, describiendo con honestidad ese trabajo y conservando su respuesta. No ocultar antecedentes ni afirmar que todo se creó durante el evento. Puedes preparar el plan solicitado, pero no declarar resuelta la elegibilidad ni usar una carpeta nueva como solución. Revisar fuentes/elegir desafío no equivale a autorización para desarrollo anticipado.
 
 No abras ni reproduzcas videos por ahora. Las guías escritas y Resources son suficientes para esta planificación.
 

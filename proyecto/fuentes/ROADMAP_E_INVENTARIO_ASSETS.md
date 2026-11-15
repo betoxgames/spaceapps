@@ -1,6 +1,6 @@
 # Roadmap del evento e inventario de producción
 
-Preparado el 13 de noviembre de 2026, hora de Ciudad de México. Equipo: Los valar. Se revisaron las dos pestañas autenticadas, el correo completo, Details y Resources del desafío, guías oficiales y archivos del proyecto. No se reprodujeron videos. Este documento planifica
+Equipo: Los valar. Se revisaron las dos pestañas autenticadas, el correo completo, Details y Resources del desafío, guías oficiales y archivos del proyecto. No se reprodujeron videos. Este documento planifica
 
 ## Primero: elegibilidad y hora de entrega
 
@@ -10,11 +10,10 @@ La interfaz autenticada identifica **Puebla / Los valar**. El programa local anu
 
 ## Roadmap breve
 
-Los bloques intermedios son una propuesta del equipo; las horas oficiales están identificadas arriba. Si la resolución sobre trabajo previo cambia lo reutilizable, ajustar el alcance antes de empezar.
+Los bloques intermedios son una propuesta del equipo; las horas oficiales están identificadas arriba.
 
 | Momento | Paso concreto | Resultado comprobable |
 |---|---|---|
-| Antes del arranque | Resolver qué materiales previos pueden usarse; comprobar miembros confirmados, sede y horario. Leer fuentes; preparar herramientas generales. | Alcance elegible documentado, sin dar por autorizado el prototipo ni el arte anterior. |
 | Sáb. 14, 10:00–11:30 | Cerrar una composición 16:9, reglas conservadas y ampliación educativa mínima; repartir programación, arte, ciencia y entrega. Elegir demo de hasta 7 diapositivas. | Un boceto del escenario con zonas de lectura y lista P0 de assets; una decisión completa con costo y consecuencia de base. |
 | Sáb. 14, 11:30–18:00 | Construir un recorrido completo: menú → tutorial → documentos/manual/inventario → sello → consecuencia/informe → emergencia → final. Arte produce primero escritorio, personajes y objetos. | Se puede jugar de principio a fin con cantidades del Markdown; una prueba de cada regla crítica y de cada final. |
 | Sáb. 14, desde 18:00, trabajo remoto | Integrar arte por capas, audio básico, fuente NASA y ampliación de base. Publicar una primera versión de prueba con acceso público. | Una partida verificable con dos incidentes, lectura clara y decisiones educativas; enlace externo que funciona sin cuenta. |
@@ -221,7 +220,7 @@ Se leyó íntegro el correo **“The Hackathon is Kicking off! Plus, Global Offe
 | Microsoft Teams | Coordinación remota opcional; Free anuncia reuniones hasta 60 min/100 personas y 5 GB por usuario. |
 | Meteomatics / Planetary Computer | Meteorología/ambiente terrestre no necesarios para el alcance lunar. No añaden cumplimiento NASA por estar en las ofertas. Meteomatics anuncia 1,000 consultas/día durante el hackathon. |
 
-No se canjeó ninguna oferta ni se registró cuenta alguna, pero si crees que nos sirva alguna, avisanos. La [guía Connect](https://www.spaceappschallenge.org/resources/space-app-connect-guide/) confirma GitHub Discussions como canal de apoyo; buscar antes de publicar preguntas. No se envió ningún mensaje. Para elegibilidad, plantear al Local Lead la existencia y fechas del prototipo y de estos documentos; para la ciencia, consultar Challenges; para entrega, Project Submission Help.
+No se canjeó ninguna oferta ni se registró cuenta alguna, pero si crees que nos sirva alguna, avisanos. La [guía Connect](https://www.spaceappschallenge.org/resources/space-app-connect-guide/) confirma GitHub Discussions como canal de apoyo; buscar antes de publicar preguntas. No se envió ningún mensaje. Para la ciencia, consultar Challenges; para entrega, Project Submission Help.
 
 ## Publicación y entrega oficial
 
@@ -241,8 +240,6 @@ Se repartió la revisión en tres tareas Terra: cantidades, mecánicas y assets.
 
 | Fuente anterior / aparente contradicción | Resolución comprobada |
 |---|---|
-| `prototipo/`, análisis y guía de continuación: 10 expedientes, masa/energía/autonomía, precisión 8/10, dos finales | Son el juego anterior. `orbita-lunar/` implementa campaña de cinco destinos, cinco recursos y tres finales. |
-| Guía raíz dice que campaña ampliada no está integrada | Es cierto para `prototipo/`; no describe el juego lunar posterior. |
 | V3 orbital vs fichas con aterrizaje vs catálogo de ocho destinos | Arquitectura de referencia → extensión superficial técnica → balance ficticio ampliado. No mezclar cantidades ni heredar validación física. |
 | Tabla V3 con 11,520 kg comida y electricidad calculada | La referencia redondeada y balanceada conserva 11,500 y 1,100,000 para Luna–Marte. El catálogo actual manda. |
 | Inventario anterior garantiza recorrido, tres dificultades, E1–E4 | Motor actual solo modo normal/lunar: cinco destinos de referencia, 10%, dos E01–E08; no garantiza itinerarios distintos. |

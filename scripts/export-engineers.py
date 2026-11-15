@@ -16,7 +16,7 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCES = ROOT / 'asset-sources' / 'engineers'
-OUTPUT = ROOT / 'public' / 'art' / 'engineers'
+OUTPUT = ROOT / 'public' / 'assets' / 'images' / 'engineers'
 BLENDER = os.environ.get('BLENDER') or shutil.which('blender') or '/Applications/Blender.app/Contents/MacOS/Blender'
 SHARP = os.environ.get('SHARP_PATH') or str(ROOT / 'node_modules' / 'sharp')
 NODE = os.environ.get('NODE') or shutil.which('node') or 'node'

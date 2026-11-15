@@ -1,11 +1,11 @@
+import { esc } from './helpers';
 import { baseView, resourceIcon } from './art';
-import type { Resource } from './catalog';
+import type { Resource } from '../data/catalog';
 
 export interface DispatchBrief {
   kind: 'emergency' | 'operation'; code: string; title: string; description: string;
   resource: Resource; system: string; practice?: boolean;
 }
-const esc = (value:string) => value.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
 
 /** Incoming messages share the game clock. The response timer starts after delivery. */
 export class Dispatch {
