@@ -10,6 +10,7 @@ export interface DeskOptions {
   onStamp: (stamp: 'approve'|'return', target: string) => void;
   canStamp: (stamp:'approve'|'return', target:string) => boolean;
   onSelect: (id:string) => void;
+  presentation?: { tray:{x:number;y:number;width:number;height:number}; previewScale:number; previewHeight:number; reading:{x:number;y:number} };
 }
 /** Spatial presentation only: never reads stock or decides mission correctness. */
 export class Desk {
@@ -53,13 +54,14 @@ export class Desk {
   clear() { this.cancel(); for (const item of this.items.values()) item.el.remove(); this.items.clear(); }
   point(clientX: number, clientY: number) { const r = this.stage.getBoundingClientRect(); return { x:(clientX-r.left)*1600/r.width, y:(clientY-r.top)*900/r.height }; }
   private clamp(item: DeskItem) {
-    const scale = item.stored ? .24 : 1;
+    const scale = item.stored ? this.options.presentation?.previewScale??.24 : 1;
+    const height=item.stored ? this.options.presentation?.previewHeight??item.height : item.height;
     item.x = Math.max(0, Math.min(1600-item.width*scale,item.x));
-    item.y = Math.max(0, Math.min(815-item.height*scale,item.y));
+    item.y = Math.max(0, Math.min(815-height*scale,item.y));
   }
   render(item: DeskItem) {
-    item.el.style.width = `${item.width}px`; item.el.style.height = `${item.height}px`;
-    item.el.style.transform = `translate3d(${item.x}px,${item.y}px,0) scale(${item.stored ? .24 : 1})`;
+    item.el.style.width = `${item.width}px`; item.el.style.height = `${item.stored?this.options.presentation?.previewHeight??item.height:item.height}px`;
+    item.el.style.transform = `translate3d(${item.x}px,${item.y}px,0) scale(${item.stored ? this.options.presentation?.previewScale??.24 : 1})`;
     item.el.classList.toggle('stored',!!item.stored); item.el.classList.toggle('pinned',!!item.pinned);
     item.el.dataset.stored = String(!!item.stored);
     item.el.setAttribute('aria-description', item.pinned
@@ -74,7 +76,7 @@ export class Desk {
   focus(id: string) {
     const item=this.items.get(id); if (!item) return;
     item.el.hidden=false;
-    if(item.stored){this.moveTo(id,810,360);this.options.onPaper();this.options.announce(`${this.label(item)} taken from the tray.`);}
+    if(item.stored){this.moveTo(id,this.options.presentation?.reading.x??810,this.options.presentation?.reading.y??360);this.options.onPaper();this.options.announce(`${this.label(item)} taken from the tray.`);}
     this.raise(id); item.el.focus({preventScroll:true});
     if(document.body.classList.contains('compact-ui'))item.el.scrollIntoView({block:'nearest',inline:'nearest',behavior:'instant'});
   }
@@ -147,7 +149,7 @@ export class Desk {
     g.moved ||= Math.hypot(p.x-g.start.x,p.y-g.start.y)>4;
     g.item.x=p.x-g.offset.x;g.item.y=p.y-g.offset.y;this.clamp(g.item);this.render(g.item);
   }
-  private inTray(p:{x:number;y:number}) {return p.x>=1120&&p.x<=1570&&p.y>=220&&p.y<=348;}
+  private inTray(p:{x:number;y:number}) {const tray=this.options.presentation?.tray??{x:1120,y:220,width:450,height:128};return p.x>=tray.x&&p.x<=tray.x+tray.width&&p.y>=tray.y&&p.y<=tray.y+tray.height;}
   private up(e:PointerEvent) {
     if(this.sealGesture?.pointer===e.pointerId){
       const g=this.sealGesture;this.sealGesture=undefined;this.release(e.pointerId);
@@ -163,6 +165,11 @@ export class Desk {
     const p=this.point(e.clientX,e.clientY);
     g.moved ||= Math.hypot(p.x-g.start.x,p.y-g.start.y)>4;
     if(!g.moved&&this.clickPlacement){this.placing={item:g.item,before:g.before};g.item.el.classList.add('placing');this.options.announce('Choose a spot on the desk, or use arrow keys and Enter. Escape cancels.');return;}
+    if(!g.moved&&g.before.stored&&this.options.presentation){
+      const {reading}=this.options.presentation;
+      this.moveTo(g.item.id,reading.x,reading.y);this.focus(g.item.id);
+      this.options.onPaper();this.options.announce(`${this.label(g.item)} placed in the reading area.`);return;
+    }
     if(g.moved&&g.item.kind==='paper'&&this.inTray(p))this.store(g.item.id);
     else{if(g.moved){g.item.x=p.x-g.offset.x;g.item.y=p.y-g.offset.y;}this.clamp(g.item);this.render(g.item);}
     this.options.onPaper();
@@ -199,7 +206,7 @@ export class Desk {
       if(item.pinned){this.options.announce('Manual is pinned. Unpin it to move.');return;}
       if(this.placing?.item===item){this.placing=undefined;item.el.classList.remove('placing');this.options.onPaper();this.options.announce('Object placed.');return;}
       this.cancel();const before={x:item.x,y:item.y,stored:item.stored};
-      if(item.stored)this.moveTo(item.id,810,360);this.placing={item,before};item.el.classList.add('placing');this.options.onPaper();this.options.announce(`${this.label(item)} picked up. Move with arrows; Shift and arrows moves farther. Enter places it, Escape cancels.`);
+      if(item.stored)this.moveTo(item.id,this.options.presentation?.reading.x??810,this.options.presentation?.reading.y??360);this.placing={item,before};item.el.classList.add('placing');this.options.onPaper();this.options.announce(`${this.label(item)} picked up. Move with arrows; Shift and arrows moves farther. Enter places it, Escape cancels.`);
     } else if(e.key.startsWith('Arrow')&&this.placing?.item===item){
       e.preventDefault();const n=e.shiftKey?40:10;
       item.x += e.key==='ArrowRight'?n:e.key==='ArrowLeft'?-n:0;item.y += e.key==='ArrowDown'?n:e.key==='ArrowUp'?-n:0;
