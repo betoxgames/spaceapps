@@ -38,16 +38,14 @@ $('#app').innerHTML=`<div id="viewport"><main id="stage" aria-label="Space Paper
   <div class="scene-environment" aria-hidden="true"><div class="scene-layer scene-background"></div><div class="scene-layer scene-door"></div><div class="scene-layer scene-desk"></div></div>
   <header class="station-header"><div class="bureau-mark">SP<span>✦</span></div><div>LUNAR OPERATIONS BUREAU<span>SPACE PAPERS / SECTOR 04</span></div><button data-action="pause" class="pause-switch" aria-label="Pause game">Ⅱ <span>PAUSE</span></button></header>
   <div class="visitor-area"><div id="visitor-portrait" aria-hidden="true"><svg viewBox="0 0 200 340" xmlns="http://www.w3.org/2000/svg"><circle cx="100" cy="53" r="35" fill="#899493"/><path d="M52 114 Q68 91 100 91 Q132 91 148 114 L171 231 L142 237 L132 178 L137 329 H105 L100 224 L95 329 H63 L68 178 L58 237 L29 231 Z" fill="#71817f" stroke="#4c5c5a" stroke-width="5"/></svg></div><div class="visitor-badge"><span>MISSION ENGINEER</span><strong id="visitor-name"></strong></div><div id="speech" class="speech"></div></div>
-  <div class="wall-monitor"><div id="base-status" class="base-status" aria-label="Base operations status"></div><div id="performance" class="performance"></div></div>
+  <section class="wall-monitor" aria-label="Lunar base mission control"><header class="monitor-heading"><span><i class="monitor-signal" aria-hidden="true"></i>MISSION CONTROL</span><span>LUNAR BASE</span></header><div id="performance" class="performance"></div><div id="base-status" class="base-status" aria-label="Base operations status"></div></section>
   <div class="counter"><span class="counter-label">LUNAR TRANSIT AUTHORITY</span><span class="counter-code">REVIEW • COMPARE • AUTHORIZE</span></div>
-  <div id="tray" class="document-tray" aria-label="Document tray"><div class="proposal-tray-heading"><span>MISSION PROPOSAL</span><span>3 SHEETS · CLICK OR DRAG</span></div><div class="tray-slots" aria-hidden="true"><i>01</i><i>02</i><i>03</i></div></div>
+  <div id="tray" class="document-tray" aria-label="Document tray"><div class="proposal-tray-heading"><span>MISSION PROPOSAL</span><span>3 SHEETS · CLICK OR DRAG</span></div><div class="tray-slots" aria-label="Original document positions">${[['flight','Flight plan'],['life','Life support'],['power','Propulsion and energy']].map(([id,label],i)=>`<button type="button" class="tray-slot" data-action="restore-${id}" data-cancel-stamp aria-label="Return ${label.toLowerCase()} to its place" disabled><span aria-hidden="true">0${i+1}</span><small aria-hidden="true">↥ Return here</small></button>`).join('')}</div></div>
   <div class="desk-surface" aria-hidden="true"></div>
   <div class="desk-tools"><button class="book-tool" data-action="manual" aria-label="Open manual (B)"><span class="tool-edition">FIELD EDITION / 01</span><span class="book-cross" aria-hidden="true">✦</span><span class="tool-title">MISSION<br>MANUAL</span><span class="tool-description">Routes · Rules · Reference</span><kbd>B</kbd></button><button class="ledger-tool" data-action="inventory"><span class="tool-edition">LUNAR SUPPLY OFFICE</span><span class="stock-emblem" aria-hidden="true">▤</span><span class="tool-title">STOCK</span><small>RESOURCE INVENTORY</small><span class="tool-description">One store. Every decision.</span><kbd>I</kbd></button><button class="log-tool" data-action="record">TURN LOG<kbd>R</kbd></button><div class="desk-caption">YOUR DESK. YOUR DECISION.</div></div>
   <nav class="camera-controls" aria-label="Camera position"><button type="button" data-action="camera-room" aria-pressed="true">Room view</button><button type="button" data-action="camera-desk" aria-pressed="false">Desk view</button></nav>
   <div class="room-tray"><span>INCOMING DOCUMENTS</span><button type="button" data-action="camera-desk">Inspect desk <span aria-hidden="true">↗</span></button></div>
   <div id="task-guide" class="task-guide" role="status" aria-live="polite"></div>
-  <nav id="document-shortcuts" class="document-shortcuts" aria-label="Recover mission documents">${button('01 · Flight plan','recover-flight')}${button('02 · Life support','recover-life')}${button('03 · Propulsion','recover-power')}</nav>
-  <div id="shift-progress" class="shift-progress" aria-label="Shift progress"></div>
   <div id="objects"></div>
   <footer class="desk-rail"><div class="rail-actions">${button('↙ Store sheets','store')}${button('↔ Place beside book','compare')}${button('Controls','help')}</div><div id="stamp-status" class="stamp-status"><span>Compare first. Then stamp your decision.</span>${button('Cancel stamp','cancel-stamp')}</div><div class="stamp-rack"><button type="button" aria-pressed="false" class="stamp return" data-stamp-tool="return" aria-label="Pick up Return stamp"><span class="stamp-handle"></span><strong>RETURN</strong><small>NO RESOURCES SPENT</small></button><button type="button" aria-pressed="false" class="stamp approve" data-stamp-tool="approve" aria-label="Pick up Approve stamp"><span class="stamp-handle"></span><strong>APPROVE</strong><small>AUTHORIZE RESOURCES</small></button></div></footer>
   <div id="training-guide" class="training-guide" hidden></div><div id="cinema" class="cinema" hidden></div><div id="toast" class="toast" hidden></div>
@@ -57,10 +55,10 @@ const stage=$('#stage');
 const desk=new Desk(stage,{
   announce,
   presentation:{tray:{x:540,y:210,width:520,height:153},previewScale:.42,previewHeight:260,reading:{x:790,y:376}},
-  onPaper:()=>{sound.play('paper');progressTraining();},
+  onPaper:()=>{sound.play('paper');progressTraining();updateTraySlots();},
   onStamp:stampDecision,
   canStamp:(stamp,target)=>!paused&&!busy&&((visitorSequence.snapshot().phase==='ready'&&phase==='desk'&&!!campaign.proposal&&['flight','life','power'].includes(target))||(phase==='operation'&&target==='order'&&stamp==='approve'&&operationChoice!==null)),
-  onSelect:()=>{updateDocumentShortcuts();},
+  onSelect:()=>{updateTraySlots();},
 });
 const camera = new Camera(stage, () => desk.cancel());
 // The person shares the room's camera and sits between the doorway and desk layers.
@@ -89,19 +87,18 @@ function scale(){
   stage.style.transform=`scale(${s})`;$('#viewport').style.width=`${1600*s}px`;$('#viewport').style.height=`${900*s}px`;
   $('#small-screen').hidden=!compact||phase==='menu'||screenHintDismissed;
 }
-function updateDocumentShortcuts(){
-  stage.querySelectorAll<HTMLButtonElement>('[data-action^="recover-"]').forEach(b=>{
-    const id=b.dataset.action!.slice(8);b.disabled=phase!=='desk'||!desk.items.has(id)||paused||busy;
-    b.setAttribute('aria-pressed',String(desk.selected===id));
-    b.title=`Bring ${id==='flight'?'flight plan':id==='life'?'life support':'propulsion and energy'} to the front`;
+function updateTraySlots(){
+  stage.querySelectorAll<HTMLButtonElement>('[data-action^="restore-"]').forEach(slot=>{
+    const item=desk.items.get(slot.dataset.action!.slice(8));
+    slot.disabled=phase!=='desk'||!item||!!item.stored||paused||busy;
+    slot.classList.toggle('empty',!!item&&!item.stored);
   });
 }
 function updateTaskGuide(){
-  $('#document-shortcuts').hidden=camera.position!=='desk'||phase!=='desk';
-  const guide=$('#task-guide');guide.hidden=!!training||!['desk','transition','emergency','operation'].includes(phase);
-  const status=visitorSequence.snapshot().phase;
-  guide.innerHTML=phase==='emergency'?'<span class="eyebrow">PRIORITY / BASE RESPONSE</span><strong>Choose support. Confirm before time runs out.</strong>':phase==='operation'?'<span class="eyebrow">BASE ORDER / COMPARE COSTS</span><strong>Choose A or B, then approve the order.</strong>':phase==='transition'?`<span class="eyebrow">${$('.visitor-area').dataset.decision==='approve'?'CLEARANCE ISSUED':'REVISION REQUESTED'}</span><strong>${$('.visitor-area').dataset.decision==='approve'?'A moment to celebrate. Your mission projection is next.':'The engineer is taking the request back for revision.'}</strong>`:`<span class="eyebrow">YOUR NEXT STEP</span><strong>${camera.position==='room'?'Inspect the desk to review this mission.':'Read the route → compare all five resources → check stock.'}</strong><span>${status==='ready'?'Approve a safe request. Return a request that falls short.':'The engineer is on the way. You can inspect the papers now.'}</span>`;
-  updateDocumentShortcuts();
+  const guide=$('#task-guide');guide.hidden=!!training||!['transition','emergency','operation'].includes(phase);
+  if(guide.hidden){guide.replaceChildren();updateTraySlots();return;}
+  guide.innerHTML=phase==='emergency'?'<span class="eyebrow">PRIORITY / BASE RESPONSE</span><strong>Choose support. Confirm before time runs out.</strong>':phase==='operation'?'<span class="eyebrow">BASE ORDER / COMPARE COSTS</span><strong>Choose A or B, then approve the order.</strong>':`<span class="eyebrow">${$('.visitor-area').dataset.decision==='approve'?'CLEARANCE ISSUED':'REVISION REQUESTED'}</span><strong>${$('.visitor-area').dataset.decision==='approve'?'A moment to celebrate. Your mission projection is next.':'The engineer is taking the request back for revision.'}</strong>`;
+  updateTraySlots();
 }
 function preserveControlFocus(root:HTMLElement,render:()=>void){
   const active=root.contains(document.activeElement)?document.activeElement as HTMLElement:null;
@@ -132,11 +129,16 @@ function showVisitor(id:string){
   void visitorSequence.show(engineer.id);
 }
 function updateStatus(){
-  $('#performance').innerHTML=`<span>SUCCESSFUL RETURNS</span><strong>${visible.completed.length}<small>/5</small></strong><span>${visible.approvals?`${visible.approvals} approved · ${Math.round(visible.completed.length/visible.approvals*100)}% success`:'Not yet evaluated'}</span>`;
   const choices=visible.operationChoices;
-  const states=[choices.B01?(choices.B01==='A'?'Life support: regenerative':'Life support: reserves'):'Habitat ready',choices.B02?(choices.B02==='A'?'Shelter ready · Lab active':'Shelter ready · Lab paused'):'Shelter unprepared',choices.B03?(choices.B03==='A'?(visible.completed.length>=4?'Harvest used at base':'Local crop growing'):'Stored rations in use'):'Food program pending'];
-  $('#base-status').innerHTML=`<span class="base-dot"></span> BASE STATUS<span>${states.map(esc).join('<br>')}</span>`;
-  $('#shift-progress').innerHTML=`<span class="progress-caption">YOUR SHIFT</span><div class="destination-progress"><span class="progress-pips" aria-hidden="true">${Array.from({length:5},(_,i)=>`<i class="${i<visible.completed.length?'complete':''}"></i>`).join('')}</span><strong>${visible.completed.length} / 5 destinations</strong></div><span>${visible.events.filter(e=>e.resolved).length} / 2 incidents</span>`;
+  const incidents=visible.events.filter(e=>e.resolved).length;
+  const success=visible.approvals?`${Math.round(visible.completed.length/visible.approvals*100)}%`:'—';
+  $('#performance').innerHTML=`<div class="monitor-metric"><strong>${visible.completed.length}<span>/5</span></strong><span>DESTINATIONS</span></div><div class="monitor-metric"><strong>${incidents}<span>/2</span></strong><span>INCIDENTS RESOLVED</span></div><div class="monitor-metric"><strong>${success}</strong><span>MISSION SUCCESS</span></div><div class="monitor-progress" role="img" aria-label="${visible.completed.length} of 5 destinations complete">${Array.from({length:5},(_,i)=>`<i class="${i<visible.completed.length?'complete':''}"></i>`).join('')}</div>`;
+  const systems=[
+    {label:'LIFE SUPPORT',state:choices.B01==='A'?'Regenerative':choices.B01==='B'?'Reserve system':'Habitat ready',ready:true},
+    {label:'SHELTER',state:choices.B02?'Prepared':'Not prepared',ready:!!choices.B02},
+    {label:'FOOD SUPPLY',state:choices.B03==='A'?(visible.completed.length>=4?'Harvest used':'Crop growing'):choices.B03==='B'?'Stored rations':'Pending',ready:!!choices.B03},
+  ];
+  $('#base-status').innerHTML=systems.map(system=>`<div class="monitor-system ${system.ready?'ready':''}"><i aria-hidden="true"></i><span>${system.label}</span><strong>${system.state}</strong></div>`).join('');
   if(desk.items.has('ledger'))renderLedger();
 }
 function setStampAvailability(){
@@ -149,7 +151,7 @@ function setStampAvailability(){
   $('[data-stamp-tool="return"]').title=phase==='operation'?'Internal order: choose one option and approve it.':'Return the proposal without spending resources';
   $('[data-stamp-tool="approve"] small').textContent=phase==='operation'?'AUTHORIZE BASE ORDER':'AUTHORIZE RESOURCES';
   desk.enabled=!paused&&!busy&&!modal&&['desk','emergency','operation'].includes(phase);
-  stage.querySelectorAll<HTMLElement>('.station-header,.desk-tools,.desk-rail,.camera-controls,.room-tray,#document-shortcuts,#training-guide').forEach(el=>el.inert=phase==='cinema');
+  stage.querySelectorAll<HTMLElement>('.station-header,.desk-tools,.desk-rail,.camera-controls,.room-tray,.document-tray,#training-guide').forEach(el=>el.inert=phase==='cinema');
   $('#objects').inert=camera.position==='room'||phase==='cinema';
   updateTaskGuide();updateStampStatus();
 }
@@ -189,7 +191,7 @@ function renderManual(){
   } else if(bookTab==='destinations'){
     left=`<span class="eyebrow">FIND YOUR DESTINATION</span><div class="planet-grid">${DESTINATIONS.map(d=>`<button data-action="destination-${d.id}" class="${bookDestination===d.id?'selected':''}" aria-pressed="${bookDestination===d.id}"><span class="tiny-world" aria-hidden="true">${planet(d.id)}</span>${d.name}</button>`).join('')}</div><p class="fine-print">All routes: Moon → destination → Moon.<br>Four crew. Full expedition minimums.</p>`;
     const d=DESTINATIONS.find(d=>d.id===bookDestination);
-    right=d?`<div class="manual-destination"><h3>${d.name}</h3><span>${d.mode==='orbit'?'ORBIT ONLY':'LOCAL MODULE'}</span></div>${resourceRows(d.minimum,RESOURCES,true)}<p class="fine-print">Fictional game balance. Return and reserve included.</p>`:`<div class="empty-page"><span>✦</span><h3>Where are they going?</h3><p>Read the flight plan.<br>Choose a destination on the left.</p></div>`;
+    right=d?`<div class="manual-destination"><h3>${d.name}</h3><span>${d.mode==='orbit'?'ORBIT ONLY':'LOCAL MODULE'}</span></div>${resourceRows(d.minimum,RESOURCES,true)}<p class="fine-print">Fictional game balance. Return and reserve included.</p>`:`<div class="empty-page"><span aria-hidden="true">↖</span><span class="eyebrow">DESTINATION REFERENCE</span><h3>Choose a destination</h3><p>Use the route on the flight plan.<br>Its minimums will appear here.</p></div>`;
   } else if(bookTab==='rules'){
     const pages=[
       [`<h3>Requests ≠ minimums</h3><p>The sheets show what the engineer requests. This book shows the minimum. The stock ledger shows what you have.</p><p>Each resource must meet its own minimum. Extra water cannot replace oxygen.</p>`,`<h3>One signature. One cost.</h3><p>Approve spends the request, including any extra. A failed mission does not refund resources.</p><p>A shortage in stock spends what is available and ends your shift. Return spends nothing.</p>`],
@@ -369,7 +371,7 @@ function setupTraining(lesson:number){
   if(lesson===1||lesson===2){const d=DESTINATIONS.find(d=>d.id===(lesson===1?'earth':'mars'))!;campaign.proposal={id:`practice-${lesson}`,destinationId:d.id,engineerId:lesson===1?'adan':'leo',minimum:{...d.minimum},requested:{...d.minimum,...(lesson===2?{food:units(6900)}:{})}};visible=campaign;renderProposal();}
   if(lesson===3){campaign.events=[{id:'E02',afterSuccess:0,resolved:false}];visible=campaign;showEmergency('E02');}
   if(lesson===4){campaign.completed=['earth'];visible=campaign;showOperation('B01');}
-  updateStatus();renderTraining();setStampAvailability();scale();if(lesson<3)$('[data-action="recover-flight"]').focus({preventScroll:true});
+  updateStatus();renderTraining();setStampAvailability();scale();if(lesson<3)desk.items.get('flight')?.el.focus({preventScroll:true});
 }
 function progressTraining(){
   if(!training)return;
@@ -410,7 +412,7 @@ function showPause(){showModal('pause',`<section class="small-panel"><span class
 function resume(){closeModal();paused=false;stage.classList.remove('paused');clock.setPaused(false);sound.pause(false);setStampAvailability();if(phase==='report')showReport();else if(phase==='final')showFinal(finalGrade(campaign.completed.length,campaign.approvals,!!campaign.terminal));else lastFocus?.isConnected&&lastFocus.focus({preventScroll:true});}
 function options(){showModal('options',`<section class="small-panel options-panel"><span class="eyebrow">PERSONAL EQUIPMENT SETTINGS</span><h1>Make it yours.</h1><label class="setting"><span>Sound volume <output id="volume-value">${Math.round(prefs.volume*100)}%</output></span><input type="range" id="volume" min="0" max="100" value="${Math.round(prefs.volume*100)}"></label><label class="setting"><span>Mute sound</span><input type="checkbox" id="muted" ${prefs.muted?'checked':''}></label><label class="setting"><span>Reduce motion<small>Keep animation and camera movement still</small></span><input type="checkbox" id="reduced" ${prefs.reduced?'checked':''}></label><label class="setting"><span>Place objects with two clicks<small>Select an object, then choose a spot. No dragging needed.</small></span><input type="checkbox" id="click-placement" ${prefs.clickPlacement?'checked':''}></label><p class="fine-print">You can always use the keyboard. English edition. Campaigns are not saved; these preferences are.</p>${button('Full screen','fullscreen')}${button('Done','settings-done','primary')}</section>`);}
 function credits(){showModal('credits',`<section class="credits-panel"><span class="eyebrow">SPACE PAPERS / LOS VALAR</span><h1>Science behind<br>the paperwork.</h1><div class="credits-columns"><div><h3>An original lunar desk</h3><p>Game concept and direction: Los valar. Implementation and original vector stand-ins: assisted by OpenAI Codex and Terra agents.</p><p>Room, desk and door: original Blender renders supplied by Los valar, integrated as layered WebP images. The nine engineers use the team’s supplied transparent renders for idle, speech and stamp reactions; the original rigged walking cycle is re-rendered in consecutive frames. Remaining procedural illustrations are provisional.</p><p>Interaction research references Papers, Please by Lucas Pope. No art, text, audio or code from that game is used.</p><p>Sound cues are synthesized locally. System fonts. No player analytics, account or live API connection.</p></div><div><h3>NASA field references</h3><ul><li><a href="https://ccmc.gsfc.nasa.gov/DONKI/events/30666/2/" target="_blank" rel="noopener">DONKI · May 10, 2024 · X3.9</a></li><li><a href="https://www.nasa.gov/missions/station/nasa-achieves-water-recovery-milestone-on-international-space-station/" target="_blank" rel="noopener">ISS water-recovery milestone</a></li><li><a href="https://www.nasa.gov/missions/station/veggie-plant-growth-system-activated-on-international-space-station/" target="_blank" rel="noopener">Veg-01 growing experiment</a></li><li><a href="https://science.nasa.gov/science-research/heliophysics/how-nasa-will-protect-astronauts-from-space-radiation-at-the-moon/" target="_blank" rel="noopener">Radiation protection at the Moon</a></li><li><a href="https://science.nasa.gov/mission/webb/science-overview/science-explainers/how-does-webb-see-back-in-time/" target="_blank" rel="noopener">Light travel time</a></li></ul><p>All economic costs and survival probabilities are fictional game balance. Scientific observations remain separate. NASA does not endorse this game.</p></div></div>${button('Back','settings-done','primary')}</section>`);}
-function help(){if(phase!=='menu'&&!paused)pause();showModal('help',`<section class="small-panel"><span class="eyebrow">YOUR DESK / QUICK REFERENCE</span><h1>Every paper<br>has a place.</h1><dl class="controls-list"><dt>Hold + drag</dt><dd>Move a sheet, book or stamp</dd><dt>Click stamp, then sheet</dt><dd>Stamp without dragging</dd><dt>B / I / R</dt><dd>Manual / inventory / record</dd><dt>1 / 2 / 3</dt><dd>Find a covered sheet</dd><dt>Tab · Enter · arrows</dt><dd>Focus, take, move and place</dd><dt>Escape / F</dt><dd>Pause / full screen</dd></dl><p>Store sheets by dropping them into the tray. Use the document buttons to recover a covered sheet. Escape first cancels a held object or stamp; press again to pause. Options includes two-click placement.</p>${button('Back to desk','resume','primary')}</section>`);}
+function help(){if(phase!=='menu'&&!paused)pause();showModal('help',`<section class="small-panel"><span class="eyebrow">YOUR DESK / QUICK REFERENCE</span><h1>Every paper<br>has a place.</h1><dl class="controls-list"><dt>Hold + drag</dt><dd>Move a sheet, book or stamp</dd><dt>Click stamp, then sheet</dt><dd>Stamp without dragging</dd><dt>B / I / R</dt><dd>Manual / inventory / record</dd><dt>1 / 2 / 3</dt><dd>Find a covered sheet</dd><dt>Tab · Enter · arrows</dt><dd>Focus, take, move and place</dd><dt>Escape / F</dt><dd>Pause / full screen</dd></dl><p>Store sheets by dropping them into the tray. Click an empty proposal slot to return its sheet. Use 1, 2 or 3 to recover a covered sheet. Escape first cancels a held object or stamp; press again to pause. Options includes two-click placement.</p>${button('Back to desk','resume','primary')}</section>`);}
 
 document.addEventListener('click',event=>{
   const target=(event.target as HTMLElement).closest<HTMLElement>('[data-action],[data-stamp-target]');if(!target)return;
@@ -430,7 +432,11 @@ document.addEventListener('click',event=>{
   if(action==='skip'&&cine){if(cine.revealed)showReport();else{cine.index=cine.steps.length-1;reveal();}return;}
   if(action==='final-prev'){ledgerPage--;renderFinalLog();return;}if(action==='final-next'){ledgerPage++;renderFinalLog();return;}
   if(!['desk','emergency','operation'].includes(phase)||busy)return;
-  if(action.startsWith('recover-')){camera.set('desk');desk.focus(action.slice(8));updateTaskGuide();return;}
+  if(action.startsWith('restore-')){
+    const id=action.slice(8),item=desk.items.get(id);if(phase!=='desk'||!item?.tray)return;
+    desk.cancel();desk.store(id);item.el.focus({preventScroll:true});sound.play('paper');updateTraySlots();
+    announce(`${item.el.getAttribute('aria-label')} returned to its place.`);return;
+  }
   if(action==='manual'){openManual();return;}if(action==='inventory'){openLedger('stock');return;}if(action==='record'){openLedger('record');return;}
   if(action==='close-manual'){desk.items.get('manual')!.el.hidden=true;$('.book-tool').focus();return;}if(action==='close-ledger'){desk.items.get('ledger')!.el.hidden=true;$('.ledger-tool').focus();return;}
   if(action==='pin'){const item=desk.items.get('manual')!;desk.setPinned('manual',!item.pinned);renderManual();return;}

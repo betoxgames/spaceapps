@@ -64,9 +64,9 @@ try {
       const dismiss = page.locator('[data-action="dismiss-screen-hint"]');
       if (await dismiss.isVisible()) await dismiss.click();
       await page.getByRole('button', { name: /Inspect desk/ }).click();
-      await page.locator('[data-action="recover-life"]').scrollIntoViewIfNeeded();
-      await page.locator('[data-action="recover-life"]').click();
-      assert.equal(await page.locator('#life').getAttribute('data-stored'), 'false', 'compact screen can retrieve a document through its named control');
+      await page.locator('#life').scrollIntoViewIfNeeded();
+      await page.locator('#life').click();
+      assert.equal(await page.locator('#life').getAttribute('data-stored'), 'false', 'compact screen can retrieve a document by clicking its paper preview');
       await page.locator('#life').scrollIntoViewIfNeeded();
       await assertInViewport(page.locator('#life'), viewport, 'Recovered life-support document');
       await page.screenshot({ path: 'test-results/ux-compact-physical-desk.png' });

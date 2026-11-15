@@ -13,8 +13,6 @@
 #task-guide { top: 108px; width: 920px; min-height: 0; padding: 11px 17px; }
 #task-guide > strong { font-size: 18px; margin-top: 4px; }
 #task-guide > span:not(.eyebrow) { font-size: 14px; margin-top: 4px; }
-#document-shortcuts { top: 275px; width: 468px; gap: 7px; }
-#document-shortcuts button { flex: 1; justify-content: center; padding: 9px 10px; min-height: 48px; font-size: 15px; white-space: nowrap; }
 
 /* These previews are real paper cards, rather than scaled book covers. */
 .paper-preview { display: none; }
@@ -145,4 +143,54 @@
 .ledger .log-kind { font-size: 9px; }
 .ledger .log-entry strong { font-size: 17px; }
 .ledger .log-entry > span:last-child { font-size: 13px; line-height: 1.3; }
-body.compact-ui #document-shortcuts button { min-height: 56px; }
+
+/* Only one version of a physical reference book is visible at a time. */
+#stage:has(#manual:not([hidden])) .book-tool,
+#stage:has(#ledger:not([hidden])) :is(.ledger-tool,.log-tool) { visibility: hidden; pointer-events: none; }
+.manual { border-color: #2a5a50; border-left-width: 6px; box-shadow: 2px 3px #c6b992, 5px 6px #eee4c9, 10px 14px 22px #082c3866; }
+.manual-top { height: 48px; background: linear-gradient(#2b6256,#28594e); }
+.manual-top button { height: 41px; border-radius: 4px 4px 0 0; font-size: 15px; }
+.manual-top button.active { background: #faf4e5; box-shadow: inset 0 2px #d0b991; }
+.book-spread { background: linear-gradient(90deg,#f6efdc 0%,#eee7d0 49.4%,#fcf6e8 50.6%,#f9f2e2 100%); }
+.book-spread > section { padding: 16px 19px; }
+.manual:before { top: 48px; width: 10px; background: linear-gradient(90deg,transparent,#887b5630,transparent); }
+.manual:after { top: 48px; }
+.manual-footer { border-top-color: #c3bc9c; background: #eee6d1; }
+.manual-footer button { background: #f8f3e5; border-color: #a1ab90; }
+.planet-grid button { border-color: #b4b99d; background: #faf5e7; border-radius: 4px; }
+.planet-grid button.selected { border-color: #567c5a; background: #e1ebd7; box-shadow: inset 3px 0 #567c5a; }
+.empty-page { padding: 35px 8px 15px; text-align: center; }
+.empty-page > span:first-child { display: grid; place-items: center; width: 42px; height: 42px; margin: 0 auto 20px; border: 1px solid #b9bea4; border-radius: 50%; color: #62806a; font: 24px var(--sans); }
+.empty-page .eyebrow { color: #7a8869; font-size: 9px; margin-bottom: 9px; }
+.empty-page h3 { font-size: 22px; margin: 0 0 10px; }
+.empty-page p { font-size: 15px; line-height: 1.5; color: #657158; }
+
+/* Empty paper positions are the return controls; the paper itself is the opener. */
+.tray-slots { inset: 31px 24px 10px; gap: 25px; }
+.tray-slot { position: relative; flex: 1; min-width: 0; padding: 12px 5px; border: 1px dashed #b8cfba59; border-radius: 2px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #bed0bd; background: #061e251a; font: 16px var(--mono); }
+.tray-slot:disabled { visibility: hidden; }
+.tray-slot small { color: #b8ccbb; font: 10px var(--sans); }
+.tray-slot:hover:not(:disabled), .tray-slot:focus-visible { background: #d8e5c61b; border-color: #e0c18a; color: #f0d5a2; }
+.tray-slot:hover small, .tray-slot:focus-visible small { color: #f0d5a2; }
+
+/* The wall display owns mission progress, leaving the desk devoted to papers. */
+.wall-monitor { height: 199px; padding: 12px 16px 11px; border: 1px solid #2d6962; border-radius: 8px; background: radial-gradient(ellipse at top,#103e3c,#061f27 75%); color: #d6e6ce; box-shadow: inset 0 0 20px #000e1580, 0 0 0 2px #092e34, 0 4px 10px #051b2380; text-shadow: none; }
+.wall-monitor:after { opacity: .35; }
+.monitor-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding-bottom: 8px; border-bottom: 1px solid #75a68b55; color: #c4dac0; font: 10px/1.3 var(--mono); letter-spacing: .09em; }
+.monitor-heading > span:first-child { display: flex; align-items: center; gap: 7px; }
+.monitor-heading > span:last-child { color: #89a996; font-size: 9px; }
+.monitor-signal { width: 6px; height: 6px; background: #a6d7b1; border-radius: 50%; box-shadow: 0 0 5px #a6d7b155; }
+.performance { display: grid; grid-template-columns: .9fr 1.15fr 1fr; gap: 0 16px; margin: 0; padding: 9px 0 8px; border-top: 0; border-bottom: 1px solid #75a68b40; }
+.monitor-metric { min-width: 0; }
+.monitor-metric > strong { display: block; color: #f0c489; font: 650 29px/1.1 var(--mono); font-variant-numeric: tabular-nums; letter-spacing: -.04em; }
+.monitor-metric > strong > span { color: #90ac96; font-size: 16px; padding-left: 3px; }
+.monitor-metric > span { display: block; margin-top: 5px; color: #b1cbb3; font: 9px/1.35 var(--mono); letter-spacing: .055em; white-space: nowrap; }
+.monitor-progress { display: flex; gap: 5px; grid-column: 1/-1; margin-top: 9px; }
+.monitor-progress > i { flex: 1; height: 3px; border-radius: 2px; background: #8db39b33; }
+.monitor-progress > i.complete { background: #d5bb88; }
+.base-status { margin: 8px 0 0; color: #acc6b0; font: 10px/1.2 var(--mono); letter-spacing: .04em; }
+.monitor-system { display: flex; align-items: center; gap: 7px; min-height: 17px; }
+.monitor-system > i { flex: none; width: 4px; height: 4px; background: #8e9c81; border-radius: 50%; }
+.monitor-system.ready > i { background: #aad7ab; }
+.monitor-system > span { color: #99b79f; }
+.monitor-system > strong { margin-left: auto; color: #d7e3c8; font: 12px/1.3 var(--sans); letter-spacing: 0; font-weight: 500; }
