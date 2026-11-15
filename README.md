@@ -2,6 +2,17 @@
 
 A work-in-progress lunar operations game for children ages 7–12. Review expedition papers, compare them with a manual, and stamp a decision. The supplied Blender room is rendered as a layered 2.5D scene with room and desk views. The current engineers are temporary; final integration is planned.
 
+
+## Jugar sin instalar herramientas
+
+1. Descarga el repositorio con **Code → Download ZIP** y descomprímelo.
+2. Abre **Space-Papers.html** con doble clic en Chrome, Edge o Safari actualizado.
+3. Selecciona **Begin shift** o **Training**. Usa una pantalla de computadora, preferiblemente de al menos 1280 × 720.
+
+El archivo funciona sin Node.js, pnpm ni servidor. Es una versión generada del juego en este repositorio; la campaña no se guarda al cerrar. Los enlaces externos de las fuentes científicas requieren internet.
+
+Para regenerar el archivo después de modificar el juego: ejecuta `pnpm install --frozen-lockfile`, `pnpm build` y `node scripts/build-portable.mjs`; luego comprueba que `Space-Papers.html` abre mediante doble clic y confirma el archivo actualizado junto al código.
+
 ## Run locally
 
 Install Node.js 24 and pnpm 11.25.0, then:
