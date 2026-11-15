@@ -1,31 +1,49 @@
 # Space Papers
 
-A work-in-progress lunar operations game for children ages 7–12. Review expedition papers, compare them with a manual, and stamp a decision. The supplied Blender room is rendered as a layered 2.5D scene with room and desk views. Nine engineers use the team’s supplied idle, speech and stamp-reaction PNG sequences, plus a continuous walk re-rendered from their original rig.
+Videojuego de operaciones lunares para niñas y niños de 7–12 años, desarrollado por **Los valar**. Revisa propuestas de expedición, consulta el manual y decide con un sello. La oficina combina una escena 2.5D de Blender con nueve ingenieros animados.
 
-## Play
+## Jugar
 
-Pull the latest repository changes, then open `index.html` directly in a browser. The game is contained in this one file and needs no installation, server, account or network connection. Campaigns reset on reload; preferences are stored locally.
+Descarga el archivo `Space-Papers-vX.Y.Z.html` de una versión publicada en [GitHub Releases](https://github.com/betoxgames/spaceapps/releases) y ábrelo en tu navegador. Incluye el juego y sus recursos: funciona sin instalación, servidor, cuenta ni conexión. Las partidas se reinician al recargar; las preferencias se guardan localmente.
 
-## Develop
+Mientras se prepara la primera versión final, puedes generar el mismo archivo con `pnpm build` y abrir `dist/index.html`. El `index.html` de la raíz es la entrada del código fuente y se usa con el servidor de desarrollo.
 
-For source changes, install Node.js 24 and pnpm 11.25.0:
+## Estructura
+
+```text
+spaceapps/
+├── src/                Código TypeScript y estilos del juego
+├── public/             Arte optimizado y referencias utilizadas por el juego
+├── tests/              Pruebas unitarias y de navegador
+├── scripts/            Compilación, empaquetado e importación de arte
+├── docs/               Documentación técnica, diseño y revisiones
+├── proyecto/           Evidencias, fuentes y prompts del proyecto
+├── .github/            Integración continua y publicación de versiones
+├── index.html          Entrada de desarrollo
+└── package.json        Dependencias y comandos
+```
+
+`dist/`, `release/`, `test-results/` y `asset-sources/` son carpetas locales ignoradas por Git. Los originales pesados de Blender y renders se conservan en el almacenamiento compartido; en Git se guardan los recursos optimizados.
+
+## Desarrollar
+
+Requiere **Node.js 24** y **pnpm 11.25.0**.
 
 ```sh
 pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Open the local address printed by Vite (normally http://127.0.0.1:4173/). `dev.html` is the source entry. The tracked root `index.html` is generated: do not edit it by hand. Run `pnpm build` after changes to regenerate it and `dist/index.html` using `scripts/build-offline.mjs`.
-
-## Verify
+Abre [localhost:4173](http://127.0.0.1:4173/). Para generar el juego autocontenido y comprobarlo:
 
 ```sh
 pnpm test
 pnpm build
 pnpm exec playwright install chromium
+pnpm test:offline
 ```
 
-Start `pnpm dev` in another terminal, then run:
+Con `pnpm dev` activo en otra terminal, ejecuta las pruebas de interacción:
 
 ```sh
 pnpm test:browser
@@ -36,21 +54,21 @@ pnpm test:characters
 pnpm test:visitors
 pnpm test:ux
 pnpm test:accessibility
-pnpm test:offline # after pnpm build
 ```
 
-Browser suites use development-only fixtures and default to port 4173. Set `PREVIEW_URL` for another development URL. Screenshots are written to ignored `test-results/`.
+Las suites usan datos de prueba disponibles solo en desarrollo. `PREVIEW_URL` permite cambiar el servidor; `PLAY_HTML` permite probar otro HTML de distribución. Las capturas se generan en `test-results/`.
 
-The [15 November UX review](docs/UX_REVIEW_2026-11-15.md) records the interface findings, verification coverage and remaining human-usability checks. Menus and dialogs adapt to compact screens; the physical desk preserves readable paper sizes through scrolling. A desktop or landscape tablet is recommended for comparing several documents at once.
+## Documentación y entregas
 
-## Controls
+- [Índice técnico](docs/README.md): arquitectura, diseño, arte e historial.
+- [Versiones finales](docs/RELEASES.md): validación, empaquetado y publicación.
+- [Evidencias, fuentes y prompts](proyecto/README.md): archivo del proceso del proyecto.
+- [Revisión de experiencia de usuario](docs/reviews/UX_REVIEW_2026-11-15.md): cobertura y comprobaciones humanas pendientes.
 
-Drag sheets, manual and stamps. Select a stamp then click a sheet; keyboard focus and Enter also work. `B` opens the manual, `I` inventory, `R` the turn record, and `1`–`3` recover covered sheets. Use Tab, Enter and arrows to move objects, Escape to pause and F for full screen. Options include reduced motion and two-click placement. Camera buttons switch room and desk views.
+## Controles
 
-## Handoff and sources
+Arrastra papeles, manual y sellos. Selecciona un sello y pulsa sobre una hoja; también puedes usar el foco y Enter. `B` abre el manual, `I` el inventario, `R` el registro y `1`–`3` recuperan hojas cubiertas. Tab, Enter y las flechas permiten manipular objetos; Escape pausa y `F` activa pantalla completa. Las opciones incluyen movimiento reducido y colocación con dos clics.
 
-[Engineering handoff](HANDOFF_COPILOT.md) records current rules, architecture and planned work. [NASA reference metadata](public/science.json) archives sources and their limits. Resource costs and probabilities are fictional game balance, not NASA predictions. The game has no runtime network dependency. Scene art and engineer artwork were supplied by the team; synthesized sound is provisional. The updated room and font, and the planet monitor, are deferred. See [sound priorities](SOUND_EFFECTS.md). Human usability testing and final asset/license verification remain pending. Code and documentation were assisted by OpenAI Codex.
+## Fuentes y estado
 
-The render inventory, timing assumptions, visual dependencies and reproducible import steps are in [engineer integration](docs/ENGINEER_RENDERS_2026-11-14.md).
-
-Original Blender source files remain in the team’s shared drive; commit only optimized runtime assets directly to Git. Git LFS is not needed for the current repository.
+[public/science.json](public/science.json) contiene las referencias educativas NASA. Los costos y probabilidades son ficción de balance, no predicciones de NASA. El arte fue suministrado por el equipo; el sonido sintetizado es provisional. El código y la documentación se desarrollaron con asistencia de OpenAI Codex. La evaluación con usuarios y la revisión final de licencias siguen pendientes; consulta la documentación antes de marcar una entrega como final.

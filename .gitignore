@@ -11,3 +11,10 @@ test-results/
 asset-sources/
 *.blend1
 *.blend2
+
+# Generated release packages and local tooling.
+release/
+playwright-report/
+*.tsbuildinfo
+*.blend
+*.blend[0-9]

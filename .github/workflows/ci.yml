@@ -1,10 +1,15 @@
 name: CI
 on:
   push:
+    branches: ['**']
   pull_request:
+  workflow_call:
+permissions:
+  contents: read
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -22,8 +27,18 @@ jobs:
       - run: |
           pnpm dev > /tmp/space-papers-vite.log 2>&1 &
           for i in $(seq 1 30); do curl -fsS http://127.0.0.1:4173/ > /dev/null && break; sleep 1; done
+          curl -fsS http://127.0.0.1:4173/ > /dev/null
           pnpm test:browser
           pnpm test:desk
           pnpm test:camera
           pnpm test:training
           pnpm test:characters
+          pnpm test:visitors
+          pnpm test:ux
+          pnpm test:accessibility
+      - uses: actions/upload-artifact@v4
+        with:
+          name: offline-build
+          path: dist/index.html
+          if-no-files-found: error
+          retention-days: 14

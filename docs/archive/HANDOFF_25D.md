@@ -2,9 +2,9 @@
 
 ## Intent and current shape
 
-The user asked SOL and Terra to redesign Space Papers directly, using their Blender room assets. The requested presentation has two camera positions: a whole-room view and a close desk view. The mood should be warm, friendly science fiction. The root agent coordinates user communication; implementation agents should not contact the user directly. The visual direction is recorded in [`ART_DIRECTION_25D.md`](./ART_DIRECTION_25D.md).
+The user asked SOL and Terra to redesign Space Papers directly, using their Blender room assets. The requested presentation has two camera positions: a whole-room view and a close desk view. The mood should be warm, friendly science fiction. The root agent coordinates user communication; implementation agents should not contact the user directly. The visual direction is recorded in [`ART_DIRECTION_25D.md`](../design/ART_DIRECTION_25D.md).
 
-The runtime scene is layered from the team's original renders: room, door, desk. Five sampled door poses permit a real opening transition. Source and Drive IDs are documented in [`public/art/scene/README.md`](../public/art/scene/README.md). The WebP images are 1920 × 1080 and share exact registration. The door overlays are transparent outside the model, and the desk is transparent outside the tabletop and pedestal. The room has a transparent doorway. Correct layer order is room → door → desk. Browser paths are `/art/scene/scene-base.webp`, `/art/scene/door-0001.webp` through `door-0032.webp` (sampled poses 0001, 0008, 0016, 0024, 0032), and `/art/scene/desk.webp`.
+The runtime scene is layered from the team's original renders: room, door, desk. Five sampled door poses permit a real opening transition. Source and Drive IDs are documented in [`public/art/scene/README.md`](../../public/art/scene/README.md). The WebP images are 1920 × 1080 and share exact registration. The door overlays are transparent outside the model, and the desk is transparent outside the tabletop and pedestal. The room has a transparent doorway. Correct layer order is room → door → desk. Browser paths are `/art/scene/scene-base.webp`, `/art/scene/door-0001.webp` through `door-0032.webp` (sampled poses 0001, 0008, 0016, 0024, 0032), and `/art/scene/desk.webp`.
 
 The original combined PNG remains at `/Users/beto/Downloads/EscenarioFinalCompleto.png` and in the supplied Drive folder `Principal` (`1JuziOtiKwVmEtsiEWtuEM44Av8ZNCX4V`). The Blender file is `Completp.blend` (Drive ID `1uVmM2TVs2fSxydHLeVM1ueOaF4OvUgy7`), but Blender is not installed in this workspace. The WebPs are compressed from the user's PNG renders; they are not newly generated imagery. Asset ownership or licensing was not independently verified. Redundant public PNG copies were removed. All runtime scene assets together are about 240 KB.
 
@@ -28,4 +28,4 @@ The existing user preview is on `http://127.0.0.1:4173/` and should remain avail
 
 ## Resume point
 
-Review the live preview and [`ART_DIRECTION_25D.md`](./ART_DIRECTION_25D.md), then address the listed polish and replace the remaining placeholder engineer figures when approved assets exist. Preserve the original asset registration and camera behavior when editing the scene.
+Review the live preview and [`ART_DIRECTION_25D.md`](../design/ART_DIRECTION_25D.md), then address the listed polish and replace the remaining placeholder engineer figures when approved assets exist. Preserve the original asset registration and camera behavior when editing the scene.

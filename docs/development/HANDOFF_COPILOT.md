@@ -1,12 +1,12 @@
 # Space Papers — engineering handoff
 
-Phase 1 baseline was published in commits `124e233` and `ccabe9d`; Phase 2 integrates all nine delivered engineers. The current priority is a self-contained offline build that players open directly after pulling the repository. Updated room artwork/font and the planet monitor are deferred, not complete. Preserve gameplay and accounting while improving presentation. Repository: https://github.com/betoxgames/spaceapps, branch `main`. Store original Blender sources in the team’s shared drive and commit only optimized runtime assets directly to Git; Git LFS is not needed for the current repository.
+Phase 1 baseline was published in commits `124e233` and `ccabe9d`; Phase 2 integrates all nine delivered engineers. The current priority is a self-contained offline build that players open directly after downloading a release. Updated room artwork/font and the planet monitor are deferred, not complete. Preserve gameplay and accounting while improving presentation. Repository: https://github.com/betoxgames/spaceapps, branch `main`. Store original Blender sources in the team’s shared drive and commit only optimized runtime assets directly to Git; Git LFS is not needed for the current repository.
 
 ## Product and architecture
 
 A lunar-base document-review game for children aged 7–12: inspect an engineer's proposal, compare its five resources against the manual and inventory, then stamp approve or return. Use clear language, readable controls, accessible focus and keyboard operation, reduced motion and age-appropriate feedback. Never reveal a mission result before its consequence, or future emergency identities/costs. No changes to costs, balances or probabilities without explicit authorization.
 
-The tracked root `index.html` is generated as a single self-contained offline game with embedded runtime assets. Players open it directly after a pull; no server, installation, login, APIs or network are required. Do not edit that file manually: `pnpm build` runs `scripts/build-offline.mjs` and regenerates the root file and `dist/index.html`. `dev.html` is the Vite source entry. Development uses Node 24 and pnpm 11.25.0. Verification of direct file opening must be reported from actual test results.
+The root `index.html` is the Vite source entry. `pnpm build` generates the self-contained offline game at `dist/index.html`; build output is ignored by Git and distributed through GitHub Releases. Players download the release HTML and open it directly without a server, installation, login or network. Development uses Node 24 and pnpm 11.25.0. Verify direct file opening with `pnpm test:offline` after building. See [release instructions](../RELEASES.md).
 
 Vite/TypeScript static application: `src/catalog.ts` is the game data; `src/domain.ts` owns seeded campaign state and transitions; `src/main.ts` coordinates presentation; `src/desk.ts` handles movable desk objects; `src/camera.ts`, `src/art.ts`, `src/audio.ts`, and `src/clock.ts` handle presentation, sound and timing. `public/art/scene/` contains supplied Blender scene renders layered as 2.5D, including sampled door frames; retain registration across room and desk camera positions. Preferences persist locally; campaigns do not survive reload. `public/science.json` archives NASA educational sources and limitations. Runtime must work without network calls; NASA observations are not endorsements or validation of fictional game numbers. See README for setup and verification.
 
@@ -39,7 +39,7 @@ After five successes and both emergencies, grade uses exact successes/approvals:
 
 The nine supplied engineers have been integrated; preserve the original Blender Grease Pencil drawings, 18-bone rig and idle/caminar/Hablar actions. See the Phase 2 checkpoint below for rendering and source details. Characters are Nico, Adán, Leo, Max, Saúl, Dante, Víctor, Teo and Ren.
 
-The updated supplied room/door artwork, tunnel-top fix and `StickleBoldItalic.ttf` display font remain deferred. Verify font rights and legibility before use, preserve camera alignment and readable body text. The textured rotating planet in the distant back monitor is also deferred: verify Solar System Scope licenses and attribution first; selection should start empty with Moon only in the menu, with no live APIs. Sound assets remain deferred; see [sound priorities](SOUND_EFFECTS.md).
+The updated supplied room/door artwork, tunnel-top fix and `StickleBoldItalic.ttf` display font remain deferred. Verify font rights and legibility before use, preserve camera alignment and readable body text. The textured rotating planet in the distant back monitor is also deferred: verify Solar System Scope licenses and attribution first; selection should start empty with Moon only in the menu, with no live APIs. Sound assets remain deferred; see [sound priorities](../design/SOUND_EFFECTS.md).
 
 ## Verification and delivery
 
@@ -51,13 +51,11 @@ Nine delivered engineers are now integrated: Nico, Adán, Leo, Max, Saúl, Dante
 
 `public/art/engineers/manifest.json` records source IDs, hashes, timings, rig compatibility and render settings. `scripts/export-engineers.py` reproduces exports with Blender 5.3, Node and the declared sharp dependency after downloading originals into ignored `asset-sources/engineers/`. The supplied appearance takes precedence over recoloring artist assets to match a textual palette: Saúl's source suit is blue with a yellow accent. All 216 exported frames were checked for empty/clipped artwork. Viewer browser tests cover all nine loads, stale-load protection, clock freeze, reduced motion and missing-asset fallback. No original drawing was reconstructed.
 
-## Latest delivery verification
+## Delivery history
 
-The user reprioritized a pull-and-play build before the remaining visual phases. The tracked root `index.html` is generated and fully self-contained: inline IIFE JavaScript, inline CSS, embedded NASA reference content and 16 data-URL image assets, including all nine engineer atlases. It opens directly with no installation, HTTP server, login or network connection. `dev.html` remains the source entry; Vite maps development `/` to it, preserving fixtures and developer tests. `src/assets.ts` resolves embedded assets in the player build and public paths during development. `pnpm build` regenerates both root `index.html` and ignored `dist/index.html`; do not hand-edit the generated player file.
+See the [historical offline checkpoint](../archive/OFFLINE_DELIVERY_CHECKPOINT.md). The current output is `dist/index.html`; root `index.html` is source code.
 
-Verified in Chromium at 1280×720 with network disabled and a real file:// URL: start shift, engineer load, manual selection, keyboard document pickup/placement, return, tutorial approval, outcome and report; no external requests and no page errors. Ten unit tests pass. Character and camera suites pass after engineer integration. Updated wall/door tunnel fix, Stickle typography and planetary monitor remain deliberately deferred by the latest user instruction. Next recommended Copilot task: integrate and validate the updated wall/door exports, preserving direct-file/offline play and re-running offline and desk regressions. No new sound recordings were added.
-
-## Latest wall and render correction
+## Wall and render correction checkpoint
 
 Updated the room and five door frames from the new team Drive files. Full 1920×1080 registration is preserved. A documented foreground-header occlusion mask removes door pixels above y=160, fixing the tunnel protrusion while retaining the supplied wall image. This is a compositing correction, not a claim of remodeling the source geometry. The new door action is open at frame 0016, so opening now holds there. The engineer entrance path remains the next task, not completed.
 

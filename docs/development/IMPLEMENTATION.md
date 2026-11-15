@@ -1,6 +1,6 @@
 # Space Papers: implementación y entrega
 
-[Espacio de coordinación del equipo](https://app.notion.com/p/41888b30c7518133a4d7c02aee475e0c?pvs=204) · [Inventario de producción](ASSETS.md) · [Referencias científicas](../public/science.json)
+[Espacio de coordinación del equipo](https://app.notion.com/p/41888b30c7518133a4d7c02aee475e0c?pvs=204) · [Inventario de producción](../assets/ASSETS.md) · [Referencias científicas](../../public/science.json)
 
 ## Estado y decisiones
 
