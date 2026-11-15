@@ -70,7 +70,11 @@ window.addEventListener('pagehide',()=>engineerViewer.dispose(),{once:true});
 applyPreferences();
 science = scienceArchive.sources as unknown as Science[];
 
-function announce(message:string){$('#announcement').textContent=message;}
+function announce(message:string){$('#announcement').textContent=message;updateStampStatus();}
+function updateStampStatus(){
+  const stamp=desk.stamp;
+  $('#stamp-status > span').textContent=stamp?`${stamp==='approve'?'APPROVE':'RETURN'} selected · choose a sheet.`:'Compare first. Then stamp your decision.';
+}
 let toastTimer=0;
 function toast(message:string){const el=$('#toast');(modal?$('#modal-layer'):stage).append(el);el.textContent=message;el.hidden=false;clock.cancel(toastTimer);toastTimer=clock.after(3500,()=>el.hidden=true);announce(message);}
 function applyPreferences(){visitorSequence.setReducedMotion(prefs.reduced);sound.volume=prefs.volume;sound.muted=prefs.muted;desk.clickPlacement=prefs.clickPlacement;stage.classList.toggle('reduced-motion',prefs.reduced);try{localStorage.setItem('space-papers-preferences-v1',JSON.stringify(prefs));}catch{}}
@@ -94,7 +98,7 @@ function updateTaskGuide(){
   $('#document-shortcuts').hidden=camera.position!=='desk'||phase!=='desk';
   const guide=$('#task-guide');guide.hidden=!!training||!['desk','transition','emergency','operation'].includes(phase);
   const status=visitorSequence.snapshot().phase;
-  guide.innerHTML=phase==='emergency'?'<span class="eyebrow">PRIORITY / BASE RESPONSE</span><strong>Choose support. Confirm before time runs out.</strong>':phase==='operation'?'<span class="eyebrow">BASE ORDER / COMPARE COSTS</span><strong>Choose A or B, then approve the order.</strong>':phase==='transition'?'<span class="eyebrow">DECISION RECORDED</span><strong>Your engineer is collecting the papers…</strong>':`<span class="eyebrow">YOUR NEXT STEP</span><strong>${camera.position==='room'?'Inspect the desk to review this mission.':'Read the route → compare all five resources → check stock.'}</strong><span>${status==='ready'?'Approve a safe request. Return a request that falls short.':'The engineer is on the way. You can inspect the papers now.'}</span>`;
+  guide.innerHTML=phase==='emergency'?'<span class="eyebrow">PRIORITY / BASE RESPONSE</span><strong>Choose support. Confirm before time runs out.</strong>':phase==='operation'?'<span class="eyebrow">BASE ORDER / COMPARE COSTS</span><strong>Choose A or B, then approve the order.</strong>':phase==='transition'?`<span class="eyebrow">${$('.visitor-area').dataset.decision==='approve'?'CLEARANCE ISSUED':'REVISION REQUESTED'}</span><strong>${$('.visitor-area').dataset.decision==='approve'?'A moment to celebrate. Your mission projection is next.':'The engineer is taking the request back for revision.'}</strong>`:`<span class="eyebrow">YOUR NEXT STEP</span><strong>${camera.position==='room'?'Inspect the desk to review this mission.':'Read the route → compare all five resources → check stock.'}</strong><span>${status==='ready'?'Approve a safe request. Return a request that falls short.':'The engineer is on the way. You can inspect the papers now.'}</span>`;
   updateDocumentShortcuts();
 }
 function preserveControlFocus(root:HTMLElement,render:()=>void){
@@ -117,7 +121,8 @@ function resourceRows(amounts:Resources,keys:readonly Resource[]=RESOURCES,compa
 function costText(amounts:Resources){return RESOURCES.filter(r=>amounts[r]>0).map(r=>`${format(amounts[r])} ${RESOURCE_LABELS[r].unit} ${RESOURCE_LABELS[r].label.toLowerCase()}`).join(' + ');}
 function nameOf(id?:string){return DESTINATIONS.find(d=>d.id===id)?.name??id??'';}
 function showVisitor(id:string){
-  $('.visitor-area').dataset.ready='false';
+  $('.visitor-area').dataset.ready='false';delete $('.visitor-area').dataset.decision;
+  $('.visitor-badge > span').textContent='MISSION ENGINEER';
   const engineer=ENGINEERS.find(e=>e.id===id)??ENGINEERS[1];
   $('#visitor-portrait').dataset.engineer=engineer.id;
   $('.visitor-area').style.setProperty('--engineer-color',engineer.color);
@@ -129,13 +134,14 @@ function updateStatus(){
   const choices=visible.operationChoices;
   const states=[choices.B01?(choices.B01==='A'?'Life support: regenerative':'Life support: reserves'):'Habitat ready',choices.B02?(choices.B02==='A'?'Shelter ready · Lab active':'Shelter ready · Lab paused'):'Shelter unprepared',choices.B03?(choices.B03==='A'?(visible.completed.length>=4?'Harvest used at base':'Local crop growing'):'Stored rations in use'):'Food program pending'];
   $('#base-status').innerHTML=`<span class="base-dot"></span> BASE STATUS<span>${states.map(esc).join('<br>')}</span>`;
-  $('#shift-progress').innerHTML=`<span>SHIFT PROGRESS</span><strong>${visible.completed.length} / 5 destinations</strong><span>${visible.events.filter(e=>e.resolved).length} / 2 incidents resolved</span>`;
+  $('#shift-progress').innerHTML=`<span class="progress-caption">YOUR SHIFT</span><div class="destination-progress"><span class="progress-pips" aria-hidden="true">${Array.from({length:5},(_,i)=>`<i class="${i<visible.completed.length?'complete':''}"></i>`).join('')}</span><strong>${visible.completed.length} / 5 destinations</strong></div><span>${visible.events.filter(e=>e.resolved).length} / 2 incidents</span>`;
   if(desk.items.has('ledger'))renderLedger();
 }
 function setStampAvailability(){
+  stage.dataset.phase=phase;
   const visitorReady=visitorSequence.snapshot().phase==='ready';
   const ready=(phase==='desk'&&!!campaign.proposal&&visitorReady)||(phase==='operation'&&!!operationChoice);
-  stage.querySelectorAll<HTMLButtonElement>('[data-action="camera-room"],[data-action="camera-desk"]').forEach(b=>b.disabled=paused||!['desk','transition'].includes(phase));
+  stage.querySelectorAll<HTMLButtonElement>('[data-action="camera-room"],[data-action="camera-desk"]').forEach(b=>b.disabled=paused||busy||phase!=='desk');
   $<HTMLButtonElement>('[data-stamp-tool="approve"]').disabled=paused||busy||!ready;
   $<HTMLButtonElement>('[data-stamp-tool="return"]').disabled=paused||busy||phase!=='desk'||!visitorReady;
   $('[data-stamp-tool="return"]').title=phase==='operation'?'Internal order: choose one option and approve it.':'Return the proposal without spending resources';
@@ -143,7 +149,7 @@ function setStampAvailability(){
   desk.enabled=!paused&&!busy&&!modal&&['desk','emergency','operation'].includes(phase);
   stage.querySelectorAll<HTMLElement>('.station-header,.desk-tools,.desk-rail,.camera-controls,.room-tray,#document-shortcuts,#training-guide').forEach(el=>el.inert=phase==='cinema');
   $('#objects').inert=camera.position==='room'||phase==='cinema';
-  updateTaskGuide();
+  updateTaskGuide();updateStampStatus();
 }
 function start(seed?:string){
   training=null;resetSession();camera.set('room');campaign=createCampaign(seed?.trim()||crypto.randomUUID().slice(0,8));visible=campaign;
@@ -151,7 +157,7 @@ function start(seed?:string){
   scale();announce('Your shift begins. Inspect the desk, read the route, compare the manual and check inventory before stamping.');
   $('[data-action="camera-desk"]').focus({preventScroll:true});
 }
-function resetSession(){$('#app').scrollTo(0,0);stage.classList.remove('paused');clock.clear();visitorSequence.reset();clock.setPaused(false);sound.pause(false);paused=false;busy=false;pending=null;cine=null;delete stage.dataset.incident;emergencyId='';operationId='';operationChoice=null;communication=0;messageSent=false;desk.clear();bookTab='index';bookDestination=null;bookPage=0;ledgerPage=0;$('#cinema').hidden=true;$('#training-guide').hidden=true;$('#toast').hidden=true;}
+function resetSession(){$('#app').scrollTo(0,0);delete $('.visitor-area').dataset.decision;stage.classList.remove('paused');clock.clear();visitorSequence.reset();clock.setPaused(false);sound.pause(false);paused=false;busy=false;pending=null;cine=null;delete stage.dataset.incident;emergencyId='';operationId='';operationChoice=null;communication=0;messageSent=false;desk.clear();bookTab='index';bookDestination=null;bookPage=0;ledgerPage=0;$('#cinema').hidden=true;$('#training-guide').hidden=true;$('#toast').hidden=true;}
 function renderProposal(){
   for(const id of ['flight','life','power','order','emergency','worksheet'])desk.remove(id);
   const p=campaign.proposal;if(!p)return;
@@ -202,7 +208,7 @@ function renderManual(){
     left=`<span class="eyebrow">NASA FIELD NOTE ${bookPage%5+1}/5</span><h3>${f[0]}</h3><p class="source-label">${f[1]}</p><strong class="science-fact">${f[2]}</strong><p>${f[3]}</p>`;
     right=`<span class="eyebrow">SCIENCE & OUR SIMULATION</span><p>${f[4]}</p><p>Mission quantities, base-order costs and survival probabilities are <strong>fictional game balance</strong>.</p><a class="source-link" href="${f[5]}" target="_blank" rel="noopener">Read the NASA source ↗</a>`;
   }
-  preserveControlFocus(item.el,()=>{item.el.innerHTML=`<div class="manual-top"><span class="manual-brand">FIELD MANUAL</span><nav aria-label="Manual sections">${tab('index','Index')}${tab('destinations','Routes')}${tab('rules','Rules')}${tab('emergencies','Alerts')}${tab('science','NASA')}</nav></div><div class="book-spread" data-no-drag><section tabindex="0" aria-label="Left manual page">${left}</section><section tabindex="0" aria-label="Right manual page">${right}</section></div><footer class="manual-footer">${button(item.pinned?'Unpin book':'Pin book','pin')}<span>${bookTab==='rules'?`PAGE ${bookPage%4+1} / 4`:bookTab==='science'?'SCIENCE / FICTION':'LUNAR OPERATIONS'}</span>${['rules','emergencies','science'].includes(bookTab)?`${button('‹','book-prev')}${button('›','book-next')}`:''}${button('Close','close-manual')}</footer>`;
+  preserveControlFocus(item.el,()=>{item.el.innerHTML=`<div class="manual-top"><span class="manual-brand">FIELD MANUAL</span><nav aria-label="Manual sections">${tab('index','Index')}${tab('destinations','Routes')}${tab('rules','Rules')}${tab('emergencies','Alerts')}${tab('science','NASA')}</nav></div><div class="book-spread" data-no-drag><section tabindex="0" aria-label="Left manual page">${left}</section><section tabindex="0" aria-label="Right manual page">${right}</section></div><footer class="manual-footer">${button(item.pinned?'Unpin book':'Pin book','pin')}<span>${bookTab==='rules'?`PAGE ${bookPage%4+1} / 4`:bookTab==='science'?`NASA ${bookPage%5+1} / 5`:bookTab==='emergencies'?`ALERTS ${bookPage%2+1} / 2`:'LUNAR OPERATIONS'}</span>${['rules','emergencies','science'].includes(bookTab)?`${button('‹','book-prev')}${button('›','book-next')}`:''}${button('Close','close-manual')}</footer>`;
   item.el.querySelector('[data-action="book-prev"]')?.setAttribute('aria-label','Previous manual page');item.el.querySelector('[data-action="book-next"]')?.setAttribute('aria-label','Next manual page');
   item.el.querySelector('[data-action="pin"]')?.setAttribute('aria-pressed',String(!!item.pinned));});
 }
@@ -240,12 +246,14 @@ function stampDecision(stamp:'approve'|'return',target:string){
   });
 }
 function beginStamp(stamp:'approve'|'return',target:string,done:()=>void){
-  busy=true;phase='transition';setStampAvailability();sound.play('stamp');
+  busy=true;phase='transition';$('.visitor-area').dataset.decision=stamp;
+  $('.visitor-badge > span').textContent=stamp==='approve'?'CLEARANCE ISSUED':'REVISION REQUESTED';
+  $('#speech').textContent=stamp==='approve'?"Thank you, officer. We're cleared to go!":"Understood. We'll revise these papers.";
+  setStampAvailability();sound.play('stamp');
   const el=desk.items.get(target)?.el;if(el){const ink=el.querySelector('.ink-mark')??el.appendChild(Object.assign(document.createElement('div'),{className:'ink-mark'}));ink.textContent=stamp==='approve'?'AUTHORIZED':'RETURNED';ink.classList.add('visible',stamp);}
   const collecting=['flight','life','power','order'].map(id=>desk.items.get(id)?.el);
   clock.after(260,()=>{for(const el of collecting)if(el?.isConnected)el.classList.add('collecting');});
   const finish=()=>{for(const id of ['flight','life','power','order'])desk.remove(id);done();};
-  if(target==='order'){clock.after(prefs.reduced?150:650,finish);return;}
   camera.set('room');
   // Reaction depends only on the stamp. Mission success stays hidden until reveal().
   visitorSequence.react(stamp,finish);
@@ -326,7 +334,7 @@ function renderCinema(){
   const surface=['launch','ascent','surface','landing','home'].includes(visual);
   const baseStates={lifeSupport:visible.operationChoices.B01==='A'?'regenerative':'pending',refuge:visible.operationChoices.B02?'ready':'pending',food:visible.operationChoices.B03==='A'?'growing':'pending'};
   const art=visual.startsWith('base')?`<div class="cinema-base">${baseView(baseStates,reveal?(r.success?'stable':'lost'):'intervention')}</div>`:`<div class="cinema-world ${surface?'surface-world':''}">${planet(world)}</div><div class="cinema-stars" aria-hidden="true">✦<span>·</span>✧<span>·</span>✦</div>${surface?'<div class="cinema-ground"></div><div class="landing-pad"></div>':''}<div class="cinema-ship ${visual} ${reveal&&!r.success?'stopped':''}">${ship(surface?'module':'transport')}</div>${visual==='transfer'?`<div class="transfer-module">${ship('module')}</div>`:''}`;
-  preserveControlFocus($('#cinema'),()=>{$('#cinema').innerHTML=`<div class="projection-frame"><header><span>MISSION PROJECTION</span><span>${r.kind==='mission'?`${nameOf(r.destination).toUpperCase()} / CREW OF 04`:'LUNAR BASE / OPERATIONS'}</span></header><div class="projection-view ${visual} ${reveal?'revealed':''}">${art}${reveal?`<div class="consequence-mark ${r.success?'positive':'negative'}">${r.success?'✓':'!'}</div>`:''}</div><div class="cine-caption"><span class="eyebrow">${reveal?'CONSEQUENCE':`SEQUENCE ${c.index+1} / ${c.steps.length}`}</span><h2>${label}</h2><p>${reveal?esc(r.explanation):'Observe the mission. The report follows the outcome.'}</p></div><footer>${button('Ⅱ Pause','pause')}${button(c.speed===1?'Speed ×1':'Speed ×4','speed')}${button(reveal?'Open report':'See outcome','skip','primary')}</footer></div>`;});
+  preserveControlFocus($('#cinema'),()=>{$('#cinema').innerHTML=`<div class="projection-frame"><header><span>MISSION PROJECTION</span><span>${r.kind==='mission'?`${nameOf(r.destination).toUpperCase()} / CREW OF 04`:'LUNAR BASE / OPERATIONS'}</span></header><div class="projection-view ${visual} ${reveal?'revealed':''}">${art}${reveal?`<div class="consequence-mark ${r.success?'positive':'negative'}">${r.success?'✓':'!'}</div>`:''}</div><div class="cine-sequence" aria-label="${reveal?'Outcome revealed':`Sequence ${c.index+1} of ${c.steps.length}`}">${c.steps.map((_,i)=>`<i class="${i<c.index||reveal?'complete':i===c.index?'current':''}" aria-hidden="true"></i>`).join('')}</div><div class="cine-caption"><span class="eyebrow">${reveal?'CONSEQUENCE':`SEQUENCE ${c.index+1} / ${c.steps.length}`}</span><h2>${label}</h2><p>${reveal?esc(r.explanation):'Observe the mission. The report follows the outcome.'}</p></div><footer>${button('Ⅱ Pause','pause')}${button(c.speed===1?'Speed ×1':'Speed ×4','speed')}${button(reveal?'Open report':'See outcome','skip','primary')}</footer></div>`;});
   $('#cinema [data-action="speed"]').setAttribute('aria-pressed',String(c.speed===4));
   $('#cinema').dataset.speed=String(c.speed);
   if(prefs.reduced)$('#cinema').classList.add('static');else $('#cinema').classList.remove('static');
@@ -392,7 +400,7 @@ function closeModal(){
   if(target?.isConnected&&!target.closest('[hidden],[inert]'))target.focus({preventScroll:true});
 }
 function menu(){resetSession();camera.set('room');training=null;phase='menu';stage.classList.add('menu-mode');setStampAvailability();
-  scale();showModal('menu',`<section class="menu"><div class="menu-copy"><div class="edition">LUNAR OPERATIONS BUREAU <span>SECTOR 04</span></div><h1>Space<br><em>Papers.</em></h1><p class="menu-lead">A small desk. A very big responsibility.</p><p class="menu-description">Read the mission. Compare the supplies.<br>Stamp a safe journey home.</p><div class="menu-buttons">${button('Begin shift','new-shift','primary')}<button type="button" data-action="training" class="secondary" aria-label="Training">Training <span>START HERE · 4 LESSONS</span></button></div><div class="menu-links">${button('Options','options')}${button('Credits & science','credits')}</div><details class="seed-picker"><summary>Replay a seed</summary><label for="seed-input">Seed</label><input id="seed-input" maxlength="80" autocomplete="off" placeholder="e.g. lunar-morning">${button('Start replay','replay')}</details><div class="menu-footer">LOS VALAR · A SPACE MISSION TRAINING GAME</div></div></section>`);
+  scale();showModal('menu',`<section class="menu"><div class="menu-copy"><div class="edition">LUNAR OPERATIONS BUREAU <span>SECTOR 04</span></div><h1>Space<br><em>Papers.</em></h1><p class="menu-lead">A small desk. A very big responsibility.</p><p class="menu-description">Read the mission. Compare the supplies.<br>Stamp a safe journey home.</p><div class="menu-buttons">${button('Begin shift <span aria-hidden="true">↗</span>','new-shift','primary')}<button type="button" data-action="training" class="secondary" aria-label="Training">Training <span>4 GUIDED LESSONS</span></button></div><div class="menu-links">${button('Options','options')}${button('Credits & science','credits')}</div><details class="seed-picker"><summary>Replay a seed</summary><label for="seed-input">Seed</label><input id="seed-input" maxlength="80" autocomplete="off" placeholder="e.g. lunar-morning">${button('Start replay','replay')}</details><div class="menu-footer"><span class="connection-dot" aria-hidden="true"></span>OFFLINE READY <span class="menu-footer-separator">/</span> LOS VALAR</div></div><aside class="assignment-card" aria-label="Your assignment"><div class="assignment-station"><span class="eyebrow">LUNAR OPERATIONS / OFFICER BRIEF</span><span aria-hidden="true">✦</span></div><h2>Every journey<br>starts at your desk.</h2><ol class="assignment-steps"><li><span aria-hidden="true">01</span><div><strong>Read the route</strong><p>Three papers. One expedition.</p></div></li><li><span aria-hidden="true">02</span><div><strong>Compare the supplies</strong><p>Your manual and stock tell the story.</p></div></li><li><span aria-hidden="true">03</span><div><strong>Make your mark</strong><p>Approve a safe request. Return a shortage.</p></div></li></ol><div class="assignment-goal"><strong>5 destinations</strong><span>2 incidents · one shared stock</span></div><footer>FIELD ASSIGNMENT <span>SP—04 / LUNAR SECTOR</span></footer></aside></section>`);
 }
 function pause(){if(phase==='menu'||paused)return;paused=true;lastFocus=document.activeElement as HTMLElement;desk.cancel();clock.setPaused(true);sound.pause(true);stage.classList.add('paused');setStampAvailability();showPause();}
 function showPause(){showModal('pause',`<section class="small-panel"><span class="eyebrow">LUNAR OPERATIONS / ON HOLD</span><h1>Take a breath.</h1><p>Your papers, the mission and the emergency clock are paused.</p>${button('Continue shift →','resume','primary')}${button('Options','options')}${button('Return to menu','leave')}<p class="fine-print">Your shift is not saved when you leave.</p></section>`);}
@@ -405,7 +413,7 @@ document.addEventListener('click',event=>{
   const target=(event.target as HTMLElement).closest<HTMLElement>('[data-action],[data-stamp-target]');if(!target)return;
   if(target.dataset.stampTarget){desk.applySelectedStamp(target.dataset.stampTarget);return;}
   const action=target.dataset.action!;if((target as HTMLButtonElement).disabled)return;
-  if(action==='camera-desk'||action==='camera-room'){if(!paused&&['desk','transition'].includes(phase)){camera.set(action==='camera-desk'?'desk':'room', true);updateTaskGuide();announce(action==='camera-desk'?'Desk view. Read the route, compare the manual and check inventory.':'Room view.');}return;}
+  if(action==='camera-desk'||action==='camera-room'){if(!paused&&!busy&&phase==='desk'){camera.set(action==='camera-desk'?'desk':'room', true);updateTaskGuide();announce(action==='camera-desk'?'Desk view. Read the route, compare the manual and check inventory.':'Room view.');}return;}
   if(action==='new-shift'){start();return;}if(action==='training'){resetSession();setupTraining(1);return;}
   if(action==='replay'){start($<HTMLInputElement>('#seed-input')?.value);return;}
   if(action==='menu'){menu();return;}if(action==='pause'){pause();return;}if(action==='resume'){resume();return;}
@@ -464,7 +472,7 @@ clock.subscribe(dt=>{
   const previousPhase=phase;
   const unusedSceneTime=visitorSequence.tick(dt);
   const phaseTime=phase===previousPhase?dt:unusedSceneTime;
-  $('.visitor-area').dataset.ready=String(visitorSequence.snapshot().phase==='ready'&&phase==='desk');
+  $('.visitor-area').dataset.ready=String(visitorSequence.snapshot().phase==='ready'&&phase==='desk'||phase==='transition'&&['reacting','approved'].includes(visitorSequence.snapshot().phase));
   if(phase==='emergency'&&!(training?.lesson===3&&training.practice!=='timed')){
     remaining=Math.max(0,remaining-phaseTime);const sec=Math.ceil(remaining/1000);const counter=$('#seconds');if(counter)counter.textContent=String(sec);
     desk.items.get('emergency')?.el.classList.toggle('urgent',remaining<=10000);
