@@ -1,0 +1,58 @@
+/* An outcome record, with accounting intentionally left to the physical ledger. */
+.report-paper.mission-debrief { --verdict: #426c50; width: 900px; padding: 25px 38px 28px; border: 1px solid #b3aa8c; border-top: 6px solid var(--verdict); border-radius: 3px; background: linear-gradient(115deg,#fbf5e6,#f0e7d0); box-shadow: 3px 4px #c3b797, 13px 20px 35px #041e2777; }
+.mission-debrief.debrief-failure { --verdict: #985940; }
+.mission-debrief > header { font-size: 10px; letter-spacing: .08em; padding-bottom: 14px; border-color: #adb399; color: #52654d; }
+.debrief-hero { display: grid; grid-template-columns: minmax(0,1fr) 118px; gap: 28px; padding: 26px 0 24px; align-items: center; }
+.debrief-verdict { display: inline-flex; align-items: center; gap: 8px; color: var(--verdict); font: 700 11px var(--mono); letter-spacing: .08em; }
+.debrief-verdict > span { display: grid; place-items: center; width: 20px; height: 20px; border: 1px solid currentColor; border-radius: 50%; font: 700 13px var(--sans); }
+.mission-debrief h1 { margin: 12px 0 10px; font: 750 44px/1.06 var(--display); letter-spacing: -.04em; color: #203c39; }
+.debrief-hero p { margin: 0; font-size: 19px; line-height: 1.4; color: #4c604c; }
+.debrief-location { display: block; margin-top: 17px; font: 11px/1.5 var(--mono); letter-spacing: .08em; color: #657454; }
+.debrief-emblem { display: grid; place-items: center; width: 118px; height: 118px; padding: 18px; border: 1px solid #bbc0a3; border-radius: 50%; background: #dce1ca55; color: var(--verdict); font-size: 61px; }
+.debrief-emblem svg { width: 100%; height: 100%; }
+.debrief-route { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); list-style: none; margin: 0; padding: 20px 0; border-top: 1px solid #b6ba9e; border-bottom: 1px solid #b6ba9e; }
+.debrief-route li { position: relative; display: flex; align-items: flex-start; gap: 9px; min-width: 0; padding-right: 10px; color: #3d6049; font-size: 14px; line-height: 1.3; }
+.route-node { display: grid; place-items: center; flex: none; width: 24px; height: 24px; border: 1px solid #6f9374; border-radius: 50%; background: #dbe4cc; color: #3d644a; font: 700 12px var(--sans); }
+.debrief-route small { display: block; margin-top: 4px; color: #66765a; font-size: 11px; }
+.debrief-route .stopped { color: #884b36; }
+.stopped .route-node { border-color: #aa755c; background: #ead4bd; color: #884b36; }
+.debrief-route .stopped small { color: #884b36; }
+.debrief-route .upcoming { color: #8d957c; }
+.upcoming .route-node { border-style: dashed; border-color: #acb397; background: transparent; color: #8d957c; }
+.debrief-route .upcoming small { color: #8d957c; }
+.debrief-review { padding: 24px 0 20px; }
+.debrief-review .eyebrow { color: #687956; font-size: 10px; letter-spacing: .09em; }
+.debrief-review h2 { margin: 8px 0 10px; color: #2b4a3f; font: 700 24px/1.15 var(--display); letter-spacing: -.025em; }
+.debrief-review p { margin: 8px 0 0; font-size: 17px; line-height: 1.45; color: #4f624e; }
+.debrief-findings { list-style: none; margin: 6px 0 0; padding: 0; }
+.debrief-findings li { display: grid; grid-template-columns: 145px minmax(0,1fr); gap: 16px; align-items: center; border-bottom: 1px solid #b5b99d77; padding: 10px 0; color: #5c6048; font-size: 16px; line-height: 1.4; }
+.finding-resource { display: flex; align-items: center; gap: 8px; font-weight: 650; color: #415b44; }
+.finding-resource svg { flex: none; width: 20px; height: 20px; }
+.debrief-choice strong { margin-left: 10px; color: #2f5142; }
+.debrief-next { display: flex; align-items: center; gap: 15px; padding: 14px 17px; background: #dfe5cd66; border-left: 3px solid #8ba17b; }
+.debrief-next > span { flex: none; color: #688265; font-size: 23px; }
+.debrief-next strong { color: #5a7052; font: 10px var(--mono); letter-spacing: .07em; }
+.debrief-next p { margin: 5px 0 0; color: #4d624b; font-size: 15px; line-height: 1.4; }
+.mission-debrief > footer { margin-top: 22px; padding-top: 18px; gap: 20px; border-color: #b5b99d; }
+.mission-debrief > footer > span { color: #6b765a; font: 9px/1.5 var(--mono); letter-spacing: .07em; }
+.mission-debrief > footer > span > span { margin-inline: 8px; }
+.mission-debrief > footer button { min-height: 50px; font-size: 18px; padding: 12px 23px; }
+body.compact-ui .report-paper.mission-debrief { width: min(100%,720px); max-height: none; margin: auto; padding: 20px; border-top-width: 5px; }
+body.compact-ui .debrief-hero { grid-template-columns: minmax(0,1fr) 60px; gap: 12px; padding: 24px 0 22px; }
+body.compact-ui .mission-debrief h1 { font-size: 33px; margin: 12px 0 10px; }
+body.compact-ui .debrief-hero p { font-size: 16px; }
+body.compact-ui .debrief-verdict { font-size: 9px; letter-spacing: .03em; }
+body.compact-ui .debrief-emblem { width: 60px; height: 60px; padding: 10px; font-size: 32px; }
+body.compact-ui .debrief-location { font-size: 9px; letter-spacing: .04em; }
+body.compact-ui .debrief-route { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 19px 10px; padding-block: 18px; }
+body.compact-ui .debrief-route li { font-size: 13px; padding: 0; gap: 7px; }
+body.compact-ui .debrief-route small { font-size: 10px; }
+body.compact-ui .debrief-review { padding-block: 22px; }
+body.compact-ui .debrief-review h2 { font-size: 22px; }
+body.compact-ui .debrief-review p { font-size: 16px; }
+body.compact-ui .debrief-findings li { grid-template-columns: 1fr; gap: 5px; padding-block: 11px; font-size: 15px; }
+body.compact-ui .debrief-next { gap: 10px; padding: 13px; }
+body.compact-ui .debrief-next p { font-size: 14px; }
+body.compact-ui .mission-debrief > footer { align-items: stretch; }
+body.compact-ui .mission-debrief > footer > span { font-size: 9px; }
+body.compact-ui .mission-debrief > footer button { min-height: 50px; }

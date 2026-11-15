@@ -1,5 +1,7 @@
 import './style.css';
 import './desk-design.css';
+import './report.css';
+import { reportMarkup } from './report';
 import scienceArchive from '../public/science.json';
 import { PROTOCOLS, protocolMarkup } from './protocols';
 import { DESTINATIONS, ENGINEERS, EVENTS, OPERATIONS, RESOURCES, RESOURCE_LABELS, format, units, vector, type Resource, type Resources } from './catalog';
@@ -347,9 +349,7 @@ function renderCinema(){
 function reveal(){if(!cine||!pending||cine.revealed)return;cine.revealed=true;cine.elapsed=0;visible=campaign;updateStatus();sound.play(pending.success?'success':'failure');renderCinema();announce(pending.explanation);}
 function showReport(){
   if(!pending)return;const r=pending;phase='report';cine=null;$('#cinema').hidden=true;visible=campaign;busy=false;setStampAvailability();
-  const title=r.kind==='mission'?(r.success?'A safe return.':'A mission interrupted.'):r.kind==='operation'?(r.success?'Order carried out.':'Order could not be supplied.'):r.success?'The base is stable.':'The base was lost.';
-  const rows=RESOURCES.filter(k=>r.kind==='mission'||r.minimum[k]||r.spent[k]);
-  showModal('report',`<div class="report-paper"><header><span>AFTER-ACTION REPORT</span><span>${r.destination?nameOf(r.destination):r.event??r.operation}</span></header><span class="report-symbol ${r.success?'positive':'negative'}">${r.success?'✓':'!'}</span><h1>${title}</h1><p>${esc(r.explanation)}${r.fatal?' Your shift ends after this report.':''}</p><div class="report-table-scroll" tabindex="0" role="region" aria-label="Resource accounting, scroll horizontally on small screens"><table class="report-table"><caption class="sr-only">Resources required, requested, spent and remaining after this decision</caption><thead><tr><th scope="col">Resource</th><th scope="col">Minimum</th><th scope="col">Requested</th><th scope="col">Spent</th><th scope="col">Stock left</th></tr></thead><tbody>${rows.map(k=>`<tr><th scope="row">${RESOURCE_LABELS[k].label}<span>${RESOURCE_LABELS[k].unit}</span></th><td>${format(r.minimum[k])}</td><td>${format(r.requested[k])}</td><td>${format(r.spent[k])}</td><td>${format(r.balance[k])}</td></tr>`).join('')}</tbody></table></div><div class="report-explanation">${r.kind==='mission'?rows.filter(k=>r.spent[k]<r.minimum[k]||r.spent[k]<r.requested[k]).map(k=>`<p><strong>${RESOURCE_LABELS[k].label}:</strong> ${r.spent[k]<r.minimum[k]?`${format(r.spent[k])} supplied; ${format(r.minimum[k])} needed.`:'The minimum was covered, but the full request was unavailable.'}</p>`).join('')||'<p>Every minimum and the complete request were covered.</p>':r.kind==='emergency'?`<p>Actual contribution: ${Math.round((r.probability??0)*100)}%. Partial support is a chance, not a guarantee.</p>`:'<p>This operation uses the shared store. It does not change mission success rate.</p>'}</div><footer><span>No refunds. Every resource has its own purpose.</span>${button(training?.error||training&&r.fatal?'Try lesson again':'File report →','archive','primary')}</footer></div>`);
+  showModal('report',reportMarkup(r,nameOf(r.destination),!!training&&(training.error||r.fatal)));
 }
 function archive(){
   closeModal();for(const id of ['manual','ledger']){const item=desk.items.get(id);if(item)item.el.hidden=false;}
