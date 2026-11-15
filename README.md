@@ -21,6 +21,7 @@ space-papers/
 │       ├── images/
 │       │   ├── scene/         Capas del escenario y fotogramas de la puerta
 │       │   ├── engineers/     Atlas de animación de los nueve ingenieros
+│       │   ├── lunar-station/ Cuatro estados de iluminación para emergencias y operaciones
 │       │   └── ui/            Imágenes de sellos
 │       └── audio/            Música y efectos MP3, con manifiesto de procedencia
 ├── src/
@@ -46,6 +47,8 @@ space-papers/
 Las reglas de `src/game/` dependen del catálogo, no del DOM. `src/app/` coordina el estado y conecta reglas, reloj, escenas y componentes. Las plantillas de `src/ui/` reciben los datos que presentan; el manual, los informes, el escritorio y las transmisiones tienen módulos propios. Los estilos conservan su orden de carga para mantener la apariencia.
 
 Los modelos 3D, texturas de producción y renders originales se conservan en `asset-sources/` (ignorado) y en el almacenamiento del equipo. El juego utiliza sus exportaciones 2.5D optimizadas; no necesita modelos ni un motor 3D en tiempo de ejecución. La organización y las convenciones de recursos se describen en [public/assets/README.md](public/assets/README.md).
+
+Los renders de estación lunar se usan en alertas, proyecciones e informes para todas las emergencias E01–E08 y operaciones B01–B03, incluso donde antes aparecía la ilustración vectorial de B01. En emergencias, la alerta empieza en rojo (apagado en E08) y la intervención en ámbar. En operaciones, la escena comienza blanca y cambia a ámbar durante una intervención; al revelar el resultado, queda blanca si tiene éxito y apagada si falla. La procedencia y el proceso de actualización están en [lunar-station/README.md](public/assets/images/lunar-station/README.md). Con Vite activo, `pnpm test:lunar-station` verifica la secuencia de estación y sus resultados, pausa, velocidad y movimiento reducido.
 
 ### Por qué funciona sin servidor
 
@@ -113,3 +116,5 @@ Arrastra papeles, manual y sellos. Selecciona un sello y pulsa sobre una hoja; t
 ## Fuentes y estado
 
 [src/data/science.json](src/data/science.json) contiene las referencias educativas NASA. Los costos y probabilidades son ficción de balance, no predicciones de NASA. El arte y los archivos de sello, puerta y música ambiental fueron suministrados por el equipo; las demás señales sintetizadas son provisionales. La procedencia de los nuevos audios está en [public/assets/audio/manifest.json](public/assets/audio/manifest.json). El código y la documentación se desarrollaron con asistencia de OpenAI Codex. La evaluación con usuarios y la revisión final de licencias siguen pendientes; consulta la documentación antes de marcar una entrega como final.
+
+El menú principal usa la Luna 3D optimizada con giro libre, luces recuperadas de Blender y estrellas geométricas. Funciona desde `index.html` por `file://`. Detalles y controles: [menú 3D](docs/MENU_3D_2026-11-15.md). Verificación: `pnpm test:menu`.

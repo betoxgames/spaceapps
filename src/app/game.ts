@@ -1,5 +1,5 @@
 import { trainingMarkup, type Training } from '../ui/training';
-import { makeSteps, cinemaMarkup } from '../scenes/cinema';
+import { makeSteps, cinemaMarkup, updateCinemaFrame } from '../scenes/cinema';
 import { proposalMarkup, emergencyMarkup, operationMarkup } from '../ui/documents';
 import { shellMarkup } from '../ui/shell';
 import { menuMarkup, pauseMarkup, optionsMarkup, creditsMarkup, helpMarkup, finalMarkup, trainingFinishedMarkup } from '../ui/screens';
@@ -18,6 +18,7 @@ import { assetUrl } from '../core/assets';
 import { Camera } from '../scenes/camera';
 import { EngineerViewer } from '../characters/engineer-viewer';
 import { VisitorSequence } from '../scenes/visitor-sequence';
+import { mountMenuMoon, type MoonMenuScene } from '../scenes/menu-moon';
 
 type Phase = 'menu'|'desk'|'transition'|'cinema'|'report'|'emergency'|'operation'|'final';
 const $ = <T extends HTMLElement = HTMLElement>(selector:string):T => document.querySelector<T>(selector)!;
@@ -35,6 +36,7 @@ let supplyView:'stock'|'record'='stock', supplyPage=0, comparisonReturn=false, m
 let training:Training|null=null, busy=false, serial=0;
 let cine:{steps:Array<{label:string;visual:string;phase:string}>;index:number;elapsed:number;speed:number;revealed:boolean}|null=null;
 const clock=new GameClock(), sound=new Sound();
+let menuScene:MoonMenuScene|null=null, menuDepartureTimer=0;
 // Load both poses while the menu is open so the first pickup has no image swap delay.
 for (const pose of ['approve-idle', 'return-idle', 'approve-held', 'return-held']) {
   const image = new Image(); image.src = assetUrl(`assets/images/ui/${pose}.webp`);
@@ -42,6 +44,11 @@ for (const pose of ['approve-idle', 'return-idle', 'approve-held', 'return-held'
 
 $('#app').innerHTML=shellMarkup();
 const stage=$('#stage');
+// The film uses the viewport independently of the scaled, scrollable desk.
+$('#app').append($('#cinema'));
+$('#cinema').setAttribute('role','dialog');
+$('#cinema').setAttribute('aria-modal','true');
+$('#cinema').setAttribute('aria-label','Mission cinematic');
 const desk=new Desk(stage,{
   announce,
   presentation:{tray:{x:540,y:182,width:520,height:153},previewScale:.38,previewHeight:260,reading:{x:744,y:410},objectScale:.84},
@@ -55,8 +62,8 @@ const camera = new Camera(stage, () => desk.cancel());
 const sceneVisitor=document.createElement('div');sceneVisitor.className='scene-visitor';
 sceneVisitor.append($('#visitor-portrait'));$('.scene-environment').append(sceneVisitor);
 const engineerViewer = new EngineerViewer($('#visitor-portrait'),state=>$('#visitor-portrait').dataset.viewerState=state);
-const visitorSequence = new VisitorSequence(sceneVisitor,$('.scene-door'),engineerViewer,()=>setStampAvailability(),()=>sound.play('door'));
-window.addEventListener('pagehide',()=>engineerViewer.dispose(),{once:true});
+const visitorSequence = new VisitorSequence(sceneVisitor,$('.scene-door'),engineerViewer,()=>setStampAvailability(),duration=>sound.play('door',duration));
+window.addEventListener('pagehide',()=>{engineerViewer.dispose();disposeMenuScene();},{once:true});
 const dispatch=new Dispatch($('#dispatch'),stage);
 applyPreferences();
 
@@ -67,7 +74,7 @@ function updateStampStatus(){
 }
 let toastTimer=0;
 function toast(message:string){const el=$('#toast');(modal?$('#modal-layer'):stage).append(el);el.textContent=message;el.hidden=false;clock.cancel(toastTimer);toastTimer=clock.after(3500,()=>el.hidden=true);announce(message);}
-function applyPreferences(){visitorSequence.setReducedMotion(prefs.reduced);sound.volume=prefs.volume;sound.musicVolume=prefs.musicVolume;sound.muted=prefs.muted;desk.clickPlacement=prefs.clickPlacement;stage.classList.toggle('reduced-motion',prefs.reduced);$('#dispatch').classList.toggle('reduced-motion',prefs.reduced);savePreferences(prefs);}
+function applyPreferences(){menuScene?.setReducedMotion(prefs.reduced);visitorSequence.setReducedMotion(prefs.reduced);sound.volume=prefs.volume;sound.musicVolume=prefs.musicVolume;sound.muted=prefs.muted;desk.clickPlacement=prefs.clickPlacement;stage.classList.toggle('reduced-motion',prefs.reduced);$('#dispatch').classList.toggle('reduced-motion',prefs.reduced);savePreferences(prefs);}
 function scale(){
   desk.cancel();const width=window.innerWidth,height=window.innerHeight;
   const compact=width<1000||height<560;
@@ -114,7 +121,7 @@ function showVisitor(id:string){
   $('#visitor-portrait').dataset.engineer=engineer.id;
   $('.visitor-area').style.setProperty('--engineer-color',engineer.color);
   $('#visitor-name').textContent=engineer.name;$('#speech').textContent=engineer.greeting;
-  void visitorSequence.show(engineer.id);
+  void visitorSequence.show(engineer.id,sound.ready());
 }
 function updateStatus(){
   const choices=visible.operationChoices;
@@ -130,6 +137,7 @@ function updateStatus(){
 }
 function setStampAvailability(){
   stage.dataset.phase=phase;
+  stage.inert=phase==='cinema'||!!modal||dispatch.active||bookReading;
   const visitorReady=visitorSequence.snapshot().phase==='ready';
   const ready=(phase==='desk'&&!!campaign.proposal&&visitorReady)||(phase==='operation'&&!!operationChoice);
   stage.querySelectorAll<HTMLButtonElement>('[data-action="camera-room"],[data-action="camera-desk"]').forEach(b=>b.disabled=paused||busy||phase!=='desk');
@@ -148,7 +156,7 @@ function start(seed?:string){
   scale();announce('Your shift begins. Inspect the desk, read the route, compare the manual and check inventory before stamping.');
   $('[data-action="camera-desk"]').focus({preventScroll:true});
 }
-function resetSession(){setManualReading(false,false);dispatch.cancel();responseLanding=0;$('#app').scrollTo(0,0);delete $('.visitor-area').dataset.decision;stage.classList.remove('paused');clock.clear();visitorSequence.reset();clock.setPaused(false);sound.pause(false);paused=false;busy=false;pending=null;cine=null;delete stage.dataset.incident;emergencyId='';operationId='';operationChoice=null;communication=0;messageSent=false;desk.clear();bookTab='index';bookDestination=null;bookPage=0;bookQuery='';bookFilter='all';ledgerPage=0;supplyView='stock';supplyPage=0;comparisonReturn=false;manualFlightSeen='';manualCompared='';$('#cinema').hidden=true;$('#training-guide').hidden=true;$('#toast').hidden=true;}
+function resetSession(){sound.setEngine(null);setManualReading(false,false);dispatch.cancel();responseLanding=0;$('#app').scrollTo(0,0);delete $('.visitor-area').dataset.decision;stage.classList.remove('paused');clock.clear();visitorSequence.reset();clock.setPaused(false);sound.pause(false);paused=false;busy=false;pending=null;cine=null;delete stage.dataset.incident;emergencyId='';operationId='';operationChoice=null;communication=0;messageSent=false;desk.clear();bookTab='index';bookDestination=null;bookPage=0;bookQuery='';bookFilter='all';ledgerPage=0;supplyView='stock';supplyPage=0;comparisonReturn=false;manualFlightSeen='';manualCompared='';$('#cinema').hidden=true;$('#training-guide').hidden=true;$('#toast').hidden=true;}
 function renderProposal(){
   for(const id of ['flight','life','power','order','emergency','worksheet'])desk.remove(id);
   const p=campaign.proposal;if(!p)return;manualFlightSeen='';manualCompared='';comparisonReturn=false;
@@ -249,8 +257,8 @@ function beginStamp(stamp:'approve'|'return',target:string,done:()=>void){
   busy=true;phase='transition';$('.visitor-area').dataset.decision=stamp;
   $('.visitor-badge > span').textContent=stamp==='approve'?'CLEARANCE ISSUED':'REVISION REQUESTED';
   $('#speech').textContent=stamp==='approve'?"Thank you, officer. We're cleared to go!":"Understood. We'll revise these papers.";
-  setStampAvailability();sound.play('stamp');
-  const el=desk.items.get(target)?.el;if(el){const ink=el.querySelector('.ink-mark')??el.appendChild(Object.assign(document.createElement('div'),{className:'ink-mark'}));ink.textContent=stamp==='approve'?'AUTHORIZED':'RETURNED';ink.classList.add('visible',stamp);}
+  setStampAvailability();
+  const el=desk.items.get(target)?.el;if(el){const ink=el.querySelector('.ink-mark')??el.appendChild(Object.assign(document.createElement('div'),{className:'ink-mark'}));ink.textContent=stamp==='approve'?'AUTHORIZED':'RETURNED';ink.classList.add('visible',stamp);sound.play('stamp');}
   const collecting=['flight','life','power','order'].map(id=>desk.items.get(id)?.el);
   clock.after(260,()=>{for(const el of collecting)if(el?.isConnected)el.classList.add('collecting');});
   const finish=()=>{for(const id of ['flight','life','power','order'])desk.remove(id);done();};
@@ -336,24 +344,22 @@ function startCinema(r:Resolution){
   setManualReading(false,false);dispatch.cancel();phase='cinema';busy=true;desk.cancel();setStampAvailability();$('#training-guide').hidden=true;
   for(const item of desk.items.values())item.el.hidden=true;
   cine={steps:makeSteps(r),index:0,elapsed:0,speed:1,revealed:false};pending=r;
-  $('#cinema').hidden=false;$('#objects').inert=true;renderCinema();const next=$('#cinema [data-action="skip"]');next.focus({preventScroll:true});if(document.body.classList.contains('compact-ui'))next.scrollIntoView({block:'nearest',inline:'nearest',behavior:'instant'});
+  $('#cinema').hidden=false;$('#cinema').inert=false;$('#objects').inert=true;renderCinema();const next=$('#cinema [data-action="skip"]');next.focus({preventScroll:true});
 }
 function renderCinema(){
   if(!cine||!pending)return;
-  
-  
-  
-  
-  
   const c=cine,r=pending;
   preserveControlFocus($('#cinema'),()=>{$('#cinema').innerHTML=cinemaMarkup(c,r,visible);});
   $('#cinema [data-action="speed"]').setAttribute('aria-pressed',String(c.speed===4));
   $('#cinema').dataset.speed=String(c.speed);
+  updateCinemaFrame($('#cinema'),c,prefs.reduced);
+  const visual=c.steps[c.index].visual;
+  sound.setEngine(!c.revealed&&r.kind==='mission'?(['ascent','landing'].includes(visual)?'module':['outbound','return'].includes(visual)?'transport':null):null);
   if(prefs.reduced)$('#cinema').classList.add('static');else $('#cinema').classList.remove('static');
 }
-function reveal(){if(!cine||!pending||cine.revealed)return;cine.revealed=true;cine.elapsed=0;visible=campaign;updateStatus();sound.play(pending.success?'success':'failure');renderCinema();announce(pending.explanation);}
+function reveal(){if(!cine||!pending||cine.revealed)return;sound.setEngine(null);cine.revealed=true;cine.elapsed=0;visible=campaign;updateStatus();sound.play(pending.success?'success':'failure');renderCinema();announce(pending.explanation);}
 function showReport(){
-  if(!pending)return;const r=pending;phase='report';cine=null;$('#cinema').hidden=true;visible=campaign;busy=false;setStampAvailability();
+  if(!pending)return;sound.setEngine(null);const r=pending;phase='report';cine=null;$('#cinema').hidden=true;visible=campaign;busy=false;setStampAvailability();
   showModal('report',reportMarkup(r,nameOf(r.destination),!!training&&(training.error||r.fatal)));
 }
 function archive(){
@@ -389,25 +395,106 @@ function progressTraining(){
   }
 }
 function renderTraining(){
-  const guide=$('#training-guide');guide.hidden=!training||['cinema','report'].includes(phase);if(!training)return;guide.innerHTML=trainingMarkup(training);
+  const guide=$('#training-guide');guide.hidden=!training||['cinema','report'].includes(phase);if(!training)return;guide.innerHTML=trainingMarkup(training);trainingHint='';
 }
+// The mask follows moving desk objects and also works over the full-screen manual and dispatch.
+let trainingHint = '';
+function updateTrainingSpotlight(){
+  const spotlight=$<SVGElement & HTMLElement>('#training-spotlight'), guide=$('#training-guide');
+  const active=!!training&&!['cinema','report','menu','final'].includes(phase)&&!modal&&!paused;
+  spotlight.toggleAttribute('hidden',!active);guide.hidden=!active;
+  if(active&&training){
+    let selectors:string[]=[];let hint='';
+    if(dispatch.active){selectors=['#dispatch [data-action="open-dispatch"]'];hint=training.lesson===4?'Open the plans.':'Open the response.';}
+    else if(training.lesson===1){
+      if(training.step===0)selectors=['#flight'];
+      else if(training.step===1)selectors=['.book-tool'];
+      else if(training.step===2){
+        if(bookTab==='destinations'){selectors=['[data-action="destination-earth"]'];hint='Choose Earth.';}
+        else {selectors=['#manual [data-action="book-destinations"]'];hint='Open Routes.';}
+      }else if(training.step===3){
+        if(bookReading){selectors=['[data-action="manual-sheet-life"]','[data-action="manual-sheet-power"]'];hint='Open both supply sheets.';}
+        else selectors=['#life[data-stored="true"]','#power[data-stored="true"]'];
+        if(!selectors.some(selector=>document.querySelector(selector)))selectors=['#life','#power'];
+      }else if(training.step===4){selectors=['#manual [data-action="book-supplies"]','#manual [data-action="manual-stock"]'];hint='Open Inventory.';}
+      else if(bookReading){selectors=['#manual [data-action="manual-reading"]'];hint='Back to the desk.';}
+      else if(desk.stamp){selectors=['#flight','#life','#power'];hint='Tap a sheet to stamp it.';}
+      else selectors=['[data-stamp-tool="approve"]'];
+    }else if(training.lesson===2){
+      if(desk.stamp){selectors=['#flight','#life','#power'];hint='Tap a sheet to return it.';}
+      else selectors=['[data-stamp-tool="return"]'];
+    }else if(training.lesson===3){
+      const required=training.practice==='half'?50:100;
+      if(training.practice==='timed'||contribution===required){selectors=['#contribution','[data-action="confirm-emergency"]'];}
+      else selectors=['#contribution'];
+    }else if(!operationChoice){selectors=['[data-action="choice-A"]','[data-action="choice-B"]'];hint='Choose a plan.';}
+    else if(desk.stamp){selectors=['#order'];hint='Tap the order to approve it.';}
+    else {selectors=['[data-stamp-tool="approve"]'];hint='Take APPROVE.';}
+    const key=`${training.lesson}/${training.step}/${training.practice}/${hint}`;
+    if(key!==trainingHint){guide.innerHTML=trainingMarkup(training,hint||undefined);trainingHint=key;}
+    const rects=selectors.flatMap(selector=>Array.from(document.querySelectorAll<HTMLElement>(selector))).filter(el=>el.checkVisibility()&&!el.closest('[hidden]')).map(el=>el.getBoundingClientRect()).filter(r=>r.width>0&&r.height>0&&r.bottom>0&&r.right>0&&r.left<innerWidth&&r.top<innerHeight);
+    const holes=rects.map(r=>{const x=Math.max(0,r.left-6),y=Math.max(0,r.top-6),w=Math.min(innerWidth,r.right+6)-x,h=Math.min(innerHeight,r.bottom+6)-y;return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="10" fill="black"/>`;}).join('');
+    const outlines=rects.map(r=>`<rect x="${r.left-6}" y="${r.top-6}" width="${r.width+12}" height="${r.height+12}" rx="10"/>`).join('');
+    spotlight.innerHTML=`<defs><mask id="training-mask"><rect width="100%" height="100%" fill="white"/>${holes}</mask></defs><rect width="100%" height="100%" fill="rgba(3,17,24,.78)" mask="url(#training-mask)"/><g fill="none" stroke="#ffe39a" stroke-width="3">${outlines}</g>`;
+    const topOverlap=rects.some(r=>r.top<145&&r.bottom>0);guide.classList.toggle('training-guide-bottom',topOverlap);
+  }else trainingHint='';
+  requestAnimationFrame(updateTrainingSpotlight);
+}
+requestAnimationFrame(updateTrainingSpotlight);
 function trainingFinished(){training=null;phase='menu';$('#training-guide').hidden=true;setStampAvailability();showModal('training-finished',trainingFinishedMarkup());}
 
 function modalFocusables(){return Array.from($('#modal-layer').querySelectorAll<HTMLElement>('button:not(:disabled),input:not(:disabled),a[href],summary,[tabindex="0"]')).filter(el=>el.checkVisibility()&&!el.closest('[hidden],[inert]')&&(!el.closest('details:not([open])')||el.matches('summary')));}
 function showModal(name:string,html:string){
+  disposeMenuScene();
   if(!modal)modalReturnFocus=document.activeElement as HTMLElement;
   modal=name;const layer=$('#modal-layer');stage.append($('#toast'));layer.innerHTML=html;layer.hidden=false;layer.scrollTop=0;layer.dataset.modal=name;
   layer.setAttribute('role','dialog');layer.setAttribute('aria-modal','true');layer.tabIndex=-1;
   const heading=layer.querySelector('h1');if(heading){heading.id='modal-title';layer.setAttribute('aria-labelledby','modal-title');}
   else{layer.removeAttribute('aria-labelledby');layer.setAttribute('aria-label','Space Papers');}
-  stage.inert=true;$('#manual-reader').inert=true;$('#dispatch').inert=true;desk.enabled=false;$('#small-screen').hidden=true;
-  queueMicrotask(()=>{const first=modalFocusables()[0];(first??layer).focus({preventScroll:true});});
+  stage.inert=true;$('#cinema').inert=true;$('#manual-reader').inert=true;$('#dispatch').inert=true;desk.enabled=false;$('#small-screen').hidden=true;
+  if(name==='menu')mountOrbitalMenu(layer.querySelector<HTMLElement>('.orbital-menu')!);
+  queueMicrotask(()=>{const first=name==='menu'?layer.querySelector<HTMLElement>('[data-action="new-shift"]'):modalFocusables()[0];(first??layer).focus({preventScroll:true});});
 }
 function closeModal(){
-  modal='';const layer=$('#modal-layer');stage.append($('#toast'));layer.hidden=true;layer.innerHTML='';stage.inert=dispatch.active||bookReading;$('#manual-reader').inert=false;$('#dispatch').inert=false;$('#small-screen').hidden=!document.body.classList.contains('compact-ui')||phase==='menu'||screenHintDismissed||dispatch.active||bookReading;
+  disposeMenuScene();
+  modal='';const layer=$('#modal-layer');stage.append($('#toast'));layer.hidden=true;layer.innerHTML='';stage.inert=phase==='cinema'||dispatch.active||bookReading;$('#cinema').inert=false;$('#manual-reader').inert=false;$('#dispatch').inert=false;$('#small-screen').hidden=!document.body.classList.contains('compact-ui')||phase==='menu'||screenHintDismissed||dispatch.active||bookReading;
   $('#objects').inert=camera.position==='room'||phase==='cinema';
   const target=modalReturnFocus;modalReturnFocus=null;
   if(target?.isConnected&&!target.closest('[hidden],[inert]'))target.focus({preventScroll:true});
+}
+function disposeMenuScene(){
+  window.clearTimeout(menuDepartureTimer);menuDepartureTimer=0;menuScene?.dispose();menuScene=null;
+}
+function mountOrbitalMenu(root:HTMLElement){
+  menuScene=mountMenuMoon(root,prefs.reduced);
+  const soundButton=root.querySelector<HTMLButtonElement>('[data-menu-control="sound"]')!;
+  const updateSound=()=>{soundButton.setAttribute('aria-pressed',String(prefs.muted));soundButton.setAttribute('aria-label',prefs.muted?'Unmute audio':'Mute audio');};updateSound();
+  root.addEventListener('click',event=>{
+    const control=(event.target as HTMLElement).closest<HTMLElement>('[data-menu-control]')?.dataset.menuControl;
+    if(control==='home'){event.preventDefault();menuScene?.reset();}
+    if(control==='sound'){prefs.muted=!prefs.muted;applyPreferences();updateSound();}
+    if(control==='reset')menuScene?.reset();
+    if(control==='lights'){menuScene?.replayLights();const button=root.querySelector<HTMLButtonElement>('[data-menu-control="rotate"]')!;button.setAttribute('aria-pressed','false');button.setAttribute('aria-label','Pause Moon rotation');button.textContent='Ⅱ';}
+    if(control==='rotate'){
+      const button=(event.target as HTMLElement).closest<HTMLButtonElement>('button')!;
+      const paused=button.getAttribute('aria-pressed')!=='true';menuScene?.setPaused(paused);
+      button.setAttribute('aria-pressed',String(paused));button.setAttribute('aria-label',paused?'Resume Moon rotation':'Pause Moon rotation');button.textContent=paused?'▷':'Ⅱ';
+    }
+    if(control==='replay'){
+      const form=root.querySelector<HTMLFormElement>('.orbital-replay')!;form.hidden=!form.hidden;
+      root.querySelector('[data-menu-control="replay"]')!.setAttribute('aria-expanded',String(!form.hidden));
+      if(!form.hidden)form.querySelector('input')!.focus();
+    }
+  });
+  root.querySelector('form')!.addEventListener('submit',event=>{event.preventDefault();const seed=root.querySelector<HTMLInputElement>('#seed-input')!.value;departMenu(()=>start(seed));});
+}
+function departMenu(launch:()=>void){
+  if(menuDepartureTimer)return;
+  const root=$('#modal-layer').querySelector<HTMLElement>('.orbital-menu');
+  if(!root||prefs.reduced){launch();return;}
+  root.classList.add('is-departing');root.inert=true;menuScene?.depart();
+  announce('Shift authorized. Entering lunar operations.');
+  menuDepartureTimer=window.setTimeout(()=>{menuDepartureTimer=0;launch();},750);
 }
 function menu(){resetSession();camera.set('room');training=null;phase='menu';stage.classList.add('menu-mode');setStampAvailability();
   scale();showModal('menu',menuMarkup());
@@ -424,8 +511,8 @@ document.addEventListener('click',event=>{
   if(target.dataset.stampTarget){desk.applySelectedStamp(target.dataset.stampTarget);return;}
   const action=target.dataset.action!;if((target as HTMLButtonElement).disabled)return;
   if(action==='camera-desk'||action==='camera-room'){if(!paused&&!busy&&phase==='desk'){camera.set(action==='camera-desk'?'desk':'room', true);updateTaskGuide();announce(action==='camera-desk'?'Desk view. Read the route, compare the manual and check inventory.':'Room view.');}return;}
-  if(action==='new-shift'){start();return;}if(action==='training'){resetSession();setupTraining(1);return;}
-  if(action==='replay'){start($<HTMLInputElement>('#seed-input')?.value);return;}
+  if(action==='new-shift'){departMenu(()=>start());return;}if(action==='training'){departMenu(()=>{resetSession();setupTraining(1);});return;}
+  if(action==='replay'){const seed=$<HTMLInputElement>('#seed-input')?.value;departMenu(()=>start(seed));return;}
   if(action==='menu'){menu();return;}if(action==='pause'){pause();return;}if(action==='resume'){resume();return;}
   if(action==='options'){options();return;}if(action==='credits'){credits();return;}if(action==='settings-done'){if(paused)showPause();else menu();return;}
   if(action==='dismiss-screen-hint'){screenHintDismissed=true;$('#small-screen').hidden=true;return;}
@@ -434,7 +521,7 @@ document.addEventListener('click',event=>{
   if(action==='help'){help();return;}if(action==='repeat-lesson'&&training){setupTraining(training.lesson);return;}
   if(paused)return;
   if(action==='open-dispatch'){dispatch.open();return;}
-  if(action==='archive'){archive();return;}if(action==='speed'&&cine){cine.speed=cine.speed===1?4:1;renderCinema();return;}
+  if(action==='archive'){archive();return;}if(action==='speed'&&cine){cine.speed=cine.speed===1?4:1;$('#cinema').dataset.speed=String(cine.speed);target.textContent=`Speed ×${cine.speed}`;target.setAttribute('aria-pressed',String(cine.speed===4));return;}
   if(action==='skip'&&cine){if(cine.revealed)showReport();else{cine.index=cine.steps.length-1;reveal();}return;}
   if(action==='final-prev'){ledgerPage--;renderFinalLog();return;}if(action==='final-next'){ledgerPage++;renderFinalLog();return;}
   if(!['desk','emergency','operation'].includes(phase)||busy)return;
@@ -527,6 +614,7 @@ clock.subscribe(dt=>{
   if(communication>0){communication=Math.max(0,communication-responseTime);if(communication===0&&messageSent){const status=$('#message-status');if(status)status.textContent='↙ Earth received the message. Local protocol remains your responsibility.';announce('Earth received the message. No additional resources.');}}
   if(cine&&phase==='cinema'){
     cine.elapsed+=phaseTime*cine.speed;
+    updateCinemaFrame($('#cinema'),cine,prefs.reduced);
     if(cine.revealed){if(cine.elapsed>=2400)showReport();}
     else if(cine.elapsed>=(prefs.reduced?800:1800)){cine.elapsed=0;if(cine.index<cine.steps.length-1){cine.index++;renderCinema();}else reveal();}
   }

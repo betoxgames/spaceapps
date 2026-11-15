@@ -10,8 +10,10 @@
     "test": "tsx --test tests/domain.test.ts tests/clock.test.ts",
     "test:audio": "node tests/audio-browser.mjs",
     "test:audio-offline": "node tests/audio-offline-browser.mjs",
+    "test:cinema": "node tests/cinema-browser.mjs",
     "test:browser": "node tests/browser.mjs",
     "test:dispatch": "node tests/dispatch-browser.mjs",
+    "test:lunar-station": "node tests/lunar-station-browser.mjs",
     "test:manual": "node tests/manual-browser.mjs",
     "test:manual-actions": "node tests/manual-actions-browser.mjs",
     "test:reports": "node tests/report-browser.mjs",
@@ -26,7 +28,8 @@
     "test:ux": "node tests/ux-browser.mjs",
     "test:accessibility": "node tests/desk-accessibility-browser.mjs",
     "release:package": "pnpm build && node scripts/package-release.mjs",
-    "test:distribution": "node tests/distribution.mjs"
+    "test:distribution": "node tests/distribution.mjs",
+    "test:menu": "node tests/menu-browser.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.19.0",

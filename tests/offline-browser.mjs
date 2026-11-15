@@ -76,6 +76,7 @@ try{
  await page.waitForFunction(el=>!el.isConnected,returnedFlight);await resumeIfPaused();assert.equal(await page.locator('#flight').count(),1,'the completed exit replaces the returned proposal');await returnedFlight.dispose();
  await page.keyboard.press('Escape');await page.locator('[data-action="leave"]').click();await page.locator('[data-action="menu"]').click();
  await page.locator('[data-action="training"]').click();
+ await page.waitForSelector('#training-guide:not([hidden])');
  for(const key of ['1']){await page.keyboard.press(key);await page.keyboard.press('Enter');await page.keyboard.press('Enter');}
  await page.keyboard.press('b');await page.locator('[data-action="book-destinations"]').first().click();await page.locator('[data-action="destination-earth"]').click();
  for(const key of ['2','3']){await page.keyboard.press(key);await page.keyboard.press('Enter');await page.keyboard.press('Enter');}
@@ -87,12 +88,18 @@ try{
  await page.locator('[data-stamp-tool="return"]').click();await page.keyboard.press('1');await page.keyboard.press('Enter');
  await page.waitForSelector('#dispatch:not([hidden])');
  assert.match(await page.locator('#dispatch').innerText(),/SURVIVAL ALERT/);
+ assert.equal(await page.locator('#dispatch .lunar-station').getAttribute('data-light'),'red');
+ await page.locator('#dispatch .lunar-station-image').evaluate(image=>image.decode());
  await page.screenshot({path:'test-results/offline-dispatch.png',animations:'disabled'});
  for(const amount of ['50','100','100']){
   await page.locator('[data-action="open-dispatch"]').click();
   await page.locator('#contribution').fill(amount);await page.locator('[data-action="confirm-emergency"]').click();
  }
- await page.waitForSelector('#cinema:not([hidden])');await page.locator('[data-action="skip"]').click();await page.locator('[data-action="skip"]').click();
+ await page.waitForSelector('#cinema:not([hidden])');
+ await page.locator('#cinema .lunar-station-image').evaluate(image=>image.decode());
+ await page.locator('[data-action="skip"]').click();
+ assert.equal(await page.locator('#cinema .lunar-station').getAttribute('data-light'),'white');
+ await page.locator('[data-action="skip"]').click();
  assert.match(await page.locator('.report-paper').innerText(),/INCIDENT RESOLVED/);
  assert.deepEqual(errors,[]);assert.deepEqual(external,[],'direct-file play must not request downloads or a server');
  await mkdir('test-results',{recursive:true});await page.screenshot({path:'test-results/offline-playable.png'});

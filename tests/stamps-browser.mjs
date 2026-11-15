@@ -14,7 +14,12 @@ try {
       window.stampSounds = [];
       const original = AudioBufferSourceNode.prototype.start;
       AudioBufferSourceNode.prototype.start = function (...args) {
-        if (this.buffer && !this.loop) window.stampSounds.push(this.buffer.duration);
+        if (this.buffer && !this.loop) {
+          const sampleRate = this.buffer.sampleRate, start = Math.floor((args[1] || 0) * sampleRate);
+          let attack = start;
+          while (attack < this.buffer.length && Array.from({ length: this.buffer.numberOfChannels }, (_, channel) => Math.abs(this.buffer.getChannelData(channel)[attack])).every(value => value <= .03)) attack++;
+          window.stampSounds.push({ duration: this.buffer.duration, args, rate: this.playbackRate.value, attackDelay: (attack - start) / sampleRate / this.playbackRate.value, inkVisible: !!document.querySelector('.ink-mark.visible') });
+        }
         return original.apply(this, args);
       };
     });
@@ -30,7 +35,7 @@ try {
       return buffer.duration;
     });
     assert.ok(duration > 0, 'the supplied recording decodes');
-    const stampCount = () => page.evaluate(duration => window.stampSounds.filter(d => Math.abs(d - duration) < .00001).length, duration);
+    const stampCount = () => page.evaluate(duration => window.stampSounds.filter(sound => Math.abs(sound.duration - duration) < .00001).length, duration);
     async function setup() {
       await page.evaluate(() => { window.__SPACE_PAPERS__.manualTime(); window.__SPACE_PAPERS__.scenario('valid'); });
       await page.waitForFunction(() => window.__SPACE_PAPERS__.visitor().phase !== 'loading');
@@ -84,6 +89,11 @@ try {
     assert.equal(await page.locator('#flight .ink-mark.visible').count(), 0);
     assert.equal((await state()).approvals, before.approvals + 1, 'one drag makes exactly one decision');
     assert.equal(await stampCount(), 1, 'one accepted decision plays the actual recording once');
+    const stampCue = await page.evaluate(duration => window.stampSounds.find(sound => Math.abs(sound.duration - duration) < .00001), duration);
+    assert.equal(stampCue.inkVisible, true, 'the visible imprint exists when its impact sound starts');
+    assert.deepEqual(stampCue.args.slice(1), [.535, .28], 'the recording starts at the impact and excludes the late noise');
+    assert.ok(Math.abs(stampCue.rate - 1.15) < .0001, 'the impact tail fits the stamping gesture');
+    assert.ok(stampCue.attackDelay <= .015, 'the decoded impact is audible within 15 ms of the visible imprint');
 
     await setup();
     const untouched = await state();

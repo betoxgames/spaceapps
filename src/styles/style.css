@@ -25,8 +25,8 @@ button.secondary { border: 2px solid #c6d2be; color: #f5efdc; }
 .scene-environment { position: absolute; inset: 0; z-index: 0; pointer-events: none; transform-origin: 50% 100%; transition: transform .65s cubic-bezier(.2,.7,.2,1), filter .65s ease; }
 .scene-environment:after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg,#061e2360 0%,transparent 48%,#04181d22 100%),linear-gradient(0deg,#061c2670,transparent 25%,transparent 78%,#05232830); pointer-events: none; }
 .scene-layer { position: absolute; inset: 0; width: 100%; height: 100%; background-size: 100% 100%; background-repeat: no-repeat; }
-.scene-background { background-image: url('/assets/images/scene/scene-base.webp'); z-index: 0; }
-.scene-door { background-image: var(--door-frame, url('/assets/images/scene/door-0032.webp')); z-index: 3; }
+.scene-background { background-image: url('/assets/images/scene/scene-base.webp'); z-index: 1; }
+.scene-door { background-image: var(--door-frame, url('/assets/images/scene/door-0032.webp')); z-index: 0; }
 .scene-desk { background-image: url('/assets/images/scene/desk.webp'); z-index: 5; }
 #stage[data-camera='desk'] .scene-environment { transform: scale(1.9); filter: saturate(.85) brightness(.85); }
 #stage[data-camera='desk'] .scene-desk { transform: scaleY(1.6); transform-origin: 50% 66.667%; }
@@ -533,3 +533,14 @@ body.compact-ui .menu-buttons button.secondary > span { font-size: 11px; }
 @media (forced-colors: active) {
   .progress-pips i.complete, .cine-sequence i.complete, .cine-sequence i.current { background: Highlight; }
 }
+
+/* Training stays above the desk, reader and incoming transmissions. */
+.training-spotlight { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 85000; pointer-events: none; }
+.training-spotlight[hidden] { display: none; }
+.training-guide { position: fixed; z-index: 85001; top: 16px; left: 50%; transform: translateX(-50%); width: min(420px, calc(100vw - 32px)); min-height: 0; padding: 10px 15px; border-radius: 8px; box-shadow: 0 8px 28px #001a25a6; }
+.training-guide.training-guide-bottom { top: auto; bottom: 16px; }
+.training-guide p { margin: 5px 0; font-size: 20px; font-weight: 700; line-height: 1.2; }
+.training-heading > span { font-size: 11px; }
+.training-heading button { min-height: 32px; padding: 4px 9px; font-size: 13px; }
+.training-progress { margin-top: 6px; }
+.training-progress i { width: 32px; height: 4px; }

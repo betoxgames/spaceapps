@@ -1,7 +1,8 @@
 import { esc } from './helpers';
 import { RESOURCES, RESOURCE_LABELS, OPERATIONS } from '../data/catalog';
-import { baseView, planet, resourceIcon } from './art';
+import { planet, resourceIcon } from './art';
 import type { Resolution } from '../game/campaign';
+import { stationImage, stationSequenceLight } from '../scenes/lunar-station';
 
 
 /** A consequence summary. Exact expenditure and balances belong to the stock ledger. */
@@ -31,7 +32,9 @@ export function reportMarkup(r:Resolution, destination:string, retry:boolean):st
   const next=retry?'Repeat the lesson to practice this decision again.':r.fatal?'Your shift ends here. File this report to read your evaluation.':'Open Inventory in the manual before authorizing the next request.';
   const summary=mission?(r.success?`The crew returned safely from the ${destination} expedition.`:r.explanation):r.explanation;
   const kind=mission?'MISSION REPORT':r.kind==='operation'?'BASE OPERATIONS':'SURVIVAL RESPONSE';
-  const illustration=mission?planet(r.destination??'moon'):baseView({},r.success?'stable':'lost');
+  const baseCode=r.kind==='operation'?r.operation:r.event;
+  const stationLight=stationSequenceLight(baseCode,0,true,r.success);
+  const illustration=mission?planet(r.destination??'moon'):`<div class="lunar-station" data-light="${stationLight}" data-event="${esc(baseCode ?? '')}">${stationImage(stationLight)}</div>`;
   return `<article class="report-paper mission-debrief ${r.success?'debrief-success':'debrief-failure'}" data-report-kind="${r.kind}">
     <header class="debrief-header"><div><span class="debrief-bureau" aria-hidden="true">✦</span><span>${kind}<small>LUNAR OPERATIONS / TURN RECORD</small></span></div><span class="debrief-record-id">${esc(r.id.toUpperCase())}</span></header>
     <div class="debrief-body" tabindex="0" aria-label="Report details">

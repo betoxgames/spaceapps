@@ -92,13 +92,22 @@ function verifyEntrance(states) {
   assert.deepEqual(unique(states), entrance, 'entrance phases run in physical order');
   const entering = states.filter(state => state.phase === 'entering');
   const walking = states.filter(state => state.phase === 'walking');
+  const opening = states.filter(state => state.phase === 'opening').map(state => Number(state.door));
+  const closingPoses = states.filter(state => state.phase === 'closing').map(state => Number(state.door));
   assert.ok(entering.some(state => Math.hypot(state.x - entering[0].x, state.y - entering[0].y) > 10), 'crossing the doorway has visible displacement');
   assert.ok(walking.some(state => Math.hypot(state.x - walking[0].x, state.y - walking[0].y) > 10), 'walking to the desk has visible displacement');
   const beforeClosing = entering.at(-1), closing = states.find(state => state.phase === 'closing');
   assert.ok(entering.every(state => state.door === '0016'), 'the doorway remains open throughout crossing');
   assert.ok(entering.every(state => state.z === 4 && state.visible), 'the visitor appears in front of the fully open doorway throughout entry');
-  assert.ok(Math.abs(entering[0].x - 245) < 10, 'the first sampled entry frame is at the apparent doorway centre');
-  assert.ok(Math.abs(entering[0].y - 650) < 2, 'the first sampled entry frame has feet on the doorway floor');
+  assert.ok(opening.length >= 10 && new Set(opening).size >= 10, 'opening samples at least ten distinct door poses');
+  assert.ok(opening.every((pose, index) => index === 0 || pose >= opening[index - 1]), 'door poses advance monotonically while opening');
+  assert.equal(opening.at(-1), 16, 'opening reaches the fully open sixteenth pose');
+  assert.ok(closingPoses.length >= 10 && new Set(closingPoses).size >= 10, 'closing samples at least ten distinct door poses');
+  assert.ok(closingPoses.every((pose, index) => index === 0 || pose >= closingPoses[index - 1]), 'door poses advance monotonically while closing');
+  assert.equal(closingPoses[0], 17, 'closing continues from the held open pose with the seventeenth frame');
+  assert.equal(closingPoses.at(-1), 32, 'closing reaches the fully closed thirty-second pose');
+  assert.ok(Math.abs(entering[0].x - 310) < 10, 'the first sampled entry frame is at the apparent doorway centre');
+  assert.ok(Math.abs(entering[0].y - 610) < 2, 'the first sampled entry frame has feet on the doorway floor');
   assert.ok(entering.at(-1).scale > entering[0].scale, 'approaching the desk gradually increases adult scale');
   assert.ok(states.filter(state => state.phase === 'opening').every(state => !state.visible), 'the visitor waits until the door is fully open');
   assert.ok(states.filter(state => state.phase === 'closing').every(state => state.x >= 530 && state.y >= 680), 'closure waits for the complete body to clear the threshold');
@@ -117,6 +126,28 @@ function verifyEntrance(states) {
 
 try {
   await load();
+  await engineer('nico');
+  assert.equal(await page.locator('.scene-door').getAttribute('data-asset-state'), 'ready', 'all door frames decode before opening');
+  const doorLayers = await page.evaluate(() => ({
+    door: Number(getComputedStyle(document.querySelector('.scene-door')).zIndex),
+    wall: Number(getComputedStyle(document.querySelector('.scene-background')).zIndex),
+  }));
+  assert.ok(doorLayers.door < doorLayers.wall, 'wall aperture masks the animated door header and jambs');
+  const openingFrames = [], closingFrames = [];
+  for (let i = 0; i < 16; i++) {
+    openingFrames.push((await snapshot()).door);
+    await step(40);
+  }
+  assert.deepEqual(openingFrames, Array.from({ length: 16 }, (_, i) => String(i + 1).padStart(4, '0')),
+    'opening uses every original frame in order');
+  assert.equal((await snapshot()).door, '0016', 'crossing holds the fully open frame');
+  await step(2000);
+  for (let i = 0; i < 16; i++) {
+    closingFrames.push((await snapshot()).door);
+    await step(40);
+  }
+  assert.deepEqual(closingFrames, Array.from({ length: 16 }, (_, i) => String(i + 17).padStart(4, '0')),
+    'closing completes the original cycle without skipping poses');
   for (const id of ids) {
     await engineer(id);
     assert.equal(await page.locator('#visitor-portrait').getAttribute('data-viewer-state'), 'ready', `${id} loads its provided render`);

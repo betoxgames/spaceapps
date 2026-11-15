@@ -1,30 +1,30 @@
 # Space Papers scene assets
 
-These WebP files are compressed copies of the team's PNG Blender renders from the shared **Principal** Drive folder. Every image uses the same 1920 × 1080 canvas, so preserve the entire canvas when layering them. Each layer contains transparency.
+The scene uses the team's Blender PNGs from [Escenario principal on Drive](https://drive.google.com/drive/folders/1JuziOtiKwVmEtsiEWtuEM44Av8ZNCX4V). Runtime WebP layers retain a transparent 1920 × 1080 canvas, displayed on the common 1600 × 900 game canvas.
 
-## Layering
+## Layering and registration
 
-1. `scene-base.webp`: room and floor, with a transparent doorway on the left.
-2. `door-0032.webp`: left doorway in the position shown by the supplied combined reference.
-3. `desk.webp`: foreground tabletop and pedestal.
+1. `door-0001.webp` through `door-0032.webp`: animated door behind the wall.
+2. `scene-base.webp`: room and floor; its transparent aperture masks the door's header and jambs.
+3. The visitor emerges at foot position (310, 610) in game coordinates, in front of the doorway.
+4. `desk.webp`: foreground tabletop and pedestal, occluding the visitor's legs.
 
-`combined-reference.webp` is a compressed copy of the team's composite render for visual comparison. Layering the three images above recreates its composition. Use the same `object-fit` and position on all layers; independent cropping will break their alignment. The canvas has useful visual targets: doorway at x 0–884, desk at x 263–1697 and y 720–1079, monitor at roughly x 1130–1725 and y 260–555.
+All layers and the visitor share the room camera. Preserve each full canvas: independent cropping or CSS scaling breaks registration. `scripts/update-scene.mjs` applies the same affine mapping `[.78, 0, -.08, .806, 184, 93]` to every original door PNG to register its trapezoid with the wall aperture. This is a compositing adjustment; the supplied Blender geometry is unchanged. The previous top-only cut at y=160 is no longer needed.
+
+`combined-reference.webp` preserves the older team composite for historical comparison; it is not the registration reference for the current wall and door exports.
 
 ## Door motion
 
-`door-0001.webp`, `door-0008.webp`, `door-0016.webp`, `door-0024.webp`, and `door-0032.webp` are five sampled poses from the 32-frame Blender render. All are full-canvas transparent overlays. Switch a single door layer's image source between these files to show motion. `door-0001.webp` is the more closed pose; `door-0032.webp` is the open pose used in the combined reference. A reduced-motion mode can use the final static pose.
+All 32 original frames are retained. `0001` is closed, `0016` is open, and `0032` is closed again. Opening plays frames 1–16 over 640 ms, holds frame 16 throughout crossing, then closing plays frames 17–32 over 640 ms. The same cycle runs during departure. Assets are decoded before opening; pause freezes both the door and visitor. Reduced motion uses stationary open/closed poses with the same logical timing.
 
-## Provenance
+## Provenance and rebuilding
 
-| Local file | Original | Drive ID |
-| --- | --- | --- |
-| `combined-reference.webp` | `Principal/EscenarioFinalCompleto.png` | `1pDVEpJT1YPYNC1K09wtf6nsoUqu9rtg8` |
-| `scene-base.webp` | `Principal/Escenario/EscenarioFinal.png` | `1xKYoHYxRwfZlNIR9yEecu5izHVjL6O7u` |
-| `desk.webp` | `Principal/Esctritorio/Escritorio.png` | `1iDfzVvmkRlyIh10EIsE-fkwhCQfAIU5l` |
-| `door-0001.webp` | `Principal/Puerta/0001.png` | `1MGWa1nRzbg3JfuHfyaeJpLh-dUYo5Ru_` |
-| `door-0008.webp` | `Principal/Puerta/0008.png` | `1N4ex8t5dCK_wA1FeZzZ8wDmSGfeJjXzE` |
-| `door-0016.webp` | `Principal/Puerta/0016.png` | `1Bj86ED9izAyhtj-GiXNbnPOKX1mjPEVd` |
-| `door-0024.webp` | `Principal/Puerta/0024.png` | `1g1vaJnZnuWFGJq8LJq5BRekP1t0tbGCB` |
-| `door-0032.webp` | `Principal/Puerta/0032.png` | `1R_aOxtA4Ru-CMwD7Te4QBYkbA3eb6kC2` |
+The complete door source IDs and modification times are in `scripts/door-sources.json`; `manifest.json` records original PNG hashes, bytes, the registration matrix and cycle metadata. Sources are the numbered PNGs in [Puerta on Drive](https://drive.google.com/drive/folders/1JHvyyZUXpQs9XLnJr9HPmqhPC_eAbGgG).
 
-The source Blender file is `Principal/Completp.blend` (Drive ID `1uVmM2TVs2fSxydHLeVM1ueOaF4OvUgy7`). Blender is unavailable in this workspace, so the supplied renders are used directly. These are user-provided assets; ownership and licensing are not separately verified here.
+| Local file | Drive ID |
+| --- | --- |
+| `scene-base.webp` | `1xKYoHYxRwfZlNIR9yEecu5izHVjL6O7u` |
+| `desk.webp` | `1iDfzVvmkRlyIh10EIsE-fkwhCQfAIU5l` |
+| `combined-reference.webp` | `1pDVEpJT1YPYNC1K09wtf6nsoUqu9rtg8` |
+
+Place the original `0001.png`–`0032.png` and `wall-final.png` in ignored `asset-sources/scene/`, then run `node scripts/update-scene.mjs` and `pnpm build`. No new artwork is generated. The source Blender file is `Escenario principal.blend`, Drive ID `1uVmM2TVs2fSxydHLeVM1ueOaF4OvUgy7`.

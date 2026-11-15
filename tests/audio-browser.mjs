@@ -19,9 +19,9 @@ await page.addInitScript(() => {
     connect() {} disconnect() {}
   }
   class Source {
-    constructor(ctx) { this.ctx = ctx; }
+    constructor(ctx) { this.ctx = ctx; this.playbackRate = { value: 1 }; }
     connect() {} disconnect() {}
-    start() { log.starts.push({ name: this.buffer?.name, loop: !!this.loop }); }
+    start(...args) { log.starts.push({ name: this.buffer?.name, loop: !!this.loop, args, rate: this.playbackRate.value }); }
     stop() { log.stops.push(this.buffer?.name); this.onended?.(); }
   }
   window.AudioContext = class {
@@ -51,6 +51,9 @@ try {
   await page.locator('[data-action="settings-done"]').click();
   await page.locator('[data-action="new-shift"]').click();
   await page.waitForFunction(() => window.audioTest.starts.some(item => item.name === 'door'));
+  const door = await page.evaluate(() => window.audioTest.starts.find(item => item.name === 'door'));
+  assert.deepEqual(door.args.slice(1), [.13, 1.33], 'door skips silence and uses the measured movement');
+  assert.ok(Math.abs(1.33 / door.rate - .64) < .00001, 'door audio fits the actual movement duration');
   await page.evaluate(() => window.__SPACE_PAPERS__.advanceTime(3000));
   assert.equal(await page.evaluate(() => window.audioTest.starts.filter(item => item.name === 'door').length), 2, 'door opens and closes with the visitor');
   assert.equal(await page.evaluate(() => window.audioTest.stops.filter(name => name === 'door').length), 1, 'a rapid door transition replaces the previous sound');
@@ -66,5 +69,26 @@ try {
   assert.equal(await page.evaluate(() => window.audioTest.contexts.length), 1);
   assert.equal(await page.evaluate(() => window.audioTest.starts.filter(item => item.name === 'ambient-music').length), 1, 'interactions and resume must not duplicate music');
   assert.deepEqual(errors, []);
+  // A visit superseded while its audio is loading must never start later.
+  const delayed = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+  let releaseDoor;
+  const doorGate = new Promise(resolve => { releaseDoor = resolve; });
+  await delayed.route('**/assets/audio/door.mp3', async route => { await doorGate; await route.continue(); });
+  await delayed.addInitScript(() => {
+    window.doorStarts = 0;
+    const start = AudioBufferSourceNode.prototype.start;
+    AudioBufferSourceNode.prototype.start = function (...args) {
+      if (this.buffer && !this.loop && this.buffer.duration > 1.8 && this.buffer.duration < 1.9) window.doorStarts++;
+      return start.apply(this, args);
+    };
+  });
+  await delayed.goto(base);
+  await delayed.locator('[data-action="new-shift"]').click();
+  await delayed.waitForFunction(() => window.__SPACE_PAPERS__.visitor().phase === 'loading');
+  await delayed.evaluate(() => window.__SPACE_PAPERS__.scenario('valid'));
+  releaseDoor();
+  await delayed.waitForFunction(() => window.__SPACE_PAPERS__.visitor().phase === 'opening');
+  assert.equal(await delayed.evaluate(() => window.doorStarts), 1, 'only the current visit plays a door cue after loading');
+  await delayed.close();
   console.log('Audio: gesture unlock, local cues, loop, volume, mute and pause passed.');
 } finally { await browser.close(); }

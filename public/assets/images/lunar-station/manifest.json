@@ -1,0 +1,91 @@
+{
+  "canvas": [
+    1920,
+    1080
+  ],
+  "encoding": "WebP quality 90, original dimensions and framing",
+  "driveFolder": "https://drive.google.com/drive/folders/1lPdXajkKAfJkofogh_aV64dBDZaFe1TX",
+  "emergencies": [
+    "E01",
+    "E02",
+    "E03",
+    "E04",
+    "E05",
+    "E06",
+    "E07",
+    "E08"
+  ],
+  "operations": [
+    "B01",
+    "B02",
+    "B03"
+  ],
+  "lighting": {
+    "emergencies": {
+      "initial": "red",
+      "initialExceptions": {
+        "E08": "off"
+      },
+      "intervention": "amber",
+      "success": "white",
+      "failure": "off"
+    },
+    "operations": {
+      "initial": "white",
+      "intervention": "amber",
+      "success": "white",
+      "failure": "off"
+    }
+  },
+  "surfaces": [
+    "dispatch",
+    "cinema",
+    "report"
+  ],
+  "sources": [
+    {
+      "state": "white",
+      "original": "lucesBlancas.png",
+      "output": "white.webp",
+      "driveId": "10SJGh7XDmZd7Ha2hzFc1R19ymboZkZv-",
+      "modifiedTime": "2026-11-15T15:54:28.633Z",
+      "bytes": 2792789,
+      "sha256": "8fddf7faa14ee6c23a906772ef8039bf3bde8c33ae2790232722b5380a6067da",
+      "outputBytes": 179578,
+      "outputSha256": "706f49786bfca3fa9c4aa3cca82151142cb89880d95ccb82e320272d34da2171"
+    },
+    {
+      "state": "red",
+      "original": "lucesRojas.png",
+      "output": "red.webp",
+      "driveId": "1EFLnNgHn6yc1N3DDoD2dzs1u4NXxpm_K",
+      "modifiedTime": "2026-11-15T15:54:06.550Z",
+      "bytes": 2865305,
+      "sha256": "a1f006211718ed66d0310f5e5c5f30f0785ece7fd55a89653947e81d7fd8397a",
+      "outputBytes": 183936,
+      "outputSha256": "4a6a12a34c3459f4d81281df2a62ea4e229de0e004f2d3c93fc550f80bb1483b"
+    },
+    {
+      "state": "amber",
+      "original": "lucesAmarillas.png",
+      "output": "amber.webp",
+      "driveId": "18hRpSwoZ8uh0nsRUdZlwJ11xxGtPbM6r",
+      "modifiedTime": "2026-11-15T15:53:50.487Z",
+      "bytes": 2858357,
+      "sha256": "91eba9cd81dd5612e5dbdebf65970be6dab42e2e41264b0e86e7e169ece3b73e",
+      "outputBytes": 186930,
+      "outputSha256": "cbab8595c25889a63c91fdc07e6ae117512193d97e5518f5b7d7351a42c00965"
+    },
+    {
+      "state": "off",
+      "original": "lucesApagadas.png",
+      "output": "off.webp",
+      "driveId": "1y38-J2FG5GeonUD-O0jQvv95WjqO2kCb",
+      "modifiedTime": "2026-11-15T15:53:35.382Z",
+      "bytes": 2757983,
+      "sha256": "84f95b4f18af1ace0b2d0398073af13d276a7edf870038f0a7b4a1d13e5ed015",
+      "outputBytes": 174398,
+      "outputSha256": "581b84effb148fdbff06d7ffcd2f7268e2fa12a4995b458fa195a9e49163589c"
+    }
+  ]
+}

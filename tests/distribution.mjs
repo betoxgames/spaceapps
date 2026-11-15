@@ -22,6 +22,9 @@ try {
   await page.waitForFunction(() => document.querySelector('#visitor-portrait')?.dataset.viewerState === 'ready');
   await page.evaluate(async () => {
     const image = new Image(); image.src = 'public/assets/images/scene/scene-base.webp'; await image.decode();
+    for (const kind of ['module', 'transport']) for (const frame of ['0001', '0024']) {
+      const ship = new Image(); ship.src = `public/assets/images/ships/${kind}-${frame}.webp`; await ship.decode();
+    }
     const context = new AudioContext();
     const response = await fetch(window.__SPACE_PAPERS_ASSETS__['assets/audio/stamp.mp3']);
     await context.decodeAudioData(await response.arrayBuffer()); await context.close();

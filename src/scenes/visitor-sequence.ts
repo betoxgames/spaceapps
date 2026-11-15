@@ -12,11 +12,11 @@ export const VISITOR_DURATIONS = {
 interface Position { x: number; y: number; scale: number }
 // Coordinates refer to the common 1600 × 900 room canvas. Each position is the
 // centre between the planted feet, not the top-left corner of the image.
-const THRESHOLD: Position = { x: 245, y: 650, scale: .85 };
+const THRESHOLD: Position = { x: 310, y: 610, scale: .85 };
 const CLEAR: Position = { x: 630, y: 680, scale: .95 };
 const DESK: Position = { x: 800, y: 740, scale: 1 };
-const DOOR_POSES = ['0001', '0008', '0016', '0024', '0032'] as const;
-type DoorPose = typeof DOOR_POSES[number];
+const DOOR_POSES = Array.from({ length: 32 }, (_, index) => String(index + 1).padStart(4, '0'));
+type DoorPose = string;
 const NEXT: Partial<Record<VisitorPhase, VisitorPhase>> = {
   opening: 'entering', entering: 'closing', closing: 'walking', walking: 'settling', settling: 'ready',
   reacting: 'leaving', leaving: 'exit-opening', 'exit-opening': 'exiting', exiting: 'exit-closing', 'exit-closing': 'hidden',
@@ -51,16 +51,16 @@ export class VisitorSequence {
     private readonly door: HTMLElement,
     private readonly viewer: EngineerViewer,
     private readonly onReady?: () => void,
-    private readonly onDoorMove?: () => void,
+    private readonly onDoorMove?: (durationMs: number) => void,
   ) { this.render(); }
 
   /** Resolves when local assets have loaded and opening can begin. */
-  async show(id: string): Promise<void> {
+  async show(id: string, preparation: Promise<void> = Promise.resolve()): Promise<void> {
     this.reset();
     const generation = this.generation;
     this.host.dataset.engineer = id;
     this.enter('loading');
-    await Promise.all([this.viewer.show(id), this.preloadDoors()]);
+    await Promise.all([this.viewer.show(id), this.preloadDoors(), preparation]);
     if (generation !== this.generation) return;
     this.enter('opening');
   }
@@ -134,7 +134,7 @@ export class VisitorSequence {
   private enter(phase: VisitorPhase): void {
     this.phase = phase;
     this.elapsed = 0;
-    if (['opening', 'closing', 'exit-opening', 'exit-closing'].includes(phase)) this.onDoorMove?.();
+    if (phase === 'opening' || phase === 'closing' || phase === 'exit-opening' || phase === 'exit-closing') this.onDoorMove?.(VISITOR_DURATIONS[phase]);
     const animation: EngineerAnimation = phase === 'approved' ? 'approve' : phase === 'reacting' ? this.reaction
       : ['entering', 'closing', 'walking', 'settling', 'leaving', 'exiting'].includes(phase) ? 'depart' : 'idle';
     this.animation = animation;
@@ -173,9 +173,8 @@ export class VisitorSequence {
         : phase === 'exit-opening' ? { ...CLEAR } : { ...THRESHOLD };
     }
     this.visible = !['hidden', 'loading', 'opening', 'exit-closing'].includes(phase);
-    // The supplied open leaf obscures the apparent opening. Present the visitor
-    // in front of it once fully open, as the agreed temporary staging; the desk
-    // still occludes the person. This does not repair the incomplete door model.
+    // The visitor emerges at the registered doorway centre after opening;
+    // the foreground desk occludes the person on the approach.
     Object.assign(this.host.style, {
       left: `${this.position.x}px`, top: `${this.position.y}px`,
       transform: `translate(-50%, -100%) scale(${this.position.scale}) scaleX(${['leaving', 'exit-opening', 'exiting', 'exit-closing'].includes(phase) ? -1 : 1})`,
@@ -187,9 +186,9 @@ export class VisitorSequence {
     this.viewer.setVisible(this.visible);
     let pose: DoorPose = '0032';
     if (phase === 'opening' || phase === 'exit-opening') {
-      pose = this.reduced ? '0016' : progress < 1 / 3 ? '0001' : progress < 2 / 3 ? '0008' : '0016';
+      pose = this.reduced ? '0016' : DOOR_POSES[Math.min(15, Math.floor(progress * 16))];
     } else if (phase === 'closing' || phase === 'exit-closing') {
-      pose = this.reduced ? '0032' : progress < 1 / 3 ? '0016' : progress < 2 / 3 ? '0024' : '0032';
+      pose = this.reduced ? '0032' : DOOR_POSES[16 + Math.min(15, Math.floor(progress * 16))];
     } else if (phase === 'entering' || phase === 'exiting') pose = '0016';
     else if (phase === 'loading' || phase === 'hidden') pose = '0001';
     this.setDoor(pose);

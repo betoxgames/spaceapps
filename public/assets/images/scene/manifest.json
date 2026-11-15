@@ -3,8 +3,25 @@
     1920,
     1080
   ],
-  "encoding": "WebP lossless",
-  "doorOcclusion": "The wall header masks door pixels above y=160 on the original canvas. This is a compositing correction, not a change to the supplied geometry.",
+  "encoding": "WebP lossless after registration resampling",
+  "doorTransform": [
+    0.78,
+    0,
+    -0.08,
+    0.806,
+    184,
+    93
+  ],
+  "doorOcclusion": "Door behind the transparent wall aperture; the original wall naturally masks the header and jambs.",
+  "doorCycle": {
+    "frames": 32,
+    "closed": [
+      "0001",
+      "0032"
+    ],
+    "open": "0016",
+    "phaseDurationMs": 640
+  },
   "sources": [
     {
       "output": "scene-base.webp",
@@ -23,12 +40,116 @@
       "sha256": "f2bfe7e841f2f2bed71baae7d8d5eb600e2c2cb24d9e9a4e98d3b0c89f62ed8c"
     },
     {
+      "output": "door-0002.webp",
+      "original": "0002.png",
+      "driveId": "1P31cew1D2g_3wpDcDGYW9KeN7GxtwBhM",
+      "modifiedTime": "2026-11-14T20:47:57.100Z",
+      "bytes": 796534,
+      "sha256": "ebea9947ec21317e63d682359851afe2d2b0012436e67aa5e845dcdea720ecc4"
+    },
+    {
+      "output": "door-0003.webp",
+      "original": "0003.png",
+      "driveId": "10zcgCFLj72gmXQkGboy6_abstvLVyaqJ",
+      "modifiedTime": "2026-11-14T20:47:57.991Z",
+      "bytes": 800088,
+      "sha256": "dce3f0d378f89c79742364f6d51b569b2500220ad50f305623b72493f981f7cb"
+    },
+    {
+      "output": "door-0004.webp",
+      "original": "0004.png",
+      "driveId": "1cbSndoz4wiMF7Tcdun5wFHVxR2PGkUtK",
+      "modifiedTime": "2026-11-14T20:47:58.887Z",
+      "bytes": 798746,
+      "sha256": "e92f6b037b52a0af76b472322e02bc1fc9b51d7fbf7a4720083f201baee82f1a"
+    },
+    {
+      "output": "door-0005.webp",
+      "original": "0005.png",
+      "driveId": "1JqDhxPILCKb_gYw-ChL2wrksmRpGg55Y",
+      "modifiedTime": "2026-11-14T20:47:59.779Z",
+      "bytes": 797250,
+      "sha256": "843d10064d2cfa95e5292022750d01ca202f248b9ee55418b30bbc5c2cbd4cc1"
+    },
+    {
+      "output": "door-0006.webp",
+      "original": "0006.png",
+      "driveId": "1DiVK8qIbbG47IdLlQjZa6-G659FTEurs",
+      "modifiedTime": "2026-11-14T20:48:00.680Z",
+      "bytes": 796183,
+      "sha256": "14943de9c5e42133e99c021f74e70d8f18b37fa43c2e734dc90aa682860ce206"
+    },
+    {
+      "output": "door-0007.webp",
+      "original": "0007.png",
+      "driveId": "15QGPORmzVI-OL3g5_IwhzaHksNto4LMP",
+      "modifiedTime": "2026-11-14T20:48:01.580Z",
+      "bytes": 793165,
+      "sha256": "40e0384ee6fce4236a43a7a8b7123357ae28a93b3f92b3362fec31ac37ba9aee"
+    },
+    {
       "output": "door-0008.webp",
       "original": "0008.png",
       "driveId": "18_ADQabDAERnAEB7uNn_k5H5Nymw2vQ5",
       "modifiedTime": "2026-11-14T20:48:02.476Z",
       "bytes": 791514,
       "sha256": "798db5d979844854acdae29d5a4bf56eb6579f72bd3f0bc8661f19b554721af4"
+    },
+    {
+      "output": "door-0009.webp",
+      "original": "0009.png",
+      "driveId": "1AHr6Mz_hqNSAm1ePHB2EnMEs3hmWgr8W",
+      "modifiedTime": "2026-11-14T20:48:03.375Z",
+      "bytes": 790214,
+      "sha256": "70437cf6d3b60d5f2510593fe0229e6d13ac1946d18d65d1c241fa30a60b4deb"
+    },
+    {
+      "output": "door-0010.webp",
+      "original": "0010.png",
+      "driveId": "18OD3hr_agRKBzVp2ZwI2uvZ59HyAgkts",
+      "modifiedTime": "2026-11-14T20:48:04.278Z",
+      "bytes": 788927,
+      "sha256": "d384943a9934350f7ac8a6227fb44464ac5bba6c848e902d84cb66865ea1024a"
+    },
+    {
+      "output": "door-0011.webp",
+      "original": "0011.png",
+      "driveId": "1VF3giaJ3SN35ffn2uqXRmq5yoSv-xZnp",
+      "modifiedTime": "2026-11-14T20:48:05.156Z",
+      "bytes": 786760,
+      "sha256": "c211c0a83b30be63c91ab8f8ff852dfbe5bc6494713d0734dcc5cd1d5a1f4b2f"
+    },
+    {
+      "output": "door-0012.webp",
+      "original": "0012.png",
+      "driveId": "17iiNFrm-2pG1VULEW4zszvcioz5_y1D2",
+      "modifiedTime": "2026-11-14T20:48:06.040Z",
+      "bytes": 784838,
+      "sha256": "e0ff0e1fca5dc3871ce24cb93beec2b8f07e40520640aadf345971b2221ced77"
+    },
+    {
+      "output": "door-0013.webp",
+      "original": "0013.png",
+      "driveId": "1VEHr5ROSgfEGPpZRA86wYvfsh_97r0gL",
+      "modifiedTime": "2026-11-14T20:48:06.925Z",
+      "bytes": 783349,
+      "sha256": "da764a9c0233a3d00e7d0444df0ad99ec13a737c9f517e363bf52bddfdc56326"
+    },
+    {
+      "output": "door-0014.webp",
+      "original": "0014.png",
+      "driveId": "1b-oaF0-MUYYe8YToQvgCyQ9Bm_iWDDV8",
+      "modifiedTime": "2026-11-14T20:48:07.820Z",
+      "bytes": 783510,
+      "sha256": "bfa5255a2995cbb71935bb3fa4be9d0a78361124c27d088ac91020bb2fcb602b"
+    },
+    {
+      "output": "door-0015.webp",
+      "original": "0015.png",
+      "driveId": "1383iREUIcB3nbazEM5CWmoGm2vr_qvVS",
+      "modifiedTime": "2026-11-14T20:48:08.716Z",
+      "bytes": 783510,
+      "sha256": "e8db518a1e33a12a718767de5913ab2d82517206dbad5195f6fe323fc482aaca"
     },
     {
       "output": "door-0016.webp",
@@ -39,12 +160,124 @@
       "sha256": "72ea8289a23e03af92dfe8f5a97a30ba4ac32aa56ca7b340c9c88596b4269955"
     },
     {
+      "output": "door-0017.webp",
+      "original": "0017.png",
+      "driveId": "1QgXCNHs3oAQszoNkIUjvOD7MIzYviLbV",
+      "modifiedTime": "2026-11-14T20:48:10.503Z",
+      "bytes": 783510,
+      "sha256": "ca7f8d2928512d242c681bc474520a31c8ad5b11c1921b4c27b8ed5a6594cd1a"
+    },
+    {
+      "output": "door-0018.webp",
+      "original": "0018.png",
+      "driveId": "10vONmgN0dZ2MIvQhsbd8RbxgmQo5S0Cc",
+      "modifiedTime": "2026-11-14T20:48:11.404Z",
+      "bytes": 783799,
+      "sha256": "6e440a5a242008071f054f465c428d0240745360520b80b2893562d59237edbf"
+    },
+    {
+      "output": "door-0019.webp",
+      "original": "0019.png",
+      "driveId": "15zfKKZslMTV_F30ipVKtvHwkfcIzWtuE",
+      "modifiedTime": "2026-11-14T20:48:12.325Z",
+      "bytes": 785335,
+      "sha256": "bcbf47a128a0aa78a7212d48fa5e526db3484017c858c4405f2b277fb840fc5f"
+    },
+    {
+      "output": "door-0020.webp",
+      "original": "0020.png",
+      "driveId": "1QcY4bchJfwss4ExU6ksPtjpF2kHY9UeM",
+      "modifiedTime": "2026-11-14T20:48:13.237Z",
+      "bytes": 787575,
+      "sha256": "7aee07c882bb2c72d5bf22154eb1eb0f98a80adea70c6885569a8ec26d173e59"
+    },
+    {
+      "output": "door-0021.webp",
+      "original": "0021.png",
+      "driveId": "1iHjrJgZVJ3LwA6mrlNV8kpX8F3aQKGfd",
+      "modifiedTime": "2026-11-14T20:48:14.160Z",
+      "bytes": 789278,
+      "sha256": "3d197bfff3cfc827fabdbe1058245005b8e0c490ee87225703185eb6b708b377"
+    },
+    {
+      "output": "door-0022.webp",
+      "original": "0022.png",
+      "driveId": "1FsvbczoYFmJF-KM7MJgyO9QidD_f9txd",
+      "modifiedTime": "2026-11-14T20:48:15.071Z",
+      "bytes": 790216,
+      "sha256": "b9d06c4655fcc787ea08871846a10edf9853643f8b80adebad962079259d32fc"
+    },
+    {
+      "output": "door-0023.webp",
+      "original": "0023.png",
+      "driveId": "1gm3RF1S8xSYhJRpGIlwNcor4CaQ0fsFc",
+      "modifiedTime": "2026-11-14T20:48:15.983Z",
+      "bytes": 792405,
+      "sha256": "df74ff6602e073e7bd57c68907c34f2583f6ba6be33235c2f51cdc40ccf8129e"
+    },
+    {
       "output": "door-0024.webp",
       "original": "0024.png",
       "driveId": "1B50djWHVkVGhlGmz1aTOjPNe4-nG58HQ",
       "modifiedTime": "2026-11-14T20:48:16.900Z",
       "bytes": 794924,
       "sha256": "7dc279f36ab9fec64f82f197c5b7d8ab8994337779a500e6071ba3a8c27df5e6"
+    },
+    {
+      "output": "door-0025.webp",
+      "original": "0025.png",
+      "driveId": "1MQHqeccmYQyGxPBGHdkiVbsjX_wao6gW",
+      "modifiedTime": "2026-11-14T20:48:17.807Z",
+      "bytes": 797284,
+      "sha256": "527787c06550304512f8f109a9c91c418f9f21bb6757151a6171be75a072b922"
+    },
+    {
+      "output": "door-0026.webp",
+      "original": "0026.png",
+      "driveId": "1U4h4l-gpa0FUZOvNKvzm0F5OxsigDFxb",
+      "modifiedTime": "2026-11-14T20:48:18.708Z",
+      "bytes": 798616,
+      "sha256": "14ad4fbbbed53c4c8f3b680f93ebe4997de7157a3e0a509e07a2caebccfaa232"
+    },
+    {
+      "output": "door-0027.webp",
+      "original": "0027.png",
+      "driveId": "1P_G0HQeoTtc4fj43t6eFV075RFttcvqr",
+      "modifiedTime": "2026-11-14T20:48:19.622Z",
+      "bytes": 799040,
+      "sha256": "7f06dec0f0144da617de35ff010f1fa7f24f7a40209992400edcc83cb9eac001"
+    },
+    {
+      "output": "door-0028.webp",
+      "original": "0028.png",
+      "driveId": "1QD0f0Zi3fL3zO7fMedBFfwL0lWrnhtY_",
+      "modifiedTime": "2026-11-14T20:48:20.522Z",
+      "bytes": 794076,
+      "sha256": "4ef390c4329e526c93c5dc3fa5dbe25d9c9103738d3ded4c492b7655f9fca504"
+    },
+    {
+      "output": "door-0029.webp",
+      "original": "0029.png",
+      "driveId": "1PzERIm67U-vZ2a8nzpMzjKXy_aky2HZf",
+      "modifiedTime": "2026-11-14T20:48:21.426Z",
+      "bytes": 791588,
+      "sha256": "166519a0d1b26955a7d7b5667fa01d3dc7670af0c7453d62d49d1a74bb1c74c7"
+    },
+    {
+      "output": "door-0030.webp",
+      "original": "0030.png",
+      "driveId": "1J4d231tNm_yant8_V40Af9suLpriYzld",
+      "modifiedTime": "2026-11-14T20:48:22.333Z",
+      "bytes": 794999,
+      "sha256": "1a4e1374358d9b3832fdc9008c0c3c7764a2c4b840669082c34662f874386b98"
+    },
+    {
+      "output": "door-0031.webp",
+      "original": "0031.png",
+      "driveId": "1jvDy8NIJqTDKjujI13ZACUXK_cW5TSKj",
+      "modifiedTime": "2026-11-14T20:48:23.238Z",
+      "bytes": 792854,
+      "sha256": "bba762401e297b7dd67c3fcda8c4620507c40698766a2d243e7035837934eda6"
     },
     {
       "output": "door-0032.webp",

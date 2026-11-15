@@ -1,6 +1,7 @@
 import { esc } from './helpers';
-import { baseView, resourceIcon } from './art';
+import { resourceIcon } from './art';
 import type { Resource } from '../data/catalog';
+import { preloadStationImages, stationAlertLight, stationImage } from '../scenes/lunar-station';
 
 export interface DispatchBrief {
   kind: 'emergency' | 'operation'; code: string; title: string; description: string;
@@ -15,6 +16,8 @@ export class Dispatch {
   show(brief:DispatchBrief, reduced:boolean, ready:()=>void) {
     this.cancel();
     const emergency=brief.kind==='emergency';
+    const stationLight=stationAlertLight(brief.code);
+    preloadStationImages();
     this.delivery={elapsed:0,duration:emergency?3200:2800,ready};
     this.stage.dataset.dispatch=brief.kind;
     this.host.dataset.kind=brief.kind;
@@ -22,11 +25,9 @@ export class Dispatch {
     this.host.style.setProperty('--dispatch-progress','0');
     this.host.innerHTML=`<article class="dispatch-card">
       <header class="dispatch-channel"><span><i aria-hidden="true"></i> INCOMING TRANSMISSION</span><span>LUNAR BASE <span aria-hidden="true">/</span> ${esc(brief.code)}</span></header>
-      <div class="dispatch-content"><div class="dispatch-visual" aria-hidden="true">
-        <div class="dispatch-orbit orbit-one"></div><div class="dispatch-orbit orbit-two"></div>
+      <div class="dispatch-content"><div class="dispatch-visual dispatch-station lunar-station" data-light="${stationLight}" data-event="${esc(brief.code)}" aria-hidden="true">
+        ${stationImage(stationLight)}
         <span class="dispatch-coordinates">SECTOR 04<br>LOCAL UPLINK</span>
-        <div class="dispatch-beacon">${emergency?'<span>!</span>':'<span>✦</span>'}</div>
-        <div class="dispatch-base">${baseView({},emergency?'intervention':'normal')}</div>
         <div class="dispatch-system">${resourceIcon(brief.resource)}<span>${esc(brief.system)}</span><i></i><i></i><i></i></div>
       </div><div class="dispatch-copy"><span class="dispatch-type">${emergency?'SURVIVAL ALERT':'BASE OPERATIONS'}</span>
         <h1 id="dispatch-title">${emergency?'The base needs you.':'A plan for life<br>on the Moon.'}</h1>

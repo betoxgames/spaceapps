@@ -18,7 +18,7 @@ await page.addInitScript(() => {
     createBufferSource() {
       const source = super.createBufferSource(), start = source.start.bind(source);
       source.addEventListener('ended', () => log.ended.push(source));
-      source.start = (...args) => { log.sources.push(source); return start(...args); };
+      source.start = (...args) => { log.sources.push(source); source.testStartArgs = args; source.testStartRate = source.playbackRate.value; return start(...args); };
       return source;
     }
   };
@@ -26,7 +26,7 @@ await page.addInitScript(() => {
 try {
   await page.goto(pathToFileURL(resolve(process.env.PLAY_HTML || 'index.html')).href);
   assert.equal(await page.evaluate(() => window.audioProbe.contexts.length), 0, 'no audio context before interaction');
-  assert.deepEqual(await page.evaluate(() => Object.keys(window.__SPACE_PAPERS_ASSETS__).filter(key => key.startsWith('assets/audio/')).sort()), ['assets/audio/ambient-music.mp3', 'assets/audio/door.mp3', 'assets/audio/stamp.mp3']);
+  assert.deepEqual(await page.evaluate(() => Object.keys(window.__SPACE_PAPERS_ASSETS__).filter(key => key.startsWith('assets/audio/')).sort()), ['assets/audio/ambient-music.mp3', 'assets/audio/door.mp3', 'assets/audio/ship-engine.mp3', 'assets/audio/stamp.mp3']);
   await page.locator('[data-action="options"]').click();
   await page.waitForFunction(() => window.audioProbe.sources.some(source => source.loop));
   await page.waitForFunction(() => Math.abs(window.audioProbe.gains[0].gain.value * window.audioProbe.gains[1].gain.value - .063) < .0001);
@@ -37,6 +37,13 @@ try {
   assert.ok(initial.duration > 224 && initial.duration < 225, 'the supplied music decodes offline');
   assert.equal(initial.channels, 2);
   assert.equal(initial.state, 'running');
+  const engine = await page.evaluate(async () => {
+    const response = await fetch(window.__SPACE_PAPERS_ASSETS__['assets/audio/ship-engine.mp3']);
+    const buffer = await window.audioProbe.contexts[0].decodeAudioData(await response.arrayBuffer());
+    return { duration: buffer.duration, channels: buffer.numberOfChannels };
+  });
+  assert.ok(engine.duration > 6 && engine.duration < 6.2, 'the supplied engine recording decodes offline');
+  assert.equal(engine.channels, 2);
   assert.ok(Math.abs(initial.gains[0] * initial.gains[1] - .063) < .0001, 'initial music level is subdued');
   // Accelerate only this test's real source to cross the end of the MP3 quickly.
   await page.evaluate(() => { window.audioProbe.sources.find(source => source.loop).playbackRate.value = 1000; });
@@ -53,6 +60,12 @@ try {
   await page.locator('[data-action="settings-done"]').click();
   await page.locator('[data-action="new-shift"]').click();
   await page.waitForFunction(() => window.audioProbe.sources.some(source => !source.loop && source.buffer.duration > 1.8 && source.buffer.duration < 1.9));
+  const door = await page.evaluate(() => {
+    const source = window.audioProbe.sources.find(source => !source.loop && source.buffer.duration > 1.8 && source.buffer.duration < 1.9);
+    return { args: source.testStartArgs, rate: source.testStartRate };
+  });
+  assert.deepEqual(door.args.slice(1), [.13, 1.33], 'offline door uses the measured audio segment');
+  assert.ok(Math.abs(1.33 / door.rate - .64) < .0001, 'offline playback fits the door movement');
   await page.locator('[data-action="pause"]').click();
   await page.waitForFunction(() => window.audioProbe.contexts[0].state === 'suspended');
   const frozen = await page.evaluate(() => window.audioProbe.contexts[0].currentTime);

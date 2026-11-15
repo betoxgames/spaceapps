@@ -1,0 +1,71 @@
+/* The projection occupies the whole stage, with its controls over the image. */
+.cinema { position: fixed; inset: 0; padding: 0; background: #020305; }
+body:has(#cinema:not([hidden])) { background: #000; overflow: hidden; }
+body:has(#cinema:not([hidden])) #small-screen { display: none; }
+.cinema:not([hidden]) { animation: none; }
+.projection-frame { height: 100%; border: 0; background: #020305; box-shadow: none; }
+.projection-view { inset: 0; height: auto; background: #020305; }
+.cinema-stars {
+  inset: 0;
+  display: block;
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, #cbd4dbb0 90%, transparent),
+    radial-gradient(1px 1px at 78% 31%, #e5e7dda0 90%, transparent),
+    radial-gradient(1px 1px at 35% 71%, #d2d9e0a0 90%, transparent),
+    radial-gradient(1px 1px at 64% 83%, #dce3e9a0 90%, transparent),
+    radial-gradient(1px 1px at 53% 12%, #dce3e980 90%, transparent),
+    radial-gradient(1px 1px at 91% 62%, #dce3e980 90%, transparent),
+    radial-gradient(1px 1px at 20% 42%, #c9d5df70 90%, transparent);
+  background-size: 431px 307px, 353px 283px, 503px 389px, 397px 337px, 317px 263px, 449px 379px, 269px 223px;
+  pointer-events: none;
+}
+.cinema-world { right: 7%; top: 8%; width: 25%; height: auto; opacity: .62; filter: drop-shadow(0 0 32px #7ca4bd35); }
+.cinema-world { display: none; }
+.projection-view.orbit .cinema-world { display: block; opacity: .3; }
+.cinema-ground {
+  left: -15%; right: -15%; bottom: -16%; height: 36%; border: 0;
+  border-radius: 50% 50% 0 0 / 24% 24% 0 0;
+  background: radial-gradient(ellipse at 50% 0, #777873 0%, #424540 21%, #20231f 55%, #0b0d0c 100%);
+  box-shadow: 0 -2px 20px #a2a7a327;
+}
+.landing-pad { display: none; }
+/* Keep the transparent source canvases intact so every ignition frame aligns. */
+.cinema-ship:has(.cinema-ship-image) {
+  width: min(40vh, 68vw); height: auto; left: 50%; margin-left: calc(min(40vh, 68vw) / -2); top: calc(80% - min(37.2vh, 63.24vw));
+  animation: none; filter: drop-shadow(0 10px 22px #000a);
+}
+.cinema-ship .cinema-ship-image, .transfer-module .cinema-ship-image { display: block; width: 100%; height: auto; }
+.cinema-ship.outbound:has(.cinema-ship-image), .cinema-ship.orbit:has(.cinema-ship-image),
+.cinema-ship.return:has(.cinema-ship-image), .cinema-ship.transfer:has(.cinema-ship-image) {
+  width: min(95vw, 1400px); height: auto; left: 2.5%; top: 23%; margin-left: 0;
+}
+.transfer-module:has(.cinema-ship-image) { width: min(18vh, 28vw); height: auto; left: 39%; top: 48%; filter: drop-shadow(0 8px 10px #000b); }
+.cinema-ship.return .cinema-ship-image { transform: scaleX(-1); }
+.cinema-base { inset: 0; }
+.cine-sequence { z-index: 3; left: 42px; right: auto; bottom: 137px; width: 150px; gap: 5px; }
+.cine-sequence i { height: 2px; background: #d3dbe22b; }
+.cine-sequence i.complete { background: #a6bac6a0; }
+.cine-sequence i.current { background: #e5ebee; box-shadow: none; }
+.projection-frame:has(.projection-view.revealed) .cine-sequence { display: none; }
+.cine-caption { z-index: 3; left: 42px; right: auto; bottom: 45px; max-width: 45%; color: #f4f6f5; text-shadow: 0 2px 12px #000; }
+.cine-caption .eyebrow { color: #aab9c3; font-size: 10px; letter-spacing: .16em; }
+.cine-caption h2 { font: 600 24px/1.15 var(--sans); letter-spacing: 0; margin: 7px 0 0; }
+.cine-caption p { font-size: 14px; line-height: 1.35; margin: 6px 0 0; }
+.projection-frame > footer { z-index: 3; left: auto; right: 35px; bottom: 35px; height: auto; gap: 8px; padding: 0; border: 0; }
+.projection-frame > footer button, .projection-frame > footer button.primary {
+  margin: 0; min-height: 40px; padding: 8px 14px; border: 1px solid #b9c4c566;
+  border-radius: 3px; background: #0a1014c7; color: #edf1ef; font: 600 13px var(--sans);
+}
+.projection-frame > footer button:hover, .projection-frame > footer button[aria-pressed='true'] { background: #293b44; border-color: #dbe6e6; }
+.consequence-mark { z-index: 3; right: 45px; top: 40px; width: 50px; height: 50px; border-width: 2px; background: #10191ecc; color: #e9efea; font-size: 30px; }
+
+@media (max-width: 650px) {
+  .cinema-ground { bottom: -12%; height: 32%; }
+  .cine-sequence { left: 20px; bottom: 157px; width: 110px; }
+  .cine-caption { left: 20px; right: 20px; bottom: 91px; max-width: none; }
+  .cine-caption h2 { font-size: 20px; }
+  .cine-caption p { font-size: 13px; }
+  .projection-frame > footer { left: 20px; right: 20px; bottom: 20px; justify-content: flex-end; }
+  .projection-frame > footer button, .projection-frame > footer button.primary { min-height: 42px; padding: 8px 12px; }
+  .consequence-mark { top: 20px; right: 20px; }
+}

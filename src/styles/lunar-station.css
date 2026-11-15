@@ -1,0 +1,17 @@
+/* The station render follows the simulation's discrete sequence states. */
+.lunar-station-image { display: block; width: 100%; height: 100%; object-fit: contain; object-position: center; }
+.cinema-base.lunar-station-cinema { inset: 0; background: #080f14; }
+.dispatch-station { background: #0b151a; }
+.dispatch-station > .lunar-station-image { position: absolute; inset: 0; }
+.dispatch-station::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg,#06141ab3 0%,transparent 30%,transparent 55%,#06141ad9 100%); pointer-events: none; }
+.dispatch-station .dispatch-coordinates, .dispatch-station .dispatch-system { z-index: 1; color: #eff3e2; text-shadow: 0 1px 4px #000; }
+@media (max-width: 700px) {
+  .dispatch-station { height: auto; min-height: 0; aspect-ratio: 16 / 9; }
+  .dispatch-station .dispatch-system { bottom: 12px; }
+}
+
+/* A compact outcome image keeps the complete exterior and its report label. */
+.debrief-emblem .lunar-station { width: 100%; aspect-ratio: 16 / 9; background: #080f14; }
+.debrief-emblem .lunar-station-image { width: 100%; height: 100%; }
+.debrief-emblem:has(.lunar-station) { align-content: center; background: #e8eddb; }
+.debrief-emblem:has(.lunar-station) .debrief-orbit { display: none; }
