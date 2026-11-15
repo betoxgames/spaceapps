@@ -1,0 +1,15 @@
+:root {
+  --ink: #173238;
+  --paper: #f4eddc;
+  --paper-shadow: #c4b99f;
+  --cream: #f4ebd6;
+  --teal: #197b7e;
+  --navy: #102f37;
+  --mint: #0fffbf;
+  --signal: #35fe85;
+  --orange: #e8a966;
+  --amber: #e8a966;
+  --display: 'Avenir Next', 'Trebuchet MS', 'Segoe UI', sans-serif;
+  --sans: 'Avenir Next', 'Trebuchet MS', 'Segoe UI', sans-serif;
+  --mono: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+}

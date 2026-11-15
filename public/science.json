@@ -1,0 +1,61 @@
+{
+  "retrieved": "2026-11-14",
+  "note": "Archived educational references, not live telemetry. The game uses fictional resource prices and outcome probabilities; none is a NASA prediction. Challenge Resources membership and competition eligibility require separate verification.",
+  "sources": [
+    {
+      "id": "DONKI-2024-05-10T06:27:00-FLR-001-v2",
+      "title": "DONKI solar flare event 2024-05-10T06:27:00-FLR-001, version 2",
+      "organization": "NASA Community Coordinated Modeling Center, DONKI",
+      "url": "https://ccmc.gsfc.nasa.gov/DONKI/events/30666/2/",
+      "date": "2024-05-10",
+      "observations": {"class": "X3.9", "startUTC": "2024-05-10T06:27:00Z", "peakUTC": "2024-05-10T06:54:00Z", "endUTC": "2024-05-10T07:06:00Z"},
+      "unit": "UTC and solar flare class",
+      "transformation": "Used as historical context for discussing solar alerts and preparation, not as live data.",
+      "limitations": "Flare class does not establish a lunar surface dose, shielding thickness, event probability, or the cost of a fictional shelter operation."
+    },
+    {
+      "id": "NASA-ISS-WATER-RECOVERY-2023-06-20",
+      "title": "NASA Achieves Water Recovery Milestone on International Space Station",
+      "organization": "NASA",
+      "url": "https://www.nasa.gov/missions/station/nasa-achieves-water-recovery-milestone-on-international-space-station/",
+      "date": "2023-06-20",
+      "observations": {"waterRecoveryPercent": 98},
+      "unit": "percent of water recovery in the reported ISS system",
+      "transformation": "Illustrates why recycling matters for life support; the fictional base uses a separate, explicitly designed budget.",
+      "limitations": "ISS system performance is not a direct model of the game's base or its water and oxygen expenditures."
+    },
+    {
+      "id": "NASA-VEG-01",
+      "title": "Veggie plant growth system activated on International Space Station",
+      "organization": "NASA",
+      "url": "https://www.nasa.gov/missions/station/veggie-plant-growth-system-activated-on-international-space-station/",
+      "date": null,
+      "observations": {"investigation": "VEG-01", "growthDays": 28},
+      "unit": "days",
+      "transformation": "Shows that growing food takes time; the game uses a simplified milestone and local-only outcome.",
+      "limitations": "The 28-day observation is not a growth rate, yield, resource requirement, or promise for the fictional game."
+    },
+    {
+      "id": "NASA-MOON-SPACE-RADIATION",
+      "title": "How NASA Will Protect Astronauts From Space Radiation at the Moon",
+      "organization": "NASA Science",
+      "url": "https://science.nasa.gov/science-research/heliophysics/how-nasa-will-protect-astronauts-from-space-radiation-at-the-moon/",
+      "date": null,
+      "observations": {"topic": "Radiation protection and space weather on lunar missions"},
+      "unit": "qualitative explanation",
+      "transformation": "Provides context for preparing shelter and responding to space weather.",
+      "limitations": "The game does not calculate dose, shielding thickness, probability of survival, or an actual NASA operating cost."
+    },
+    {
+      "id": "NASA-WEBB-LIGHT-TRAVEL-TIME-MOON",
+      "title": "How Does Webb See Back in Time?",
+      "organization": "NASA Science",
+      "url": "https://science.nasa.gov/mission/webb/science-overview/science-explainers/how-does-webb-see-back-in-time/",
+      "date": null,
+      "observations": {"earthMoonOneWayLightTimeSecondsApprox": 1.3},
+      "unit": "seconds, approximate one-way light travel time",
+      "transformation": "An approximately 2.6-second round trip is shown as a simple educational communication delay, with no extra resource charge.",
+      "limitations": "Distance varies and real communication delays include processing and network effects; the game is not a communications simulator."
+    }
+  ]
+}
