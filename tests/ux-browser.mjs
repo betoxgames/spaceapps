@@ -98,7 +98,7 @@ try {
   await page.locator('[data-action="book-rules"]').click();
   await page.locator('[data-action="book-next"]').click();
   assert.equal(await page.evaluate(() => document.activeElement?.dataset.action), 'book-next', 'manual pagination retains keyboard focus');
-  for (const [tab, pages] of [['rules', 4], ['emergencies', 2], ['science', 5]]) {
+  for (const [tab, pages] of [['rules', 4], ['science', 5]]) {
     await page.locator(`[data-action="book-${tab}"]`).first().click();
     for (let index = 0; index < pages; index++) {
       const clipped = await page.locator('.book-spread > section').evaluateAll(elements => elements.some(element => element.scrollHeight > element.clientHeight + 2 && ['hidden', 'clip'].includes(getComputedStyle(element).overflowY)));

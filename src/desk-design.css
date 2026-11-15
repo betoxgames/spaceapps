@@ -180,7 +180,7 @@
 .monitor-heading > span:first-child { display: flex; align-items: center; gap: 7px; }
 .monitor-heading > span:last-child { color: #89a996; font-size: 9px; }
 .monitor-signal { width: 6px; height: 6px; background: #a6d7b1; border-radius: 50%; box-shadow: 0 0 5px #a6d7b155; }
-.performance { display: grid; grid-template-columns: .9fr 1.15fr 1fr; gap: 0 16px; margin: 0; padding: 9px 0 8px; border-top: 0; border-bottom: 1px solid #75a68b40; }
+.performance { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; margin: 0; padding: 9px 0 8px; border-top: 0; border-bottom: 1px solid #75a68b40; }
 .monitor-metric { min-width: 0; }
 .monitor-metric > strong { display: block; color: #f0c489; font: 650 29px/1.1 var(--mono); font-variant-numeric: tabular-nums; letter-spacing: -.04em; }
 .monitor-metric > strong > span { color: #90ac96; font-size: 16px; padding-left: 3px; }
