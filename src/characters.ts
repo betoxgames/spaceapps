@@ -1,18 +1,25 @@
 import { assetUrl } from './assets';
+import atlasMetadata from './engineer-clips.json';
+
 export type EngineerViewerStatus = 'loading' | 'ready' | 'fallback';
-export type EngineerAnimation = 'arrive' | 'idle' | 'depart';
+export type EngineerAnimation = 'arrive' | 'idle' | 'depart' | 'approve' | 'return';
 
-const FRAME_SIZE = 512;
-const COLUMNS = 8;
-// The source actions were sampled uniformly from their original 24 fps timelines.
-// The walk is compressed to fit the room’s short departure transition.
-const CLIPS: Record<EngineerAnimation, { row: number; duration: number; loop: boolean }> = {
-  idle: { row: 0, duration: 1167, loop: true },
-  arrive: { row: 2, duration: 917, loop: false },
-  depart: { row: 1, duration: 700, loop: true },
+type Clip = { offset: number; frames: number; duration: number; loop: boolean };
+type PackedFrame = { x: number; y: number; width: number; height: number; left: number; top: number };
+type Atlas = {
+  file: string;
+  width: number;
+  height: number;
+  cellWidth: number;
+  cellHeight: number;
+  footY?: number;
+  packedFrames?: Record<number, PackedFrame>;
+  columns: number;
+  clips: Record<EngineerAnimation, Clip>;
 };
+const ATLASES = atlasMetadata as Record<string, Atlas>;
 
-/** Renders the original artists' animated characters on the game's active clock. */
+/** Draws the team's registered, transparent renders using active game time only. */
 export class EngineerViewer {
   private readonly canvas: HTMLCanvasElement;
   private readonly context: CanvasRenderingContext2D | null;
@@ -20,22 +27,23 @@ export class EngineerViewer {
   private readonly cache = new Map<string, Promise<HTMLImageElement>>();
   private readonly observer?: ResizeObserver;
   private image?: HTMLImageElement;
+  private atlas?: Atlas;
   private serial = 0;
   private disposed = false;
   private visible = true;
   private reduced = false;
   private animation: EngineerAnimation = 'idle';
-  private requestedAnimation: EngineerAnimation = 'idle';
   private elapsed = 0;
   private renderedFrame = -1;
   private width = 0;
   private height = 0;
+  private ratio = 0;
 
   constructor(private readonly host: HTMLElement, private readonly onStatus?: (state: EngineerViewerStatus) => void) {
     this.fallback = host.querySelector('svg');
     this.canvas = document.createElement('canvas');
     this.canvas.setAttribute('aria-hidden', 'true');
-    Object.assign(this.canvas.style, { position: 'absolute', inset: '0', width: '100%', height: '100%', pointerEvents: 'none', display: 'none' });
+    Object.assign(this.canvas.style, { position: 'absolute', top: '0', pointerEvents: 'none', display: 'none' });
     this.host.appendChild(this.canvas);
     this.context = this.canvas.getContext('2d');
     if (typeof ResizeObserver !== 'undefined') {
@@ -47,32 +55,45 @@ export class EngineerViewer {
 
   async show(id: string): Promise<void> {
     const serial = ++this.serial;
-    this.image = undefined;
-    this.requestedAnimation = 'arrive';
-    this.showFallback();
     const slug = id.toLowerCase();
-    if (!this.context || this.disposed || !/^[a-z0-9_-]+$/.test(slug)) { this.report('fallback'); return; }
+    this.image = undefined;
+    this.atlas = undefined;
+    this.animation = 'idle';
+    this.elapsed = 0;
+    this.renderedFrame = -1;
+    this.showFallback();
+    const atlas = Object.hasOwn(ATLASES, slug) ? ATLASES[slug] : undefined;
+    if (!this.context || this.disposed || !atlas) { this.report('fallback'); return; }
     this.report('loading');
     try {
       let promise = this.cache.get(slug);
       if (!promise) {
         promise = new Promise<HTMLImageElement>((resolve, reject) => {
           const image = new Image();
-          image.onload = () => image.naturalWidth === FRAME_SIZE * COLUMNS && image.naturalHeight === FRAME_SIZE * 3
-            ? resolve(image) : reject(new Error('Invalid character atlas'));
+          image.onload = async () => {
+            try {
+              if (image.naturalWidth !== atlas.width || image.naturalHeight !== atlas.height) throw new Error('Invalid character atlas dimensions');
+              // Do not start the doorway sequence until decoding has also finished.
+              await image.decode();
+              resolve(image);
+            } catch (error) { reject(error); }
+          };
           image.onerror = () => reject(new Error('Character atlas unavailable'));
-          image.src = assetUrl(`art/engineers/${slug}.webp`);
+          image.src = assetUrl(`art/engineers/${atlas.file}`);
         });
         this.cache.set(slug, promise);
         promise.catch(() => { if (this.cache.get(slug) === promise) this.cache.delete(slug); });
       }
-      this.cache.delete(slug);this.cache.set(slug,promise);
-      while(this.cache.size>2){const oldest=this.cache.keys().next().value;if(oldest)this.cache.delete(oldest);else break;}
+      this.cache.delete(slug);
+      this.cache.set(slug, promise);
+      while (this.cache.size > 2) {
+        const oldest = this.cache.keys().next().value;
+        if (oldest !== undefined) this.cache.delete(oldest);
+      }
       const image = await promise;
       if (this.disposed || serial !== this.serial) return;
       this.image = image;
-      this.animation = this.reduced ? 'idle' : this.requestedAnimation;
-      this.elapsed = 0;
+      this.atlas = atlas;
       this.renderedFrame = -1;
       if (this.fallback) this.fallback.style.visibility = 'hidden';
       this.canvas.style.display = this.visible ? 'block' : 'none';
@@ -85,32 +106,24 @@ export class EngineerViewer {
     }
   }
 
-  /** The caller supplies active game time; there is no independent animation loop. */
+  /** Camera visibility and reduced motion affect drawing, never the active timeline. */
   tick(dtMs: number): void {
-    if (!this.visible || this.disposed || !this.image || this.reduced) return;
+    if (this.disposed) return;
     if (Number.isFinite(dtMs) && dtMs > 0) this.elapsed += dtMs;
-    const clip = CLIPS[this.animation];
-    if (!clip.loop && this.elapsed >= clip.duration) {
-      this.animation = 'idle';
-      this.requestedAnimation = 'idle';
-      this.elapsed = 0;
-      this.renderedFrame = -1;
-    }
     this.draw();
   }
 
   setAnimation(state: EngineerAnimation): void {
-    this.requestedAnimation = state;
-    this.animation = this.reduced ? 'idle' : state;
+    if (this.animation === state) return;
+    this.animation = state;
     this.elapsed = 0;
     this.renderedFrame = -1;
     this.draw(true);
   }
 
   setReducedMotion(reduced: boolean): void {
+    if (this.reduced === reduced) return;
     this.reduced = reduced;
-    this.animation = reduced ? 'idle' : this.requestedAnimation;
-    this.elapsed = 0;
     this.renderedFrame = -1;
     this.draw(true);
   }
@@ -119,6 +132,7 @@ export class EngineerViewer {
     if (this.visible === visible) return;
     this.visible = visible;
     this.canvas.style.display = visible && this.image ? 'block' : 'none';
+    if (this.fallback) this.fallback.style.visibility = this.image || !visible ? 'hidden' : '';
     if (visible) this.draw(true);
   }
 
@@ -129,6 +143,7 @@ export class EngineerViewer {
     this.observer?.disconnect();
     this.cache.clear();
     this.image = undefined;
+    this.atlas = undefined;
     this.canvas.remove();
     if (this.fallback) this.fallback.style.visibility = '';
   }
@@ -137,32 +152,57 @@ export class EngineerViewer {
 
   private showFallback(): void {
     this.canvas.style.display = 'none';
-    if (this.fallback) this.fallback.style.visibility = '';
+    if (this.fallback) this.fallback.style.visibility = this.visible ? '' : 'hidden';
   }
 
   private draw(force = false): void {
-    if (!this.visible || !this.image || !this.context || this.disposed) return;
-    const width = this.host.clientWidth, height = this.host.clientHeight;
-    if (width <= 0 || height <= 0) return;
+    if (!this.visible || !this.image || !this.atlas || !this.context || this.disposed) return;
+    const hostWidth = this.host.clientWidth, height = this.host.clientHeight;
+    if (hostWidth <= 0 || height <= 0) return;
+    // The host ends at the registered floor pivot. Extra source padding below
+    // that pivot preserves authored foot motion without changing person scale.
+    const renderHeight = height * this.atlas.cellHeight / (this.atlas.footY ?? this.atlas.cellHeight);
+    const width = Math.max(hostWidth, renderHeight * this.atlas.cellWidth / this.atlas.cellHeight);
     const ratio = Math.min(window.devicePixelRatio || 1, 1.5);
-    if (width !== this.width || height !== this.height) {
-      this.width = width; this.height = height;
+    this.canvas.style.left = `${(hostWidth - width) / 2}px`;
+    if (width !== this.width || renderHeight !== this.height || ratio !== this.ratio) {
+      this.width = width; this.height = renderHeight; this.ratio = ratio;
       this.canvas.width = Math.round(width * ratio);
-      this.canvas.height = Math.round(height * ratio);
+      this.canvas.height = Math.round(renderHeight * ratio);
+      this.canvas.style.width = `${width}px`;
+      this.canvas.style.height = `${renderHeight}px`;
       force = true;
     }
-    const clip = CLIPS[this.animation];
-    const progress = clip.loop ? (this.elapsed % clip.duration) / clip.duration : Math.min(this.elapsed / clip.duration, 0.9999);
-    const frame = Math.min(COLUMNS - 1, Math.floor(progress * COLUMNS));
+    const isReaction = this.animation === 'approve' || this.animation === 'return';
+    const displayedAnimation = this.reduced && !isReaction ? 'idle' : this.animation;
+    const clip = this.atlas.clips[displayedAnimation];
+    // A single authored reaction pose acknowledges the stamp without playing motion.
+    const progress = this.reduced ? (isReaction ? 0.6 : 0) : clip.loop ? (this.elapsed % clip.duration) / clip.duration : Math.min(this.elapsed / clip.duration, 1);
+    const frame = clip.offset + Math.min(clip.frames - 1, Math.floor(progress * clip.frames));
     if (!force && frame === this.renderedFrame) return;
     this.renderedFrame = frame;
+    this.host.dataset.engineerAnimation = displayedAnimation;
+    this.host.dataset.engineerFrame = String(frame);
     const context = this.context;
-    context.imageSmoothingEnabled=true;context.imageSmoothingQuality='high';
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = 'high';
     context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    // Preserve the square source and anchor its feet at the floor of the host.
-    // The shared source camera leaves at least 53 transparent pixels under the feet.
-    const side = this.canvas.height;
-    context.drawImage(this.image, frame * FRAME_SIZE, clip.row * FRAME_SIZE, FRAME_SIZE, FRAME_SIZE,
-      (this.canvas.width - side) / 2, this.canvas.height - side + side * 53 / FRAME_SIZE, side, side);
+    const drawHeight = this.canvas.height;
+    const drawWidth = drawHeight * this.atlas.cellWidth / this.atlas.cellHeight;
+    const packed = this.atlas.packedFrames?.[frame];
+    if (packed) {
+      // Packing removes transparent storage only; left/top restore the original
+      // virtual cell and foot pivot at exactly the same display scale.
+      const scale = drawHeight / this.atlas.cellHeight;
+      context.drawImage(this.image, packed.x, packed.y, packed.width, packed.height,
+        (this.canvas.width - drawWidth) / 2 + packed.left * scale,
+        packed.top * scale, packed.width * scale, packed.height * scale);
+    } else {
+      context.drawImage(this.image,
+        (frame % this.atlas.columns) * this.atlas.cellWidth,
+        Math.floor(frame / this.atlas.columns) * this.atlas.cellHeight,
+        this.atlas.cellWidth, this.atlas.cellHeight,
+        (this.canvas.width - drawWidth) / 2, 0, drawWidth, drawHeight);
+    }
   }
 }

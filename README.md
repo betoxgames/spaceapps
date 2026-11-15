@@ -1,6 +1,6 @@
 # Space Papers
 
-A work-in-progress lunar operations game for children ages 7–12. Review expedition papers, compare them with a manual, and stamp a decision. The supplied Blender room is rendered as a layered 2.5D scene with room and desk views. Nine supplied engineers are integrated using their original artwork and animations.
+A work-in-progress lunar operations game for children ages 7–12. Review expedition papers, compare them with a manual, and stamp a decision. The supplied Blender room is rendered as a layered 2.5D scene with room and desk views. Nine engineers use the team’s supplied idle, speech and stamp-reaction PNG sequences, plus a continuous walk re-rendered from their original rig.
 
 ## Play
 
@@ -32,6 +32,9 @@ pnpm test:browser
 pnpm test:desk
 pnpm test:camera
 pnpm test:training
+pnpm test:characters
+pnpm test:visitors
+pnpm test:offline # after pnpm build
 ```
 
 Browser suites use development-only fixtures and default to port 4173. Set `PREVIEW_URL` for another development URL. Screenshots are written to ignored `test-results/`.
@@ -43,5 +46,7 @@ Drag sheets, manual and stamps. Select a stamp then click a sheet; keyboard focu
 ## Handoff and sources
 
 [Engineering handoff](HANDOFF_COPILOT.md) records current rules, architecture and planned work. [NASA reference metadata](public/science.json) archives sources and their limits. Resource costs and probabilities are fictional game balance, not NASA predictions. The game has no runtime network dependency. Scene art and engineer artwork were supplied by the team; synthesized sound is provisional. The updated room and font, and the planet monitor, are deferred. See [sound priorities](SOUND_EFFECTS.md). Human usability testing and final asset/license verification remain pending. Code and documentation were assisted by OpenAI Codex.
+
+The render inventory, timing assumptions, visual dependencies and reproducible import steps are in [engineer integration](docs/ENGINEER_RENDERS_2026-11-14.md).
 
 Original Blender source files remain in the team’s shared drive; commit only optimized runtime assets directly to Git. Git LFS is not needed for the current repository.

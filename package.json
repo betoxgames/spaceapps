@@ -13,7 +13,8 @@
     "test:camera": "node tests/camera-browser.mjs",
     "test:training": "node tests/training-browser.mjs",
     "test:characters": "node tests/characters-browser.mjs",
-    "test:offline": "node tests/offline-browser.mjs"
+    "test:offline": "node tests/offline-browser.mjs",
+    "test:visitors": "node tests/visitor-browser.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.19.0",

@@ -1,5 +1,4 @@
 import './style.css';
-import { assetUrl } from './assets';
 import scienceArchive from '../public/science.json';
 import { PROTOCOLS, protocolMarkup } from './protocols';
 import { DESTINATIONS, ENGINEERS, EVENTS, OPERATIONS, RESOURCES, RESOURCE_LABELS, format, units, vector, type Resource, type Resources } from './catalog';
@@ -10,6 +9,7 @@ import { Sound } from './audio';
 import { planet, ship, baseView, resourceIcon } from './art';
 import { Camera } from './camera';
 import { EngineerViewer } from './characters';
+import { VisitorSequence } from './visitor';
 
 type Phase = 'menu'|'desk'|'transition'|'cinema'|'report'|'emergency'|'operation'|'final';
 interface Preferences {volume:number; muted:boolean; reduced:boolean; clickPlacement:boolean}
@@ -52,11 +52,15 @@ const desk=new Desk(stage,{
   announce,
   onPaper:()=>{sound.play('paper');progressTraining();},
   onStamp:stampDecision,
-  canStamp:(stamp,target)=>!paused&&!busy&&((phase==='desk'&&!!campaign.proposal&&['flight','life','power'].includes(target))||(phase==='operation'&&target==='order'&&stamp==='approve'&&operationChoice!==null)),
+  canStamp:(stamp,target)=>!paused&&!busy&&((visitorSequence.snapshot().phase==='ready'&&phase==='desk'&&!!campaign.proposal&&['flight','life','power'].includes(target))||(phase==='operation'&&target==='order'&&stamp==='approve'&&operationChoice!==null)),
   onSelect:()=>{},
 });
 const camera = new Camera(stage, () => desk.cancel());
+// The person shares the room's camera and sits between the doorway and desk layers.
+const sceneVisitor=document.createElement('div');sceneVisitor.className='scene-visitor';
+sceneVisitor.append($('#visitor-portrait'));$('.scene-environment').append(sceneVisitor);
 const engineerViewer = new EngineerViewer($('#visitor-portrait'),state=>$('#visitor-portrait').dataset.viewerState=state);
+const visitorSequence = new VisitorSequence(sceneVisitor,$('.scene-door'),engineerViewer,()=>setStampAvailability());
 window.addEventListener('pagehide',()=>engineerViewer.dispose(),{once:true});
 applyPreferences();
 science = scienceArchive.sources as unknown as Science[];
@@ -64,7 +68,7 @@ science = scienceArchive.sources as unknown as Science[];
 function announce(message:string){$('#announcement').textContent=message;}
 let toastTimer=0;
 function toast(message:string){const el=$('#toast');el.textContent=message;el.hidden=false;clock.cancel(toastTimer);toastTimer=clock.after(3500,()=>el.hidden=true);announce(message);}
-function applyPreferences(){engineerViewer.setReducedMotion(prefs.reduced);sound.volume=prefs.volume;sound.muted=prefs.muted;desk.clickPlacement=prefs.clickPlacement;stage.classList.toggle('reduced-motion',prefs.reduced);try{localStorage.setItem('space-papers-preferences-v1',JSON.stringify(prefs));}catch{}}
+function applyPreferences(){visitorSequence.setReducedMotion(prefs.reduced);sound.volume=prefs.volume;sound.muted=prefs.muted;desk.clickPlacement=prefs.clickPlacement;stage.classList.toggle('reduced-motion',prefs.reduced);try{localStorage.setItem('space-papers-preferences-v1',JSON.stringify(prefs));}catch{}}
 function scale(){desk.cancel();const width=window.innerWidth,height=window.innerHeight;const s=Math.min(width/1600,height/900);stage.style.transform=`scale(${s})`;$('#viewport').style.width=`${1600*s}px`;$('#viewport').style.height=`${900*s}px`;const small=width<1000||height<600;$('#small-screen').hidden=!small;if(small&&phase!=='menu'&&!paused)pause();}
 window.addEventListener('resize',scale);
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&phase!=='menu')pause();});
@@ -80,18 +84,13 @@ function mount(id:string,html:string,classes:string,x:number,y:number,width:numb
 function resourceRows(amounts:Resources,keys:readonly Resource[]=RESOURCES,compact=false){return keys.map(r=>`<div class="resource-row ${compact?'compact':''}"><span class="resource-label">${resourceIcon(r)}${RESOURCE_LABELS[r].label}</span><span class="resource-value">${format(amounts[r])} <span>${RESOURCE_LABELS[r].unit}</span></span></div>`).join('');}
 function costText(amounts:Resources){return RESOURCES.filter(r=>amounts[r]>0).map(r=>`${format(amounts[r])} ${RESOURCE_LABELS[r].unit} ${RESOURCE_LABELS[r].label.toLowerCase()}`).join(' + ');}
 function nameOf(id?:string){return DESTINATIONS.find(d=>d.id===id)?.name??id??'';}
-let doorTasks:number[]=[];
 function showVisitor(id:string){
+  $('.visitor-area').dataset.ready='false';
   const engineer=ENGINEERS.find(e=>e.id===id)??ENGINEERS[1];
-  const visitor=$('.visitor-area'),door=$('.scene-door');
-  doorTasks.forEach(task=>clock.cancel(task));doorTasks=[];
-  void engineerViewer.show(engineer.id);$('#visitor-portrait').dataset.engineer=engineer.id;
+  $('#visitor-portrait').dataset.engineer=engineer.id;
   $('.visitor-area').style.setProperty('--engineer-color',engineer.color);
-  $('#visitor-name').textContent=engineer.name;$('#speech').textContent=engineer.greeting;visitor.classList.remove('departing');
-  const frame=(n:string)=>door.style.setProperty('--door-frame',`url("${assetUrl(`art/scene/door-${n}.webp`)}")`);
-  if(prefs.reduced){frame('0016');delete visitor.dataset.arriving;return;}
-  visitor.dataset.arriving='true';frame('0001');
-  ['0008','0016'].forEach((n,index)=>doorTasks.push(clock.after((index+1)*220,()=>{frame(n);if(n==='0016'){delete visitor.dataset.arriving;engineerViewer.setAnimation('arrive');}})));
+  $('#visitor-name').textContent=engineer.name;$('#speech').textContent=engineer.greeting;
+  void visitorSequence.show(engineer.id);
 }
 function updateStatus(){
   $('#performance').innerHTML=`<span>SUCCESSFUL RETURNS</span><strong>${visible.completed.length}<small>/5</small></strong><span>${visible.approvals?`${visible.approvals} approved · ${Math.round(visible.completed.length/visible.approvals*100)}% success`:'Not yet evaluated'}</span>`;
@@ -101,10 +100,11 @@ function updateStatus(){
   if(desk.items.has('ledger'))renderLedger();
 }
 function setStampAvailability(){
-  const ready=(phase==='desk'&&!!campaign.proposal)||(phase==='operation'&&!!operationChoice);
-  $<HTMLButtonElement>('[data-action="camera-room"]').disabled=paused||busy||phase!=='desk';
+  const visitorReady=visitorSequence.snapshot().phase==='ready';
+  const ready=(phase==='desk'&&!!campaign.proposal&&visitorReady)||(phase==='operation'&&!!operationChoice);
+  stage.querySelectorAll<HTMLButtonElement>('[data-action="camera-room"],[data-action="camera-desk"]').forEach(b=>b.disabled=paused||!['desk','transition'].includes(phase));
   $<HTMLButtonElement>('[data-stamp-tool="approve"]').disabled=paused||busy||!ready;
-  $<HTMLButtonElement>('[data-stamp-tool="return"]').disabled=paused||busy||phase!=='desk';
+  $<HTMLButtonElement>('[data-stamp-tool="return"]').disabled=paused||busy||phase!=='desk'||!visitorReady;
   $('[data-stamp-tool="return"]').title=phase==='operation'?'Internal order: choose one option and approve it.':'Return the proposal without spending resources';
   $('[data-stamp-tool="approve"] small').textContent=phase==='operation'?'AUTHORIZE BASE ORDER':'AUTHORIZE RESOURCES';
   desk.enabled=!paused&&!busy&&['desk','emergency','operation'].includes(phase);
@@ -114,7 +114,7 @@ function start(seed?:string){
   stage.classList.remove('menu-mode');closeModal();campaign=nextProposal(campaign);visible=campaign;phase='desk';renderProposal();updateStatus();setStampAvailability();
   announce('Your shift begins. Take the three sheets from the tray.');
 }
-function resetSession(){stage.classList.remove('paused');clock.clear();doorTasks=[];delete $('.visitor-area').dataset.arriving;$('.scene-door').style.removeProperty('--door-frame');clock.setPaused(false);sound.pause(false);paused=false;busy=false;pending=null;cine=null;delete stage.dataset.incident;emergencyId='';operationId='';operationChoice=null;communication=0;messageSent=false;desk.clear();bookTab='index';bookDestination=null;bookPage=0;ledgerPage=0;$('#cinema').hidden=true;$('#training-guide').hidden=true;$('#toast').hidden=true;}
+function resetSession(){stage.classList.remove('paused');clock.clear();visitorSequence.reset();clock.setPaused(false);sound.pause(false);paused=false;busy=false;pending=null;cine=null;delete stage.dataset.incident;emergencyId='';operationId='';operationChoice=null;communication=0;messageSent=false;desk.clear();bookTab='index';bookDestination=null;bookPage=0;ledgerPage=0;$('#cinema').hidden=true;$('#training-guide').hidden=true;$('#toast').hidden=true;}
 function renderProposal(){
   for(const id of ['flight','life','power','order','emergency','worksheet'])desk.remove(id);
   const p=campaign.proposal;if(!p)return;
@@ -199,10 +199,15 @@ function stampDecision(stamp:'approve'|'return',target:string){
   });
 }
 function beginStamp(stamp:'approve'|'return',target:string,done:()=>void){
-  busy=true;phase='transition';engineerViewer.setAnimation('depart');setStampAvailability();sound.play('stamp');
+  busy=true;phase='transition';setStampAvailability();sound.play('stamp');
   const el=desk.items.get(target)?.el;if(el){const ink=el.querySelector('.ink-mark')??el.appendChild(Object.assign(document.createElement('div'),{className:'ink-mark'}));ink.textContent=stamp==='approve'?'AUTHORIZED':'RETURNED';ink.classList.add('visible',stamp);}
-  clock.after(prefs.reduced?80:260,()=>{for(const id of ['flight','life','power','order'])desk.items.get(id)?.el.classList.add('collecting');$('.visitor-area').classList.add('departing');});
-  clock.after(prefs.reduced?150:650,()=>{for(const id of ['flight','life','power','order'])desk.remove(id);done();});
+  const collecting=['flight','life','power','order'].map(id=>desk.items.get(id)?.el);
+  clock.after(260,()=>{for(const el of collecting)if(el?.isConnected)el.classList.add('collecting');});
+  const finish=()=>{for(const id of ['flight','life','power','order'])desk.remove(id);done();};
+  if(target==='order'){clock.after(prefs.reduced?150:650,finish);return;}
+  camera.set('room');
+  // Reaction depends only on the stamp. Mission success stays hidden until reveal().
+  visitorSequence.react(stamp,finish);
 }
 function advance(){
   busy=false;pending=null;const next=nextInterlude(campaign);visible=campaign;updateStatus();
@@ -336,14 +341,14 @@ function pause(){if(phase==='menu'||paused)return;paused=true;lastFocus=document
 function showPause(){showModal('pause',`<section class="small-panel"><span class="eyebrow">LUNAR OPERATIONS / ON HOLD</span><h1>Take a breath.</h1><p>Your papers, the mission and the emergency clock are paused.</p>${button('Continue shift →','resume','primary')}${button('Options','options')}${button('Return to menu','leave')}<p class="fine-print">Your shift is not saved when you leave.</p></section>`);}
 function resume(){closeModal();paused=false;stage.classList.remove('paused');clock.setPaused(false);sound.pause(false);setStampAvailability();if(phase==='report')showReport();else if(phase==='final')showFinal(finalGrade(campaign.completed.length,campaign.approvals,!!campaign.terminal));else lastFocus?.isConnected&&lastFocus.focus({preventScroll:true});}
 function options(){showModal('options',`<section class="small-panel options-panel"><span class="eyebrow">PERSONAL EQUIPMENT SETTINGS</span><h1>Make it yours.</h1><label class="setting"><span>Sound volume</span><input type="range" id="volume" min="0" max="100" value="${Math.round(prefs.volume*100)}"></label><label class="setting"><span>Mute sound</span><input type="checkbox" id="muted" ${prefs.muted?'checked':''}></label><label class="setting"><span>Reduce motion</span><input type="checkbox" id="reduced" ${prefs.reduced?'checked':''}></label><label class="setting"><span>Place objects with two clicks</span><input type="checkbox" id="click-placement" ${prefs.clickPlacement?'checked':''}></label><p class="fine-print">You can always use the keyboard. English edition. Campaigns are not saved; these preferences are.</p>${button('Full screen','fullscreen')}${button('Done','settings-done','primary')}</section>`);}
-function credits(){showModal('credits',`<section class="credits-panel"><span class="eyebrow">SPACE PAPERS / LOS VALAR</span><h1>Science behind<br>the paperwork.</h1><div class="credits-columns"><div><h3>An original lunar desk</h3><p>Game concept and direction: Los valar. Implementation and original vector stand-ins: assisted by OpenAI Codex and Terra agents.</p><p>Room, desk and door: original Blender renders supplied by Los valar, integrated as layered WebP images. The nine engineers use the team’s original rigged Grease Pencil art and template animations, exported as transparent atlases. Remaining procedural illustrations are provisional.</p><p>Interaction research references Papers, Please by Lucas Pope. No art, text, audio or code from that game is used.</p><p>Sound cues are synthesized locally. System fonts. No player analytics, account or live API connection.</p></div><div><h3>NASA field references</h3><ul><li><a href="https://ccmc.gsfc.nasa.gov/DONKI/events/30666/2/" target="_blank" rel="noopener">DONKI · May 10, 2024 · X3.9</a></li><li><a href="https://www.nasa.gov/missions/station/nasa-achieves-water-recovery-milestone-on-international-space-station/" target="_blank" rel="noopener">ISS water-recovery milestone</a></li><li><a href="https://www.nasa.gov/missions/station/veggie-plant-growth-system-activated-on-international-space-station/" target="_blank" rel="noopener">Veg-01 growing experiment</a></li><li><a href="https://science.nasa.gov/science-research/heliophysics/how-nasa-will-protect-astronauts-from-space-radiation-at-the-moon/" target="_blank" rel="noopener">Radiation protection at the Moon</a></li><li><a href="https://science.nasa.gov/mission/webb/science-overview/science-explainers/how-does-webb-see-back-in-time/" target="_blank" rel="noopener">Light travel time</a></li></ul><p>All economic costs and survival probabilities are fictional game balance. Scientific observations remain separate. NASA does not endorse this game.</p></div></div>${button('Back','settings-done','primary')}</section>`);}
+function credits(){showModal('credits',`<section class="credits-panel"><span class="eyebrow">SPACE PAPERS / LOS VALAR</span><h1>Science behind<br>the paperwork.</h1><div class="credits-columns"><div><h3>An original lunar desk</h3><p>Game concept and direction: Los valar. Implementation and original vector stand-ins: assisted by OpenAI Codex and Terra agents.</p><p>Room, desk and door: original Blender renders supplied by Los valar, integrated as layered WebP images. The nine engineers use the team’s supplied transparent renders for idle, speech and stamp reactions; the original rigged walking cycle is re-rendered in consecutive frames. Remaining procedural illustrations are provisional.</p><p>Interaction research references Papers, Please by Lucas Pope. No art, text, audio or code from that game is used.</p><p>Sound cues are synthesized locally. System fonts. No player analytics, account or live API connection.</p></div><div><h3>NASA field references</h3><ul><li><a href="https://ccmc.gsfc.nasa.gov/DONKI/events/30666/2/" target="_blank" rel="noopener">DONKI · May 10, 2024 · X3.9</a></li><li><a href="https://www.nasa.gov/missions/station/nasa-achieves-water-recovery-milestone-on-international-space-station/" target="_blank" rel="noopener">ISS water-recovery milestone</a></li><li><a href="https://www.nasa.gov/missions/station/veggie-plant-growth-system-activated-on-international-space-station/" target="_blank" rel="noopener">Veg-01 growing experiment</a></li><li><a href="https://science.nasa.gov/science-research/heliophysics/how-nasa-will-protect-astronauts-from-space-radiation-at-the-moon/" target="_blank" rel="noopener">Radiation protection at the Moon</a></li><li><a href="https://science.nasa.gov/mission/webb/science-overview/science-explainers/how-does-webb-see-back-in-time/" target="_blank" rel="noopener">Light travel time</a></li></ul><p>All economic costs and survival probabilities are fictional game balance. Scientific observations remain separate. NASA does not endorse this game.</p></div></div>${button('Back','settings-done','primary')}</section>`);}
 function help(){if(phase!=='menu'&&!paused)pause();showModal('help',`<section class="small-panel"><span class="eyebrow">YOUR DESK / QUICK REFERENCE</span><h1>Every paper<br>has a place.</h1><dl class="controls-list"><dt>Hold + drag</dt><dd>Move a sheet, book or stamp</dd><dt>Click stamp, then sheet</dt><dd>Stamp without dragging</dd><dt>B / I / R</dt><dd>Manual / inventory / record</dd><dt>1 / 2 / 3</dt><dd>Find a covered sheet</dd><dt>Tab · Enter · arrows</dt><dd>Focus, take, move and place</dd><dt>Escape / F</dt><dd>Pause / full screen</dd></dl><p>Store sheets by dropping them into the tray. No double-click zoom. Options includes two-click placement.</p>${button('Back to desk','resume','primary')}</section>`);}
 
 document.addEventListener('click',event=>{
   const target=(event.target as HTMLElement).closest<HTMLElement>('[data-action],[data-stamp-target]');if(!target)return;
   if(target.dataset.stampTarget){desk.applySelectedStamp(target.dataset.stampTarget);return;}
   const action=target.dataset.action!;if((target as HTMLButtonElement).disabled)return;
-  if(action==='camera-desk'||action==='camera-room'){if(!paused&&phase==='desk'&&!busy){camera.set(action==='camera-desk'?'desk':'room', true);announce(action==='camera-desk'?'Desk view.':'Room view.');}return;}
+  if(action==='camera-desk'||action==='camera-room'){if(!paused&&['desk','transition'].includes(phase)){camera.set(action==='camera-desk'?'desk':'room', true);announce(action==='camera-desk'?'Desk view.':'Room view.');}return;}
   if(action==='new-shift'){start();return;}if(action==='training'){resetSession();setupTraining(1);return;}
   if(action==='replay'){start($<HTMLInputElement>('#seed-input')?.value);return;}
   if(action==='menu'){menu();return;}if(action==='pause'){pause();return;}if(action==='resume'){resume();return;}
@@ -392,17 +397,22 @@ document.addEventListener('keydown',event=>{
   if(['1','2','3'].includes(key)){event.preventDefault();camera.set('desk');desk.focus(['flight','life','power'][Number(key)-1]);}
 });
 clock.subscribe(dt=>{
-  engineerViewer.setVisible(camera.position==='room'&&phase==='desk');
-  engineerViewer.tick(dt);
+  const visitorVisible=['desk','transition','emergency','operation'].includes(phase);
+  sceneVisitor.hidden=!visitorVisible;
+  engineerViewer.setVisible(visitorVisible);
+  const previousPhase=phase;
+  const unusedSceneTime=visitorSequence.tick(dt);
+  const phaseTime=phase===previousPhase?dt:unusedSceneTime;
+  $('.visitor-area').dataset.ready=String(visitorSequence.snapshot().phase==='ready'&&phase==='desk');
   if(phase==='emergency'&&!(training?.lesson===3&&training.practice!=='timed')){
-    remaining=Math.max(0,remaining-dt);const sec=Math.ceil(remaining/1000);const counter=$('#seconds');if(counter)counter.textContent=String(sec);
+    remaining=Math.max(0,remaining-phaseTime);const sec=Math.ceil(remaining/1000);const counter=$('#seconds');if(counter)counter.textContent=String(sec);
     desk.items.get('emergency')?.el.classList.toggle('urgent',remaining<=10000);
     if(sec<=10&&sec!==alarmSecond){alarmSecond=sec;sound.play('alert');if([10,5].includes(sec))announce(`${sec} seconds remaining.`);}
     if(remaining===0)confirmEmergency(true);
   }
   if(communication>0){communication=Math.max(0,communication-dt);if(communication===0&&messageSent){const status=$('#message-status');if(status)status.textContent='↙ Earth received the message. Local protocol remains your responsibility.';announce('Earth received the message. No additional resources.');}}
   if(cine&&phase==='cinema'){
-    cine.elapsed+=dt*cine.speed;
+    cine.elapsed+=phaseTime*cine.speed;
     if(cine.revealed){if(cine.elapsed>=2400)showReport();}
     else if(cine.elapsed>=(prefs.reduced?800:1800)){cine.elapsed=0;if(cine.index<cine.steps.length-1){cine.index++;renderCinema();}else reveal();}
   }
@@ -412,7 +422,8 @@ scale();menu();clock.start();
 // Development-only inspection and fixtures. Vite removes this branch in production.
 if(import.meta.env.DEV){
   Object.assign(window,{__SPACE_PAPERS__:{
-    state:()=>structuredClone(campaign),view:()=>({phase,paused,camera:camera.position,remaining,contribution,bookDestination,training:training&&{...training},pending:pending&&{...pending}}),
+    state:()=>structuredClone(campaign),view:()=>({phase,paused,cinemaElapsed:cine?.elapsed??null,camera:camera.position,remaining,contribution,bookDestination,training:training&&{...training},pending:pending&&{...pending}}),
+    visitor:()=>visitorSequence.snapshot(),manualTime:()=>clock.stop(),advanceTime:(ms:number)=>clock.step(ms),
     start,training:setupTraining,engineer:(id:string)=>{if(ENGINEERS.some(e=>e.id===id)){showVisitor(id);camera.set('room');}},
     scenario:(kind:string)=>{start('qa-scenario');campaign.events.forEach(e=>e.resolved=true);campaign.stock=vector(200000,400000,100000,30000000,30000000);
       if(kind.startsWith('emergency')){const eventId=kind.split(':')[1]||'E02';campaign.events=[{id:eventId,afterSuccess:0,resolved:false}];visible=campaign;for(const id of ['flight','life','power'])desk.remove(id);showEmergency(eventId);}

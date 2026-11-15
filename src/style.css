@@ -28,8 +28,8 @@ button.secondary { border: 2px solid #c6d2be; color: #f5efdc; }
 .scene-environment:after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg,#061e2360 0%,transparent 48%,#04181d22 100%),linear-gradient(0deg,#061c2670,transparent 25%,transparent 78%,#05232830); pointer-events: none; }
 .scene-layer { position: absolute; inset: 0; width: 100%; height: 100%; background-size: 100% 100%; background-repeat: no-repeat; }
 .scene-background { background-image: url('/art/scene/scene-base.webp'); z-index: 0; }
-.scene-door { background-image: var(--door-frame, url('/art/scene/door-0032.webp')); z-index: 1; }
-.scene-desk { background-image: url('/art/scene/desk.webp'); z-index: 2; }
+.scene-door { background-image: var(--door-frame, url('/art/scene/door-0032.webp')); z-index: 3; }
+.scene-desk { background-image: url('/art/scene/desk.webp'); z-index: 5; }
 #stage[data-camera='desk'] .scene-environment { transform: scale(1.9); filter: saturate(.85) brightness(.85); }
 #stage[data-camera='desk'] .scene-desk { transform: scaleY(1.6); transform-origin: 50% 66.667%; }
 #stage[data-camera='room'] .scene-environment { transform: scale(1); }
@@ -193,7 +193,13 @@ kbd { display: inline-block; padding: 2px 5px; border: 1px solid currentColor; b
 #stage[data-incident=E04] .emergency{border-color:#a65437}#stage[data-incident=E08] .emergency-header{background:#08232c}
 .circuit-map,.routing-board{display:flex;gap:9px}.circuit-map button,.routing-board button{flex:1;border:2px solid #197b7e;border-radius:4px;padding:8px 4px;min-height:85px;font-size:18px;background:#f1e8ce}.circuit-map button>span{display:block;font-size:26px;color:#20415f}.circuit-map small,.routing-board small{display:block;font:11px var(--mono);margin-top:5px}.circuit-map button[aria-pressed=true]{border-color:#08232c;background:#c7e8d8}.routing-board button{font:14px var(--mono)}.switch-track{display:block;margin:0 auto 8px;width:45px;height:23px;border:2px solid #08232c;border-radius:15px;background:#197b7e;position:relative}.switch-track:before{content:'';position:absolute;right:2px;top:2px;width:15px;height:15px;background:#0fffbf;border-radius:50%}.routing-board button[aria-checked=false] .switch-track{background:#c0c6b1}.routing-board button[aria-checked=false] .switch-track:before{right:auto;left:2px;background:#08232c}.inspection-dial{display:block;font-size:17px}.inspection-dial input{display:block}.water-procedure>span{display:block;font:12px var(--mono);padding:10px 0;color:#20415f}
 .protocol-heading h2{font-size:25px;margin:7px 0 9px}.sensor-readings li{padding:5px 9px}.protocol-sheet .protocol-feedback{min-height:36px;margin:9px 0}.protocol-sheet .protocol-disclaimer{font-size:15px;margin:8px 0;line-height:1.25}.protocol-options button{font-size:17px}.water-procedure>span{font-size:11px;padding:7px 0}
-/* Delivered rigged engineers, rendered against the existing 2.5D room. */
-#visitor-portrait{filter:drop-shadow(10px 9px 10px #051a1a70);opacity:1;left:60px;top:-55px;width:290px;height:495px}
-#visitor-portrait canvas{display:block;width:100%;height:100%;pointer-events:none}
-.visitor-badge{border-left-color:var(--engineer-color,var(--orange))}
+/* Feet are world coordinates; person, doorway and desk share one camera transform. */
+.scene-visitor{position:absolute;left:0;top:0;width:360px;height:500px;z-index:4;transform-origin:50% 100%;pointer-events:none;will-change:transform}
+.scene-visitor:before{content:'';position:absolute;bottom:-3px;left:32%;width:36%;height:12px;border-radius:50%;background:#061a2170;filter:blur(5px)}
+.scene-visitor #visitor-portrait{inset:0;width:100%;height:100%;filter:none;opacity:1;overflow:visible}
+#visitor-portrait canvas{display:block;height:100%;pointer-events:none}
+.visitor-area{left:0;top:0;width:1600px;height:900px;transform:none;transition:none;pointer-events:none}
+.visitor-badge{left:520px;top:492px;min-width:150px;border-left-color:var(--engineer-color,var(--orange))}
+.speech{left:970px;top:460px;width:260px}
+.visitor-area:not([data-ready='true']) .visitor-badge,.visitor-area:not([data-ready='true']) .speech{visibility:hidden}
+.paused .scene-environment{transition:none}

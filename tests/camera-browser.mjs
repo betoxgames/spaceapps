@@ -12,6 +12,7 @@ try {
   assert.equal(await page.locator('#objects').evaluate(e=>e.inert),true);
   assert.equal(await page.locator('#flight').isVisible(),false);
   assert.equal(await page.locator('[data-stamp-tool="approve"]').isVisible(),false);
+  await page.waitForSelector('.scene-visitor[data-visitor-phase="ready"]',{state:'attached'});
   mkdirSync('test-results',{recursive:true});
   await page.screenshot({path:'test-results/camera-room.png'});
   for(let i=0;i<3;i++){await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>!!document.activeElement?.closest('.desk-tools, .desk-rail, #objects')),false,'hidden desk controls must not receive focus');}

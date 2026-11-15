@@ -15,7 +15,11 @@ export class GameClock {
   advance(now: number) {
     if (this.previous === undefined) { this.previous = now; return; }
     const dt = Math.max(0, now - this.previous); this.previous = now;
-    if (this.paused) return;
+    this.step(dt);
+  }
+  /** Deterministic active-time step, also used by scene verification. */
+  step(dt: number) {
+    if (this.paused || !Number.isFinite(dt) || dt <= 0) return;
     const due: Array<() => void> = [];
     for (const [id, task] of this.tasks) {
       task.remaining -= dt;

@@ -1,0 +1,39 @@
+# Space Papers: implementación y entrega
+
+[Espacio de coordinación del equipo](https://app.notion.com/p/41888b30c7518133a4d7c02aee475e0c?pvs=204) · [Inventario de producción](ASSETS.md) · [Referencias científicas](../public/science.json)
+
+## Estado y decisiones
+
+La versión está en construcción. Las reglas y el alcance indicados aquí son un contrato de implementación, no una declaración de que todas las pantallas, animaciones, pruebas o arte ya estén terminados. Los SVG provisionales son originales y se construyen con código; no son imágenes generadas por IA ni entregas del arte final del equipo. Registrar la asistencia de IA para el código y documentación con precisión en los créditos, junto con autores y licencias reales conforme se incorporen. El equipo produce y aprueba el arte final. No se han documentado pruebas con menores o evaluaciones de comprensión humana: planificarlas y registrar sus resultados sin inventarlos. No usar fotografías, grabaciones ni voces de menores en la entrega.
+
+**Elegibilidad sin resolver:** hubo prototipo, cálculos, diseño y documentos previos al evento. Consultar al Local Lead/GO Team, describir su existencia y fechas honestamente, conservar la respuesta y confirmar qué materiales y trabajo pueden utilizarse. Una implementación nueva o una carpeta nueva no constituyen autorización. Hasta obtener una resolución y las aprobaciones humanas correspondientes, no enviar a una competencia ni afirmar que el proyecto es elegible. La membresía de cada recurso NASA en la pestaña Resources y los requisitos de elegibilidad también deben verificarse con fuentes oficiales vigentes.
+
+## Estructura prevista
+
+- `src/catalog.ts`: ocho destinos, nueve ingenieros, cinco unidades de recurso, E01–E08 y operaciones B01–B03. Los datos de juego son ficción de balance, no datos medidos por NASA.
+- `src/domain.ts`: estado de campaña y transiciones puras para generación, devolución, aprobación, incidentes, operaciones y finales. La contabilidad utiliza milésimas enteras; identificadores de comando evitan cobros repetidos. Semilla y flujos aleatorios permiten revisión reproducible. El estado de campaña no es persistente entre sesiones.
+- `src/desk.ts`, `src/art.ts`, `src/audio.ts`, `src/clock.ts` y la interfaz integran objetos, presentación, audio y control temporal. La capa de presentación debe mantener privado el resultado hasta la consecuencia; el dominio ya puede haberlo resuelto. Pausa y pestaña oculta deben detener relojes y movimiento.
+- `public/science.json`: cinco referencias archivadas, su unidad, transformación y límites; no requiere telemetría en vivo. Los archivos estáticos finales y rutas de carga deben funcionar en el hosting elegido.
+- `tests/`: pruebas automatizadas del dominio y del reloj; agregar y ejecutar pruebas de interacción de navegador para los recorridos y situaciones de fallo. No confundir una prueba unitaria con una sesión completa validada.
+
+## Reglas críticas
+
+La base es lunar, con cuatro tripulantes, cinco recursos separados y cinco destinos exitosos distintos. Los cuatro gigantes se visitan solo en órbita. El inventario se fija con cinco destinos de referencia, dos eventos distintos y el presupuesto B de operaciones; después se añade el techo del 10%. Los destinos de referencia no obligan el itinerario ni garantizan que cualquier selección posterior quepa en el inventario. Sin reposición ni reembolso.
+
+Cada propuesta suficiente sortea por recurso entre 100–105% del mínimo; una deficiente tiene uno o dos recursos a 10–95%, y el resto a 100–105%. Devolver no consume, no puntúa y pasa directamente al siguiente visitante. Aprobar gasta por recurso el menor del saldo y lo solicitado, incluso en exceso o en fallo. Una misión solo tiene éxito si se solicitan al menos todos los mínimos y se entrega todo lo solicitado. Un déficit del almacén termina el turno, aunque se hayan alcanzado los mínimos; en ese caso se cancela el despegue si no hay otra carencia más temprana. Las etapas son despegue con propelente <25%, ida si algún recurso <50%, destino <75%, y regreso para las demás carencias, con empates en orden comida/agua/O₂/propelente/energía.
+
+Dos emergencias distintas siguen a éxitos diferentes entre 1 y 4. No revelar identidades ni costos futuros. Ventana de 30 segundos desde su aparición: porcentaje entero 0–100 limitado por el saldo; confirmar cobra una sola vez; expirar entrega cero. La probabilidad es la fracción efectivamente entregada: cero falla y 100% garantiza éxito. Pausa y pestaña oculta congelan el reloj; consultar o mover objetos no lo reinicia. La intervención neutral precede a la revelación.
+
+B01–B03 ocurren tras los éxitos 1–3, después de una emergencia que coincida en la misma posición. B = 500 kg de comida, 3,000 L de agua, 400 kg de O₂, 0 kg de propelente y 50,000 kWh se suma **antes** del margen del 10%; es parte del inventario compartido y no se descuenta de nuevo. B01: regeneración 20,000 kWh o reservas 2,000 L + 400 kg O₂. B02: preparación ampliada con laboratorio activo 20,000 kWh o compacta con laboratorio suspendido 5,000 kWh. Ambas muestran una consulta con demora aproximada de 2.6 s, sin otro cobro. La respuesta solar E04 sigue siendo independiente y cuesta 60,000 kWh. B03: cultivar con 1,000 L + 10,000 kWh, con consumo local tras el cuarto éxito, o raciones inmediatas de 500 kg + 2,000 kWh. El cultivo no repone el inventario de misiones. El déficit consume lo disponible y termina la campaña; ninguna operación cuenta como aprobación.
+
+Con cinco éxitos y dos emergencias resueltas, la tasa es éxitos/aprobaciones; no incluye devoluciones ni tutorial. Certificado al 100%; oficinas por encima de 40% y debajo de 100%; despido con 40% o menos, o anticipadamente por déficit o emergencia fallida. Comparar la fracción exacta, no el porcentaje redondeado de pantalla.
+
+## Ciencia, seguridad de contenido y créditos
+
+Cada fuente en `public/science.json` indica qué información real se usa y qué no puede inferirse. DONKI es un evento histórico, no una dosis lunar ni predicción; recuperación de agua en la ISS no valida las cantidades de la base; VEG-01 no fija rendimientos de cultivo del juego. Los tiempos de crecimiento, costos de juego, presupuestos y probabilidades son reglas de ficción. La luz Luna–Tierra tarda aproximadamente 1.3 s en un sentido; 2.6 s de ida y vuelta es una simplificación que excluye procesamiento. Mostrar fuente y distinción entre ciencia y balance en la experiencia y créditos. Evitar insinuar aval de NASA y verificar derechos y licencias de cada material, dependencia, fuente y tipografía antes de publicar.
+
+## Pruebas y despliegue pendientes
+
+Instalar dependencias con el gestor indicado en el repositorio; ejecutar `pnpm test` y `pnpm build`. Usar navegador para comprobar una partida completa, tres finales, todos los recursos y fallos por fase, doble acción, emergencias 0/50/100% y vencimiento, pausa en arrastre/pestaña oculta, tutorial separado, teclado/foco, preferencias, lectura a 1280 × 720 y 1366 × 768, inglés, referencias, y ausencia de revelaciones anticipadas. Hacer pruebas de comprensión apropiadas con público objetivo solo bajo coordinación del equipo y registrar resultados reales. No presentar pruebas planificadas como realizadas.
+
+Para revisión del equipo, publicar una compilación estática solo cuando exista autorización para usar sus materiales y se haya verificado la vía elegida. Comprobar rutas relativas, recursos, errores de consola, navegadores disponibles y apertura en sesión privada sin cuenta. Para cualquier entrega competitiva posterior, confirmar requisitos y horario vigentes, licencias y membresía del equipo, preparar materiales y enlaces públicos, y obtener decisión humana informada antes de aceptar términos y enviar. Guardar confirmación; guardar un borrador no equivale al envío.
