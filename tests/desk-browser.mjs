@@ -1,9 +1,4 @@
-import {createRequire} from 'node:module';
-const require=createRequire(import.meta.url);
-const pw=require('playwright');
-import {existsSync} from 'node:fs';
-
-const {chromium}=pw;
+import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
 const browser=await chromium.launch({headless:true});
 const page=await browser.newPage({viewport:{width:1600,height:900}});

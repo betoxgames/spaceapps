@@ -6,3 +6,8 @@ test-results/
 .env
 .env.*
 !.env.example
+
+# Local production sources; optimized runtime exports are committed.
+asset-sources/
+*.blend1
+*.blend2

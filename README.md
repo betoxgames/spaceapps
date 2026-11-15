@@ -1,19 +1,19 @@
 # Space Papers
 
-Lunar operations game by Los valar. A layered 2.5D room, two camera views, freely movable documents, mission manual and physical stamps.
+A work-in-progress lunar operations game for children ages 7–12. Review expedition papers, compare them with a manual, and stamp a decision. The supplied Blender room is rendered as a layered 2.5D scene with room and desk views. The current engineers are temporary; final integration is planned.
 
-## Run
+## Run locally
 
-Use Node.js 24 LTS and pnpm:
+Install Node.js 24 and pnpm 11.25.0, then:
 
 ```sh
 pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Open the Local URL printed by Vite. Campaigns are not saved; preferences are stored locally.
+Open the local address printed by Vite (normally http://127.0.0.1:4173/). Campaigns reset on reload; preferences are stored locally. `pnpm preview` serves a production build after `pnpm build`.
 
-## Build and checks
+## Verify
 
 ```sh
 pnpm test
@@ -21,7 +21,7 @@ pnpm build
 pnpm exec playwright install chromium
 ```
 
-With the development server running:
+Start `pnpm dev` in another terminal, then run:
 
 ```sh
 pnpm test:browser
@@ -30,16 +30,14 @@ pnpm test:camera
 pnpm test:training
 ```
 
-Browser tests require the development-only fixtures; use `PREVIEW_URL` for another development URL. To inspect the production build, run `pnpm preview`. The generated `dist/` directory is not committed.
+Browser suites use development-only fixtures and default to port 4173. Set `PREVIEW_URL` for another development URL. Screenshots are written to ignored `test-results/`.
 
 ## Controls
 
-Hold and drag documents, manual and stamps. Click a stamp then a sheet for an alternative. `B` opens the manual, `I` the inventory, `R` the record, and `1/2/3` recovers a covered sheet. Tab, Enter and arrows provide keyboard control. Escape pauses; F toggles full screen. Options includes reduced motion, mute and two-click placement.
+Drag sheets, manual and stamps. Select a stamp then click a sheet; keyboard focus and Enter also work. `B` opens the manual, `I` inventory, `R` the turn record, and `1`–`3` recover covered sheets. Use Tab, Enter and arrows to move objects, Escape to pause and F for full screen. Options include reduced motion and two-click placement. Camera buttons switch room and desk views.
 
-## Credits and current status
+## Handoff and sources
 
-Concept, direction, and supplied Blender room/desk/door renders: Los valar. Implementation, documentation and original procedural stand-ins were assisted by OpenAI Codex agents (Astra, Sol and Terra). Engineer figures and other procedural graphics remain provisional. Sound is synthesized locally; fonts use system families. Room images are compressed WebP derivatives of the team's aligned PNG renders, with sampled door poses. Their source camera registration is preserved.
+[Engineering handoff](HANDOFF_COPILOT.md) records current rules, architecture and planned work. [NASA reference metadata](public/science.json) archives sources and their limits. Resource costs and probabilities are fictional game balance, not NASA predictions. The game has no runtime network dependency. Scene art was supplied by the team; other graphics and synthesized sound are provisional. Human usability testing and final asset/license verification remain pending. Code and documentation were assisted by OpenAI Codex.
 
-NASA references, observations and interpretation limits are in [public/science.json](public/science.json) and in the game manual and credits. All mission costs and recovery probabilities are fictional game balance. No NASA endorsement is implied. Interaction research references Papers, Please by Lucas Pope; no assets or code from that game are included.
-
-This is a work-in-progress checkpoint. Final engineers, human usability testing, project licensing and competition eligibility remain pending. Uploading code does not constitute a competition submission or eligibility determination.
+Original Blender source files remain in the team’s shared drive; commit only optimized runtime assets directly to Git. Git LFS is not needed for the current repository.

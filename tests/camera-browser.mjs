@@ -1,10 +1,7 @@
 import assert from 'node:assert/strict';
-import {createRequire} from 'node:module';
-import {existsSync,mkdirSync} from 'node:fs';
-const require=createRequire(import.meta.url);
-const playwright=require('playwright');
-
-const browser=await playwright.chromium.launch({headless:true});
+import {chromium} from 'playwright';
+import {mkdirSync} from 'node:fs';
+const browser=await chromium.launch({headless:true});
 const page=await browser.newPage({viewport:{width:1280,height:720}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
 const view=()=>page.evaluate(()=>window.__SPACE_PAPERS__.view());
 const state=()=>page.evaluate(()=>window.__SPACE_PAPERS__.state());

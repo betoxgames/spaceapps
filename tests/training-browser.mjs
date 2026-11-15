@@ -1,8 +1,6 @@
 import assert from 'node:assert/strict';
-import {createRequire} from 'node:module';import {existsSync} from 'node:fs';
-const require=createRequire(import.meta.url);const pw=require('playwright');
-
-const browser=await pw.chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1280,height:720}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+import {chromium} from 'playwright';
+const browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1280,height:720}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
 const view=()=>page.evaluate(()=>window.__SPACE_PAPERS__.view());const state=()=>page.evaluate(()=>window.__SPACE_PAPERS__.state());
 const move=async key=>{await page.keyboard.press(key);await page.keyboard.press('Enter');await page.keyboard.press('Enter')};
 async function stamp(kind,key='1'){await page.locator(`[data-stamp-tool="${kind}"]`).click();assert.equal((await view()).phase,'desk','selecting a stamp cannot decide');await page.keyboard.press(key);await page.keyboard.press('Enter')}
