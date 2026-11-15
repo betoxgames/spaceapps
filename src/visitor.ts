@@ -2,10 +2,10 @@ import { assetUrl } from './assets';
 import type { EngineerViewer, EngineerAnimation } from './characters';
 
 export type VisitorPhase = 'loading' | 'opening' | 'entering' | 'closing' | 'walking' | 'settling' | 'ready'
-  | 'reacting' | 'leaving' | 'exit-opening' | 'exiting' | 'exit-closing' | 'hidden';
+  | 'reacting' | 'approved' | 'leaving' | 'exit-opening' | 'exiting' | 'exit-closing' | 'hidden';
 
 export const VISITOR_DURATIONS = {
-  opening: 640, entering: 2000, closing: 640, walking: 1100, settling: 1250,
+  opening: 640, entering: 2000, closing: 640, walking: 600, settling: 160,
   reacting: 1500, leaving: 1100, 'exit-opening': 640, exiting: 2000, 'exit-closing': 640,
 } as const;
 
@@ -64,10 +64,10 @@ export class VisitorSequence {
     this.enter('opening');
   }
 
-  /** Returns active time left after a completed exit, for the following scene. */
+  /** Returns unused active time after celebration or exit, for the following scene. */
   tick(dt: number): number {
     if (!Number.isFinite(dt) || dt <= 0) return 0;
-    if (this.phase === 'loading' || this.phase === 'hidden') return dt;
+    if (this.phase === 'loading' || this.phase === 'hidden' || this.phase === 'approved') return dt;
     let remaining = dt;
     const generation = this.generation;
     // Split large frames at every boundary. Door, feet and clip never disagree
@@ -80,7 +80,7 @@ export class VisitorSequence {
       remaining -= step;
       this.render();
       if (duration === undefined || this.elapsed < duration) break;
-      const next = NEXT[this.phase];
+      const next = this.phase === 'reacting' && this.reaction === 'approve' ? 'approved' : NEXT[this.phase];
       if (!next) break;
       this.enter(next);
       if (next === 'ready') {
@@ -88,7 +88,7 @@ export class VisitorSequence {
         if (generation !== this.generation) break;
         const queued = this.queuedReaction;
         if (queued) { this.queuedReaction = undefined; this.react(queued.stamp, queued.done); }
-      } else if (next === 'hidden') {
+      } else if (next === 'hidden' || next === 'approved') {
         const done = this.completion;
         this.completion = undefined;
         done?.();
@@ -133,9 +133,8 @@ export class VisitorSequence {
   private enter(phase: VisitorPhase): void {
     this.phase = phase;
     this.elapsed = 0;
-    const animation: EngineerAnimation = phase === 'reacting' ? this.reaction
-      : ['entering', 'walking', 'leaving', 'exiting'].includes(phase) ? 'depart'
-      : phase === 'settling' ? 'arrive' : 'idle';
+    const animation: EngineerAnimation = phase === 'approved' ? 'approve' : phase === 'reacting' ? this.reaction
+      : ['entering', 'closing', 'walking', 'settling', 'leaving', 'exiting'].includes(phase) ? 'depart' : 'idle';
     this.animation = animation;
     this.viewer.setAnimation(animation);
     this.render();
@@ -153,12 +152,24 @@ export class VisitorSequence {
       y: from.y + (to.y - from.y) * movement,
       scale: from.scale + (to.scale - from.scale) * movement,
     });
-    this.position = phase === 'entering' ? between(THRESHOLD, CLEAR)
-      : phase === 'walking' ? between(CLEAR, DESK)
-      : phase === 'leaving' ? between(DESK, CLEAR)
-      : phase === 'exiting' ? between(CLEAR, THRESHOLD)
-      : ['settling', 'ready', 'reacting'].includes(phase) ? { ...DESK }
-      : ['closing', 'exit-opening'].includes(phase) ? { ...CLEAR } : { ...THRESHOLD };
+    if (['entering', 'closing', 'walking', 'settling'].includes(phase)) {
+      // Door closure is an overlapping action, not a reason to stop walking.
+      // A single curve gives every phase boundary the same position and velocity,
+      // then eases the approach naturally to rest at the desk.
+      const offsets = { entering: 0, closing: VISITOR_DURATIONS.entering,
+        walking: VISITOR_DURATIONS.entering + VISITOR_DURATIONS.closing,
+        settling: VISITOR_DURATIONS.entering + VISITOR_DURATIONS.closing + VISITOR_DURATIONS.walking };
+      const total = VISITOR_DURATIONS.entering + VISITOR_DURATIONS.closing + VISITOR_DURATIONS.walking + VISITOR_DURATIONS.settling;
+      const t = (offsets[phase as keyof typeof offsets] + movement * duration) / total;
+      const u = 1 - t;
+      const curve = (start:number, control1:number, end:number) => u*u*u*start + 3*u*u*t*control1 + 3*u*t*t*end + t*t*t*end;
+      this.position = { x: curve(THRESHOLD.x, 535, DESK.x), y: curve(THRESHOLD.y, 656, DESK.y), scale: curve(THRESHOLD.scale, .9, DESK.scale) };
+    } else {
+      this.position = phase === 'leaving' ? between(DESK, CLEAR)
+        : phase === 'exiting' ? between(CLEAR, THRESHOLD)
+        : ['ready', 'reacting', 'approved'].includes(phase) ? { ...DESK }
+        : phase === 'exit-opening' ? { ...CLEAR } : { ...THRESHOLD };
+    }
     this.visible = !['hidden', 'loading', 'opening', 'exit-closing'].includes(phase);
     // The supplied open leaf obscures the apparent opening. Present the visitor
     // in front of it once fully open, as the agreed temporary staging; the desk

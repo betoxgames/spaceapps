@@ -34,14 +34,14 @@ Cada ingeniero conserva un único eje horizontal de apoyo obtenido de su referen
 
 ## Secuencia e integración
 
-`VisitorSequence` controla `loading → opening → entering → closing → walking → settling → ready → reacting → leaving → exit-opening → exiting → exit-closing → hidden`.
+`VisitorSequence` controla la entrada `loading → opening → entering → closing → walking → settling → ready`. Después del sello, `reacting → approved` mantiene al ingeniero aprobado en el cuarto hasta la proyección; `reacting → leaving → exit-opening → exiting → exit-closing → hidden` conserva la salida de solicitudes devueltas.
 
 - Espera carga y decodificación del personaje y de las cinco poses de puerta.
 - La puerta suministrada representa un ciclo completo: `0001` cerrada, `0016` abierta y `0032` cerrada de nuevo.
 - Coordenadas de pies en el mundo 1600 × 900: umbral `(245,650)`, despeje `(630,680)`, mesa `(800,740)`. Escalas `.85`, `.95`, `1`.
-- Actualización solicitada el 15 de noviembre: el personaje aparece delante del centro aparente de la puerta al terminar de abrirse. Desde allí avanza de escala adulta `.85` a `.95` y después a `1` detrás de la mesa. Se mantiene delante de la hoja durante entrada y salida, evitando que parezca rodear su diagonal. El cierre comienza después de llegar al punto de despeje. Es una puesta en escena provisional aprobada por el usuario, no una reparación del modelo ni una simulación de atravesar su geometría.
+- Actualización solicitada el 15 de noviembre: el personaje aparece delante del centro aparente de la puerta al terminar de abrirse. Desde allí avanza de escala adulta `.85` a `.95` y después a `1` detrás de la mesa. Se mantiene delante de la hoja durante entrada y salida, evitando que parezca rodear su diagonal. El cierre comienza después de despejar la puerta y se solapa con la marcha; una curva continua desacelera hasta el escritorio sin detenerse para esperar el cierre. Es una puesta en escena provisional aprobada por el usuario, no una reparación del modelo ni una simulación de atravesar su geometría.
 - Fondo, personaje, puerta y escritorio comparten cámara. El escritorio ocluye las piernas en la posición final. La vista de mesa acerca el mismo mundo y recorta al personaje según el encuadre; no reinicia la animación.
-- Al sellar se muestra la vista de habitación para poder ver la reacción; el jugador puede cambiar de cámara durante reacción y salida. La marcha de regreso se refleja horizontalmente para mirar hacia la puerta; no hay render nuevo de giro.
+- Al sellar se muestra la vista de habitación para poder ver la reacción; la cámara permanece en el cuarto durante la reacción y salida para que el gesto se vea completo. La marcha de regreso se refleja horizontalmente para mirar hacia la puerta; no hay render nuevo de giro.
 - La reacción recibe exclusivamente `approve` o `return`, nunca el éxito de la misión. El estado público, recursos y resultado siguen revelándose en el momento original de la consecuencia. No cambian reglas ni balance.
 - Puerta, recorrido y clips avanzan con `GameClock`. Pausa, pérdida de foco y pestaña oculta conservan el punto exacto hasta reanudar. Movimiento reducido mantiene el orden causal con posiciones discretas, reposo fijo y una pose estática representativa de la reacción.
 - La carga fallida conserva el sustituto vectorial y permite completar la visita; las solicitudes antiguas no pueden sustituir a un ingeniero más reciente.
@@ -72,3 +72,11 @@ La suite de visitantes recorre las nueve entradas y las dieciocho reacciones/sal
 Los 1.164 PNG originales ocupan 953.221.281 bytes; los nueve atlas de juego, incluidos los 360 fotogramas nuevos de marcha, ocupan 66.154.094 bytes (reducción de 14,4 veces frente a esos PNG, aun incorporando la marcha). El empaquetado reduce en un 49,3 % los píxeles que se decodifican frente a celdas uniformes del mismo tamaño. El HTML autocontenido generado ocupa aproximadamente 88,5 MiB. `index.html` y `dist/index.html` deben tener contenido idéntico.
 
 La verificación `test:offline` pasó abriendo `file://` con red desactivada, decodificando los nueve atlas embebidos, usando manual/papeles/sellos y completando aprobación, devolución y reporte de entrenamiento: ninguna solicitud externa ni error de página. Las fuentes del repositorio, el build y los tests son la referencia reproducible; las capturas permanecen en `test-results/` (ignorado).
+
+## Pulido del 15 de noviembre · segunda revisión
+
+La entrada tarda 3.400 ms desde el inicio del cruce hasta estar listo, además de 640 ms de apertura. Las fases de entrada comparten una curva continua y mantienen el clip de caminata; la aproximación final baja de 1.250 a 160 ms. No hay una espera inmóvil mientras se cierra la puerta.
+
+La aprobación reproduce los 1.500 ms del gesto suministrado y conserva su pose final en el escritorio (`approved`), sin marcha de salida ni nueva apertura de puerta. Solo entonces empieza la proyección. Las órdenes internas usan el mismo gesto. La devolución conserva su reacción y salida por la puerta. La celebración expresa autorización; no adelanta si la misión tendrá éxito.
+
+Se actualizó el contrato de la suite de visitantes. En esta revisión se hizo compilación TypeScript y revisión visual breve de comparación, aprobación, permanencia y comienzo de cine, sin ejecutar las suites extensas por la prioridad del usuario de publicar los commits.

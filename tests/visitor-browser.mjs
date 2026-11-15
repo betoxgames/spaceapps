@@ -85,7 +85,7 @@ async function stamp(kind, target = page) {
   await target.locator(`[data-stamp-tool="${kind}"]`).click();
   await target.keyboard.press('1');
   await target.keyboard.press('Enter');
-  assert.equal((await snapshot(target)).phase, 'reacting', 'a stamp starts the supplied reaction before the exit');
+  assert.equal((await snapshot(target)).phase, 'reacting', 'a stamp starts the supplied reaction before the next scene');
 }
 
 function verifyEntrance(states) {
@@ -103,6 +103,11 @@ function verifyEntrance(states) {
   assert.ok(states.filter(state => state.phase === 'opening').every(state => !state.visible), 'the visitor waits until the door is fully open');
   assert.ok(states.filter(state => state.phase === 'closing').every(state => state.x >= 530 && state.y >= 680), 'closure waits for the complete body to clear the threshold');
   assert.ok(Math.hypot(closing.x - beforeClosing.x, closing.y - beforeClosing.y) < 20, 'door closure cannot teleport the engineer');
+  for (const phase of ['closing', 'walking']) {
+    const moving = states.filter(state => state.phase === phase);
+    assert.ok(moving.some(state => Math.hypot(state.x - moving[0].x, state.y - moving[0].y) > 8), `${phase}: the engineer keeps walking while the door closes`);
+    assert.ok(moving.every(state => state.animation === 'depart'), `${phase}: the walk clip never resets to a stationary pose`);
+  }
   const ready = states.at(-1);
   assert.equal(ready.visible, true);
   assert.equal(ready.animation, 'idle');
@@ -131,9 +136,15 @@ try {
     await step(300);
     assert.equal((await snapshot()).animation, 'approve', `${id} selects its approval render`);
     await capture(id, 'approve');
-    const approvedExit = await walkUntil((_state, states) => states.some(state => state.phase === 'exit-closing') && !departure.includes(_state.phase));
-    assert.deepEqual(unique(approvedExit).slice(0, departure.length), departure, `${id} approval also completes the physical exit`);
-    assert.equal((await view()).phase, 'cinema', 'the mission consequence starts only after the doorway closes');
+    const celebration = await walkUntil(state => state.phase === 'approved');
+    assert.deepEqual(unique(celebration), ['reacting', 'approved'], `${id} celebrates in the room without starting the exit sequence`);
+    const approved = await snapshot();
+    assert.equal(approved.visible, true, 'approved engineers stay in the room');
+    assert.equal(approved.animation, 'approve', 'the last celebration pose is retained');
+    assert.ok(celebration.every(state => state.x === 800 && state.y === 740 && state.door === '0032'), 'celebration never walks away or reopens the doorway');
+    assert.equal((await view()).phase, 'cinema', 'the mission animation begins after the celebration');
+    await step(200);
+    assert.deepEqual(pose(await snapshot()), pose(approved), 'the approved visitor remains at the desk while the mission starts');
   }
 
   // A delayed collection callback must not collect the next proposal when one
@@ -185,16 +196,17 @@ try {
     await stamp('approve');
     await step(300);
     approvals.push({ animation: (await snapshot()).animation, speech: await page.locator('#speech').textContent(), image: await page.locator('#visitor-portrait canvas').evaluate(canvas => canvas.toDataURL()) });
-    assert.equal(await page.locator('#cinema').isVisible(), false, 'the consequence waits for the reaction and physical exit');
+    assert.equal(await page.locator('#cinema').isVisible(), false, 'the consequence waits for the celebration');
   }
   assert.deepEqual(approvals[0], approvals[1], 'approval reactions must not leak a guaranteed success or failure');
-  // A long active frame spanning the exit/cinema boundary must only give the
-  // following scene its unused time, never count the physical exit twice.
-  await walkUntil(state => state.phase === 'exit-closing');
+  // A long frame spanning the celebration/cinema boundary only gives the
+  // following scene unused time; the celebration callback runs exactly once.
   const boundary = await snapshot();
-  await step(640 - boundary.elapsed + 120);
+  await step(1500 - boundary.elapsed + 120);
   assert.equal((await view()).phase, 'cinema');
-  assert.equal((await view()).cinemaElapsed, 120, 'cinema receives only time after the completed doorway closure');
+  assert.equal((await view()).cinemaElapsed, 120, 'cinema receives only time after the completed celebration');
+  await step(100);
+  assert.equal((await view()).cinemaElapsed, 220, 'the completed approval cannot restart the cinema');
 
 
   const reducedContext = await browser.newContext({ viewport: { width: 1280, height: 720 }, reducedMotion: 'reduce' });
@@ -254,7 +266,7 @@ try {
   }
   await writeFile('test-results/visitors/coverage.json', JSON.stringify({ engineers: ids, entrance, departure, contactSheets: [...sheets.keys()], checks: ['pause', 'visibilitychange', 'camera', 'reduced motion', 'delayed assets', 'missing assets', 'approval outcome neutrality', 'free returns'] }, null, 2));
   assert.deepEqual(errors, []);
-  console.log('PASS: all nine visitors appear in front of the open doorway, reach the desk, react and leave; pause, hidden time, cameras, reduced motion, asset delays/failure and outcome-neutral approvals. Contact sheets: test-results/visitors/.');
+  console.log('PASS: all nine visitors enter continuously, celebrate and remain in the room on approval, and leave on return; pause, hidden time, cameras, reduced motion, asset delays/failure and outcome-neutral approvals. Contact sheets: test-results/visitors/.');
 } finally {
   await browser.close();
 }
