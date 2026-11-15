@@ -21,8 +21,12 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
-      - run: pnpm build
       - run: pnpm exec playwright install --with-deps chromium
+      - name: Verify committed game opens without building
+        run: pnpm test:offline
+      - run: pnpm build
+      - name: Verify committed game matches source
+        run: git diff --exit-code -- index.html
       - run: pnpm test:offline
       - run: |
           pnpm dev > /tmp/space-papers-vite.log 2>&1 &

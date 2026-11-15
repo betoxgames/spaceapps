@@ -4,9 +4,9 @@ Videojuego de operaciones lunares para niñas y niños de 7–12 años, desarrol
 
 ## Jugar
 
-Descarga el archivo `Space-Papers-vX.Y.Z.html` de una versión publicada en [GitHub Releases](https://github.com/betoxgames/spaceapps/releases) y ábrelo en tu navegador. Incluye el juego y sus recursos: funciona sin instalación, servidor, cuenta ni conexión. Las partidas se reinician al recargar; las preferencias se guardan localmente.
+Descarga o clona el repositorio y abre **`index.html` de la raíz** directamente en tu navegador. Incluye el juego y todos sus recursos: funciona sin instalación, compilación, servidor, cuenta ni conexión. Las partidas se reinician al recargar; las preferencias se guardan localmente.
 
-Mientras se prepara la primera versión final, puedes generar el mismo archivo con `pnpm build` y abrir `dist/index.html`. El `index.html` de la raíz es la entrada del código fuente y se usa con el servidor de desarrollo.
+Las versiones publicadas también podrán descargarse como `Space-Papers-vX.Y.Z.html` desde [GitHub Releases](https://github.com/betoxgames/spaceapps/releases).
 
 ## Estructura
 
@@ -19,7 +19,8 @@ spaceapps/
 ├── docs/               Documentación técnica, diseño y revisiones
 ├── proyecto/           Evidencias, fuentes y prompts del proyecto
 ├── .github/            Integración continua y publicación de versiones
-├── index.html          Entrada de desarrollo
+├── dev.html            Entrada de desarrollo
+├── index.html          Juego completo; abrir directamente
 └── package.json        Dependencias y comandos
 ```
 
@@ -34,7 +35,7 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Abre [localhost:4173](http://127.0.0.1:4173/). Para generar el juego autocontenido y comprobarlo:
+Abre [localhost:4173](http://127.0.0.1:4173/). `dev.html` es la entrada de desarrollo. `pnpm build` regenera el juego autocontenido en `index.html` y `dist/index.html`; incluye el `index.html` generado en el commit junto con los cambios de código. Para comprobarlo:
 
 ```sh
 pnpm test

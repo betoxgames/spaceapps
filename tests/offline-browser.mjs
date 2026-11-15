@@ -11,7 +11,7 @@ page.on('request',r=>{if(/^https?:/.test(r.url()))external.push(r.url());});
 async function resumeIfPaused(){if(await page.locator('[data-action="resume"]').isVisible())await page.locator('[data-action="resume"]').click();}
 async function visitorReady(){await resumeIfPaused();await page.waitForSelector('.scene-visitor[data-visitor-phase="ready"]',{state:'attached'});}
 try{
- await page.goto(pathToFileURL(resolve(process.env.PLAY_HTML||'dist/index.html')).href);
+ await page.goto(pathToFileURL(resolve(process.env.PLAY_HTML||'index.html')).href);
  await page.locator('[data-action="new-shift"]').click();
  await page.waitForFunction(()=>document.querySelector('#visitor-portrait')?.dataset.viewerState==='ready');
  await visitorReady();
@@ -46,5 +46,5 @@ try{
  assert.match(await page.locator('.report-paper').innerText(),/safe return/i);
  assert.deepEqual(errors,[]);assert.deepEqual(external,[],'direct-file play must not request downloads or a server');
  await mkdir('test-results',{recursive:true});await page.screenshot({path:'test-results/offline-playable.png'});
- console.log('PASS: file:// dist/index.html with network OFF, all nine embedded engineers decoded, manual, keyboard paper handling, return, tutorial approval and report. No external requests or page errors.');
+ console.log('PASS: file:// standalone HTML with network OFF, all nine embedded engineers decoded, manual, keyboard paper handling, return, tutorial approval and report. No external requests or page errors.');
 }finally{await browser.close();}

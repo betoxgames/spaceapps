@@ -1,13 +1,13 @@
 # Versiones finales
 
-El código vive en Git; los archivos jugables se distribuyen en [GitHub Releases](https://github.com/betoxgames/spaceapps/releases). `pnpm build` genera `dist/index.html`, autocontenido y utilizable sin conexión. El `index.html` de la raíz es código fuente.
+El repositorio incluye el juego listo para abrir en `index.html` de la raíz. `dev.html` es la entrada de desarrollo. `pnpm build` regenera el HTML autocontenido en `index.html` y `dist/index.html`; incluye el archivo de la raíz en cada commit que cambie el juego. Los paquetes versionados también se distribuyen en [GitHub Releases](https://github.com/betoxgames/spaceapps/releases).
 
 ## Preparar una entrega
 
 1. Termina y revisa los cambios en `main`. El registro `CHANGELOG.md` debe describir lo que realmente incluye la entrega.
 2. Actualiza `version` en `package.json`: `X.Y.Z` para una versión final o `X.Y.Z-rc.1` para una candidata. La versión del tag debe coincidir exactamente.
 3. Ejecuta las pruebas indicadas en el README y revisa interfaz, accesibilidad, créditos y permisos de los recursos. Guarda evidencia seleccionada en `proyecto/evidencias/`, asociada al commit o tag.
-4. Confirma y sube los cambios de código. Empaqueta desde ese commit:
+4. Ejecuta `pnpm build`, incorpora el `index.html` regenerado, confirma y sube los cambios. Empaqueta desde ese commit:
 
 ```sh
 pnpm release:package
@@ -38,4 +38,4 @@ Abre el borrador en Releases, revisa las notas y descarga el HTML para comprobar
 
 Descarga el HTML y `SHA256SUMS` en la misma carpeta. En macOS ejecuta `shasum -a 256 -c SHA256SUMS`; en Linux usa `sha256sum -c SHA256SUMS`. Después abre el HTML con la conexión desactivada.
 
-No reutilices un tag publicado para otro contenido: corrige la versión y crea un tag nuevo. La reorganización conserva el historial existente; los HTML grandes de commits anteriores siguen en ese historial, pero las nuevas compilaciones dejan de incorporarlos.
+No reutilices un tag publicado para otro contenido: corrige la versión y crea un tag nuevo. El HTML jugable de la raíz se mantiene en Git para conservar la apertura directa después de descargar o actualizar el repositorio. Los paquetes de `release/` y la copia de `dist/` permanecen ignorados.
