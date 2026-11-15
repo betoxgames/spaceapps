@@ -101,7 +101,7 @@ try {
   for (const [tab, pages] of [['rules', 4], ['science', 5]]) {
     await page.locator(`[data-action="book-${tab}"]`).first().click();
     for (let index = 0; index < pages; index++) {
-      const clipped = await page.locator('.book-spread > section').evaluateAll(elements => elements.some(element => element.scrollHeight > element.clientHeight + 2 && ['hidden', 'clip'].includes(getComputedStyle(element).overflowY)));
+      const clipped = await page.locator('.guide-content').evaluate(element => element.scrollHeight > element.clientHeight + 2 && ['hidden', 'clip'].includes(getComputedStyle(element).overflowY));
       assert.equal(clipped, false, `${tab} page ${index + 1} does not hide manual content`);
       await page.locator('[data-action="book-next"]').click();
     }
@@ -121,7 +121,9 @@ try {
 
   // A fatal incident's report and final screen are navigable without pointer movement.
   await page.evaluate(() => { window.__SPACE_PAPERS__.manualTime(); window.__SPACE_PAPERS__.scenario('emergency:E02'); });
+  await page.locator('[data-action="open-dispatch"]').click();
   await page.locator('[data-action="confirm-emergency"]').click();
+  await page.evaluate(() => window.__SPACE_PAPERS__.advanceTime(500));
   await page.waitForSelector('#cinema:not([hidden])');
   await page.locator('[data-action="skip"]').click();
   await page.locator('[data-action="skip"]').click();

@@ -48,7 +48,12 @@ Con `pnpm dev` activo en otra terminal, ejecuta las pruebas de interacción:
 
 ```sh
 pnpm test:browser
+pnpm test:dispatch
+pnpm test:manual
+pnpm test:manual-actions
+pnpm test:reports
 pnpm test:desk
+pnpm test:desk-layout
 pnpm test:camera
 pnpm test:training
 pnpm test:characters
@@ -68,7 +73,7 @@ Las suites usan datos de prueba disponibles solo en desarrollo. `PREVIEW_URL` pe
 
 ## Controles
 
-Arrastra papeles, manual y sellos. Selecciona un sello y pulsa sobre una hoja; también puedes usar el foco y Enter. `B` abre el manual, `I` el inventario, `R` el registro y `1`–`3` recuperan hojas cubiertas. Tab, Enter y las flechas permiten manipular objetos; Escape pausa y `F` activa pantalla completa. Las opciones incluyen movimiento reducido y colocación con dos clics.
+Arrastra papeles, manual y sellos. Selecciona un sello y pulsa sobre una hoja; también puedes usar el foco y Enter. `B` abre el manual, `I` su sección de inventario, `R` su registro del turno y `1`–`3` recuperan hojas cubiertas. Tab, Enter y las flechas permiten manipular objetos; Escape pausa y `F` activa pantalla completa. Las opciones incluyen movimiento reducido y colocación con dos clics.
 
 ## Fuentes y estado
 

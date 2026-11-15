@@ -1,58 +1,127 @@
-/* An outcome record, with accounting intentionally left to the physical ledger. */
-.report-paper.mission-debrief { --verdict: #426c50; width: 900px; padding: 25px 38px 28px; border: 1px solid #b3aa8c; border-top: 6px solid var(--verdict); border-radius: 3px; background: linear-gradient(115deg,#fbf5e6,#f0e7d0); box-shadow: 3px 4px #c3b797, 13px 20px 35px #041e2777; }
-.mission-debrief.debrief-failure { --verdict: #985940; }
-.mission-debrief > header { font-size: 10px; letter-spacing: .08em; padding-bottom: 14px; border-color: #adb399; color: #52654d; }
-.debrief-hero { display: grid; grid-template-columns: minmax(0,1fr) 118px; gap: 28px; padding: 26px 0 24px; align-items: center; }
-.debrief-verdict { display: inline-flex; align-items: center; gap: 8px; color: var(--verdict); font: 700 11px var(--mono); letter-spacing: .08em; }
-.debrief-verdict > span { display: grid; place-items: center; width: 20px; height: 20px; border: 1px solid currentColor; border-radius: 50%; font: 700 13px var(--sans); }
-.mission-debrief h1 { margin: 12px 0 10px; font: 750 44px/1.06 var(--display); letter-spacing: -.04em; color: #203c39; }
-.debrief-hero p { margin: 0; font-size: 19px; line-height: 1.4; color: #4c604c; }
-.debrief-location { display: block; margin-top: 17px; font: 11px/1.5 var(--mono); letter-spacing: .08em; color: #657454; }
-.debrief-emblem { display: grid; place-items: center; width: 118px; height: 118px; padding: 18px; border: 1px solid #bbc0a3; border-radius: 50%; background: #dce1ca55; color: var(--verdict); font-size: 61px; }
-.debrief-emblem svg { width: 100%; height: 100%; }
-.debrief-route { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); list-style: none; margin: 0; padding: 20px 0; border-top: 1px solid #b6ba9e; border-bottom: 1px solid #b6ba9e; }
-.debrief-route li { position: relative; display: flex; align-items: flex-start; gap: 9px; min-width: 0; padding-right: 10px; color: #3d6049; font-size: 14px; line-height: 1.3; }
-.route-node { display: grid; place-items: center; flex: none; width: 24px; height: 24px; border: 1px solid #6f9374; border-radius: 50%; background: #dbe4cc; color: #3d644a; font: 700 12px var(--sans); }
-.debrief-route small { display: block; margin-top: 4px; color: #66765a; font-size: 11px; }
-.debrief-route .stopped { color: #884b36; }
-.stopped .route-node { border-color: #aa755c; background: #ead4bd; color: #884b36; }
-.debrief-route .stopped small { color: #884b36; }
-.debrief-route .upcoming { color: #8d957c; }
-.upcoming .route-node { border-style: dashed; border-color: #acb397; background: transparent; color: #8d957c; }
-.debrief-route .upcoming small { color: #8d957c; }
-.debrief-review { padding: 24px 0 20px; }
-.debrief-review .eyebrow { color: #687956; font-size: 10px; letter-spacing: .09em; }
-.debrief-review h2 { margin: 8px 0 10px; color: #2b4a3f; font: 700 24px/1.15 var(--display); letter-spacing: -.025em; }
-.debrief-review p { margin: 8px 0 0; font-size: 17px; line-height: 1.45; color: #4f624e; }
-.debrief-findings { list-style: none; margin: 6px 0 0; padding: 0; }
-.debrief-findings li { display: grid; grid-template-columns: 145px minmax(0,1fr); gap: 16px; align-items: center; border-bottom: 1px solid #b5b99d77; padding: 10px 0; color: #5c6048; font-size: 16px; line-height: 1.4; }
-.finding-resource { display: flex; align-items: center; gap: 8px; font-weight: 650; color: #415b44; }
-.finding-resource svg { flex: none; width: 20px; height: 20px; }
-.debrief-choice strong { margin-left: 10px; color: #2f5142; }
-.debrief-next { display: flex; align-items: center; gap: 15px; padding: 14px 17px; background: #dfe5cd66; border-left: 3px solid #8ba17b; }
-.debrief-next > span { flex: none; color: #688265; font-size: 23px; }
-.debrief-next strong { color: #5a7052; font: 10px var(--mono); letter-spacing: .07em; }
-.debrief-next p { margin: 5px 0 0; color: #4d624b; font-size: 15px; line-height: 1.4; }
-.mission-debrief > footer { margin-top: 22px; padding-top: 18px; gap: 20px; border-color: #b5b99d; }
-.mission-debrief > footer > span { color: #6b765a; font: 9px/1.5 var(--mono); letter-spacing: .07em; }
-.mission-debrief > footer > span > span { margin-inline: 8px; }
-.mission-debrief > footer button { min-height: 50px; font-size: 18px; padding: 12px 23px; }
-body.compact-ui .report-paper.mission-debrief { width: min(100%,720px); max-height: none; margin: auto; padding: 20px; border-top-width: 5px; }
-body.compact-ui .debrief-hero { grid-template-columns: minmax(0,1fr) 60px; gap: 12px; padding: 24px 0 22px; }
-body.compact-ui .mission-debrief h1 { font-size: 33px; margin: 12px 0 10px; }
-body.compact-ui .debrief-hero p { font-size: 16px; }
-body.compact-ui .debrief-verdict { font-size: 9px; letter-spacing: .03em; }
-body.compact-ui .debrief-emblem { width: 60px; height: 60px; padding: 10px; font-size: 32px; }
-body.compact-ui .debrief-location { font-size: 9px; letter-spacing: .04em; }
-body.compact-ui .debrief-route { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 19px 10px; padding-block: 18px; }
-body.compact-ui .debrief-route li { font-size: 13px; padding: 0; gap: 7px; }
-body.compact-ui .debrief-route small { font-size: 10px; }
-body.compact-ui .debrief-review { padding-block: 22px; }
-body.compact-ui .debrief-review h2 { font-size: 22px; }
-body.compact-ui .debrief-review p { font-size: 16px; }
-body.compact-ui .debrief-findings li { grid-template-columns: 1fr; gap: 5px; padding-block: 11px; font-size: 15px; }
-body.compact-ui .debrief-next { gap: 10px; padding: 13px; }
-body.compact-ui .debrief-next p { font-size: 14px; }
-body.compact-ui .mission-debrief > footer { align-items: stretch; }
-body.compact-ui .mission-debrief > footer > span { font-size: 9px; }
-body.compact-ui .mission-debrief > footer button { min-height: 50px; }
+/* Reports use native reading sizes; the game canvas remains spatial behind them. */
+#modal-layer.modal-layer[data-modal='report'] { inset: 0; width: 100%; height: 100dvh; transform: none; display: grid; place-items: center; padding: 24px; overflow: hidden; background: radial-gradient(ellipse at 50% 35%,#244e4a70,transparent 70%),#071f2be8; backdrop-filter: blur(8px); }
+#modal-layer[data-modal='report'] .report-paper.mission-debrief { --verdict: var(--success); --verdict-bg: #e2ecda; display: flex; flex-direction: column; width: min(960px,100%); max-height: calc(100dvh - 48px); min-height: 0; margin: 0; padding: 0; overflow: hidden; border: 1px solid #93aa98; border-radius: 12px; color: var(--ink); background: #fbf8ed; box-shadow: 0 25px 80px #00131ba6,inset 0 1px #fffdf5; }
+#modal-layer[data-modal='report'] .mission-debrief.debrief-failure { --verdict: #8c4d35; --verdict-bg: #f0dfc9; }
+#modal-layer[data-modal='report'] .debrief-header { display: flex; flex: none; align-items: center; justify-content: space-between; gap: 20px; padding: 12px 28px; color: var(--cream); background: linear-gradient(110deg,#24534d,var(--navy)); border: 0; }
+.debrief-header > div { display: flex; align-items: center; gap: 12px; }
+.debrief-bureau { color: var(--orange); font-size: 28px; }
+.debrief-header > div > span:last-child { font: 650 12px/1.3 var(--sans); letter-spacing: .08em; }
+.debrief-header small { display: block; margin-top: 4px; color: #b2cbb8; font: 9px/1.4 var(--mono); letter-spacing: .06em; }
+.debrief-record-id { color: #bbcfbb; font: 10px var(--mono); letter-spacing: .06em; }
+.debrief-body { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 16px 32px; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #829b7b #edf0df; }
+.debrief-body:focus-visible { outline: none; box-shadow: inset 3px 0 #87a57a; }
+.debrief-hero { display: grid; grid-template-columns: minmax(0,1fr) 218px; align-items: center; gap: 30px; padding-bottom: 20px; }
+.debrief-verdict { display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; border: 1px solid #b9cbae; border-radius: 30px; background: var(--verdict-bg); color: var(--verdict); font: 650 11px/1.3 var(--sans); letter-spacing: .065em; }
+.debrief-failure .debrief-verdict { border-color: #d0b697; }
+.debrief-verdict > span { font-size: 14px; }
+#modal-layer[data-modal='report'] .mission-debrief h1 { margin: 14px 0 12px; color: #1e433d; font: 750 43px/1.08 var(--display); letter-spacing: -.04em; }
+.debrief-hero p { max-width: 580px; margin: 0; color: #49624e; font: 19px/1.5 var(--sans); }
+.debrief-location { display: block; margin-top: 16px; color: #687e5e; font: 11px/1.45 var(--mono); letter-spacing: .045em; }
+.debrief-emblem { position: relative; display: grid; place-items: center; align-content: center; min-height: 154px; overflow: hidden; border: 1px solid #c5cfb8; border-radius: 9px; background: radial-gradient(ellipse at 50% 30%,#d8e7cf,#eef0dd 80%); }
+.debrief-emblem > svg { z-index: 1; display: block; width: 100%; height: auto; margin-top: 15px; }
+.mission-debrief[data-report-kind='mission'] .debrief-emblem > svg { width: 138px; height: 128px; margin: 0; }
+.debrief-orbit { position: absolute; left: 50%; top: 43%; width: 165px; height: 110px; border: 1px dashed #9bb68c88; border-radius: 50%; transform: translate(-50%,-50%) rotate(-28deg); }
+.debrief-art-label { position: relative; z-index: 1; padding: 7px 5px 9px; color: #718761; text-align: center; font: 8px/1.4 var(--mono); letter-spacing: .05em; }
+.debrief-journey { padding: 15px 19px; border: 1px solid #c6d1ba; border-radius: 8px; background: #f0f3e5; }
+.debrief-section-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
+.debrief-section-heading h2 { margin: 0; color: #355c47; font: 650 17px/1.3 var(--display); }
+.debrief-section-heading > span { color: #76886b; font: 9px/1.4 var(--mono); letter-spacing: .04em; }
+.debrief-route { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 15px; margin: 0; padding: 0; list-style: none; }
+.debrief-route li { position: relative; display: flex; gap: 9px; align-items: flex-start; min-width: 0; color: #345a44; font: 600 15px/1.35 var(--sans); }
+.route-node { flex: none; display: grid; place-items: center; width: 27px; height: 27px; border: 1px solid #8cae7c; border-radius: 50%; color: #3a6747; background: #d7e5ca; font: 700 13px var(--sans); }
+.debrief-route small { display: block; margin-top: 4px; color: #4d6846; font: 400 12px/1.35 var(--sans); }
+.debrief-route .stopped,.debrief-route .stopped small { color: #8c4d35; }
+.stopped .route-node { border-color: #bf9570; color: #824831; background: #efdbc1; }
+.debrief-route .upcoming,.debrief-route .upcoming small { color: #5d6b55; }
+.upcoming .route-node { border: 1px dashed #a7b09b; background: #f5f5e9; color: #7c8872; }
+.debrief-review { display: grid; grid-template-columns: 34px minmax(0,1fr); gap: 15px; margin-top: 16px; padding: 17px; border: 1px solid #c8d2bc; border-radius: 8px; background: #fffdf4; }
+.debrief-review-icon { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; color: var(--verdict); background: var(--verdict-bg); font: 700 19px var(--sans); }
+.debrief-review .eyebrow { color: #6b805e; font: 10px/1.4 var(--mono); letter-spacing: .07em; }
+.debrief-review h2 { margin: 5px 0 9px; color: #2b5140; font: 650 23px/1.25 var(--display); letter-spacing: -.02em; }
+.debrief-review p { margin: 0; color: #4e654b; font: 17px/1.55 var(--sans); }
+.debrief-findings { list-style: none; padding: 0; margin: 3px 0 0; }
+.debrief-findings li { display: grid; grid-template-columns: 137px minmax(0,1fr); gap: 14px; align-items: start; padding: 10px 0; border-top: 1px solid #dce0cc; color: #5b684e; font: 16px/1.5 var(--sans); }
+.finding-resource { display: flex; align-items: center; gap: 8px; color: #3f6048; font-weight: 650; }
+.finding-resource svg { width: 22px; height: 22px; flex: none; }
+.debrief-choice { display: flex; flex-direction: column; gap: 5px; margin: 0 0 12px; padding: 11px 13px; border-left: 3px solid #8bac77; border-radius: 0 4px 4px 0; background: #eaf0dc; }
+.debrief-choice > span { color: #637e52; font: 9px/1.4 var(--mono); letter-spacing: .08em; }
+.debrief-choice > strong { color: #31563e; font: 650 18px/1.4 var(--sans); }
+.debrief-next { display: flex; gap: 13px; align-items: flex-start; margin-top: 16px; padding: 12px 15px; border: 1px solid #d9c69d; border-radius: 8px; background: #f4ead2; }
+.debrief-next > span { flex: none; display: grid; place-items: center; width: 31px; height: 31px; border-radius: 50%; color: #88643d; background: #e9d7b0; font: 22px/1 var(--sans); }
+.debrief-next strong { display: inline; margin-right: 6px; color: #604d32; font: 650 16px/1.35 var(--sans); }
+.debrief-next p { display: inline; margin: 0; color: #6d6149; font: 15px/1.5 var(--sans); }
+#modal-layer[data-modal='report'] .mission-debrief > footer { display: flex; flex: none; flex-direction: row; justify-content: space-between; align-items: center; gap: 22px; margin: 0; padding: 13px 28px; border-top: 1px solid #c4ceb7; background: #e9efdf; }
+.debrief-saved { display: flex; align-items: center; gap: 11px; }
+.debrief-saved > span { color: #7d976a; font-size: 27px; }
+.debrief-saved strong { display: block; color: #3f6146; font: 650 14px/1.4 var(--sans); }
+.debrief-saved small { display: block; margin-top: 3px; color: #536d48; font: 12px/1.4 var(--sans); }
+.debrief-saved kbd { padding: 0 3px; font-size: 10px; }
+#modal-layer[data-modal='report'] .mission-debrief > footer button { min-height: 52px; margin: 0; padding: 13px 23px; border: 1px solid #d8a166; border-radius: 6px; color: #193d3d; background: var(--orange); box-shadow: 0 3px #af784b; font: 700 18px/1.3 var(--sans); white-space: nowrap; }
+#modal-layer[data-modal='report'] .mission-debrief > footer button:hover { background: #f0ba7f; }
+
+/* The physical ledger and end-of-shift log share readable, explicit outcome cards. */
+.log-entry.record-entry { --record-accent: #527450; --record-surface: #e1ebd4; display: flex; align-items: flex-start; gap: 10px; min-height: 84px; padding: 11px; margin-bottom: 8px; border: 1px solid #bac8aa; border-left: 3px solid var(--record-accent); border-radius: 5px; background: #fbf9ed; line-height: 1.4; }
+.log-entry.record-returned { --record-accent: #527d7b; --record-surface: #dceae0; }
+.log-entry.record-failure { --record-accent: #a26b45; --record-surface: #f0e0c4; }
+.record-icon { display: grid; place-items: center; flex: none; width: 27px; height: 27px; border-radius: 50%; color: var(--record-accent); background: var(--record-surface); font: 700 15px var(--sans); }
+.record-content { flex: 1; min-width: 0; }
+.record-meta { display: flex; gap: 8px; justify-content: space-between; align-items: center; margin-bottom: 5px; color: #536b46; font: 12px/1.3 var(--sans); }
+.record-status { color: var(--record-accent); font-weight: 650; }
+.log-entry .record-content > strong { display: block; color: #2f553e; font: 700 20px/1.25 var(--display); overflow-wrap: anywhere; }
+.record-content > p { margin: 5px 0 0; color: #576e4b; font: 16px/1.45 var(--sans); }
+.ledger .empty-log { padding: 28px 8px; text-align: center; color: #70875d; }
+.empty-log > span { display: block; margin-bottom: 10px; color: #8ca477; font-size: 35px; }
+.empty-log > strong { display: block; font: 650 23px/1.3 var(--display); color: #466c47; }
+.empty-log > p { margin: 9px 0 0; font: 15px/1.5 var(--sans); color: #6a8158; }
+.final-log .record-entry { margin-bottom: 3px; }
+.final-log .record-content > strong { font-size: 18px; }
+.final-log .record-content > p { font-size: 13px; }
+@media (max-width: 680px) {
+  #modal-layer.modal-layer[data-modal='report'] { padding: 12px; }
+  #modal-layer[data-modal='report'] .report-paper.mission-debrief { max-height: calc(100dvh - 24px); border-radius: 9px; }
+  #modal-layer[data-modal='report'] .debrief-header { padding: 13px 17px; gap: 12px; }
+  .debrief-bureau { font-size: 24px; }
+  .debrief-header > div > span:last-child { font-size: 10px; letter-spacing: .04em; }
+  .debrief-header small { font-size: 7px; }
+  .debrief-record-id { font-size: 8px; }
+  .debrief-body { padding: 20px 18px; }
+  .debrief-hero { grid-template-columns: minmax(0,1fr); position: relative; gap: 16px; padding-bottom: 21px; }
+  .debrief-verdict { font-size: 9px; letter-spacing: .035em; padding: 6px 9px; }
+  #modal-layer[data-modal='report'] .mission-debrief h1 { font-size: 34px; margin: 13px 0 11px; }
+  .debrief-hero p { font-size: 17px; line-height: 1.5; }
+  .debrief-location { margin-top: 13px; font-size: 9px; }
+  .debrief-emblem { display: none; }
+  .debrief-journey { padding: 15px 13px; }
+  .debrief-section-heading { align-items: flex-start; margin-bottom: 15px; }
+  .debrief-section-heading > span { max-width: 120px; text-align: right; font-size: 7px; }
+  .debrief-route { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 17px 11px; }
+  .debrief-route li { gap: 7px; font-size: 14px; }
+  .route-node { width: 24px; height: 24px; font-size: 12px; }
+  .debrief-route small { font-size: 11px; }
+  .debrief-review { grid-template-columns: minmax(0,1fr); gap: 9px; margin-top: 16px; padding: 16px; }
+  .debrief-review-icon { width: 29px; height: 29px; font-size: 17px; }
+  .debrief-review .eyebrow { font-size: 9px; }
+  .debrief-review h2 { font-size: 22px; }
+  .debrief-review p { font-size: 16px; }
+  .debrief-findings li { grid-template-columns: 1fr; gap: 5px; font-size: 15px; }
+  .debrief-next { padding: 14px; margin-top: 15px; gap: 10px; }
+  .debrief-next > span { width: 25px; height: 25px; font-size: 19px; }
+  .debrief-next strong { display: block; margin: 0 0 4px; font-size: 15px; }
+  .debrief-next p { display: block; font-size: 14px; }
+  .debrief-choice > strong { font-size: 17px; }
+  #modal-layer[data-modal='report'] .mission-debrief > footer { flex-direction: column; align-items: stretch; gap: 13px; padding: 15px 18px; }
+  .debrief-saved { gap: 8px; }
+  .debrief-saved > span { font-size: 24px; }
+  .debrief-saved strong { font-size: 13px; }
+  .debrief-saved small { font-size: 11px; }
+  #modal-layer[data-modal='report'] .mission-debrief > footer button { min-height: 50px; width: 100%; font-size: 17px; padding: 12px 18px; }
+}
+@media (max-height: 600px) and (min-width: 681px) {
+  #modal-layer[data-modal='report'] .debrief-header { padding-block: 11px; }
+  .debrief-body { padding-block: 19px; }
+  #modal-layer[data-modal='report'] .mission-debrief > footer { padding-block: 12px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  #modal-layer[data-modal='report'] .mission-debrief { animation: report-arrive .24s var(--ease-out) backwards; }
+}
+@keyframes report-arrive { from { opacity: 0; translate: 0 12px; } to { opacity: 1; translate: 0 0; } }

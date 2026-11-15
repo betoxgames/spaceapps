@@ -1,4 +1,4 @@
-export type Cue = 'paper' | 'page' | 'stamp' | 'alert' | 'confirm' | 'success' | 'failure';
+export type Cue = 'paper' | 'page' | 'stamp' | 'alert' | 'confirm' | 'success' | 'failure' | 'transmission';
 export class Sound {
   private context?: AudioContext;
   private voices = new Set<OscillatorNode>();
@@ -16,7 +16,7 @@ export class Sound {
   play(cue: Cue) {
     const ctx = this.context;
     if (!ctx || this.muted || this.paused || ctx.state !== 'running') return;
-    const notes: Record<Cue, number[]> = { paper: [540, 360], page: [410], stamp: [110, 65], alert: [660, 440, 660], confirm: [490], success: [440, 554, 660], failure: [260, 196] };
+    const notes: Record<Cue, number[]> = { paper: [540, 360], page: [410], stamp: [110, 65], alert: [660, 440, 660], confirm: [490], success: [440, 554, 660], failure: [260, 196], transmission: [330, 494, 659] };
     notes[cue].forEach((frequency, i) => {
       const o = ctx.createOscillator(), g = ctx.createGain();
       const at = ctx.currentTime + i * (cue === 'stamp' ? .035 : .09);

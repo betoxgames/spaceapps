@@ -31,6 +31,23 @@ try{
  await page.locator('[data-action="camera-desk"]').first().click();
  await page.keyboard.press('b');await page.locator('[data-action="book-destinations"]').first().click();await page.locator('[data-action="destination-earth"]').click();
  assert.match(await page.locator('#manual').innerText(),/11,500/);
+ await page.locator('[data-action="book-index"]').click();await page.locator('[data-action="manual-flight"]').click();
+ assert.match(await page.locator('.guide-flight-facts').innerText(),/4 crew members/);
+ await page.locator('[data-action="book-index"]').click();await page.locator('.guide-review-steps [data-action="manual-choose-route"]').click();
+ assert.equal(await page.locator('.guide-planet-card').count(),8);
+ await page.locator('[data-action="destination-earth"]').click();
+ await page.locator('[data-action="book-index"]').click();await page.locator('[data-action="manual-compare"]').click();
+ assert.equal(await page.locator('.guide-comparison-table tbody tr').count(),5);
+ await page.locator('[data-action="book-index"]').click();await page.locator('[data-action="manual-stock"]').click();
+ assert.equal(await page.locator('.guide-inventory-table tbody tr').count(),5);
+ assert.equal(await page.locator('#ledger,.ledger-tool,.log-tool').count(),0,'inventory lives only inside the manual');
+ await page.locator('[data-action="book-destinations"]').click();
+ await page.locator('[data-action="manual-reading"]').click();
+ assert.equal(await page.locator('#manual-reader').isVisible(),true,'the guide can be enlarged offline');
+ assert.equal(await page.locator('.guide-resource-table tbody tr').count(),5);
+ await page.keyboard.press('Escape');
+ assert.equal(await page.locator('#manual-reader').isVisible(),false,'Escape returns the same reference to the desk');
+ assert.match(await page.locator('#manual').innerText(),/11,500/);
  await page.keyboard.press('1');await page.keyboard.press('Enter');await page.keyboard.press('ArrowLeft');await page.keyboard.press('Enter');
  assert.equal(await page.locator('#flight').getAttribute('data-stored'),'false');
  const returnedFlight=await page.locator('#flight').elementHandle();
@@ -44,7 +61,19 @@ try{
  await page.keyboard.press('i');await visitorReady();await page.locator('[data-stamp-tool="approve"]').click();await page.keyboard.press('1');await page.keyboard.press('Enter');
  await page.waitForSelector('#cinema:not([hidden])');await page.locator('[data-action="skip"]').click();await page.locator('[data-action="skip"]').click();await page.waitForSelector('.report-paper');
  assert.match(await page.locator('.report-paper').innerText(),/safe return/i);
+ // The standalone build also delivers, animates and resolves a survival response.
+ await page.locator('[data-action="archive"]').click();await visitorReady();
+ await page.locator('[data-stamp-tool="return"]').click();await page.keyboard.press('1');await page.keyboard.press('Enter');
+ await page.waitForSelector('#dispatch:not([hidden])');
+ assert.match(await page.locator('#dispatch').innerText(),/SURVIVAL ALERT/);
+ await page.screenshot({path:'test-results/offline-dispatch.png',animations:'disabled'});
+ for(const amount of ['50','100','100']){
+  await page.locator('[data-action="open-dispatch"]').click();
+  await page.locator('#contribution').fill(amount);await page.locator('[data-action="confirm-emergency"]').click();
+ }
+ await page.waitForSelector('#cinema:not([hidden])');await page.locator('[data-action="skip"]').click();await page.locator('[data-action="skip"]').click();
+ assert.match(await page.locator('.report-paper').innerText(),/INCIDENT RESOLVED/);
  assert.deepEqual(errors,[]);assert.deepEqual(external,[],'direct-file play must not request downloads or a server');
  await mkdir('test-results',{recursive:true});await page.screenshot({path:'test-results/offline-playable.png'});
- console.log('PASS: file:// standalone HTML with network OFF, all nine embedded engineers decoded, manual, keyboard paper handling, return, tutorial approval and report. No external requests or page errors.');
+ console.log('PASS: file:// standalone HTML with network OFF, nine engineers, manual, keyboard, return, tutorial approval, incoming survival transmission, support and recovery report. No external requests or page errors.');
 }finally{await browser.close();}

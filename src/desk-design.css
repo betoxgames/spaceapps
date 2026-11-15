@@ -1,6 +1,6 @@
 /* Physical desk: a centered handoff, a reading lane, and two reference tools. */
 .document-tray {
-  left: 540px; top: 210px; width: 520px; height: 153px;
+  left: 540px; top: 182px; width: 520px; height: 153px;
   border: 1px solid #63847d; border-bottom: 5px solid #193d42; border-radius: 5px;
   background: linear-gradient(160deg,#214b4de6,#10343be8);
   box-shadow: 0 5px 0 #102f36, 0 12px 24px #08272d66, inset 0 1px #b3c9af38;
@@ -65,113 +65,39 @@
 .book-tool .tool-title { display: block; font: 800 22px/1.12 var(--display); letter-spacing: .025em; }
 .tool-description { display: block; margin-top: 12px; font: 11px/1.45 var(--sans); letter-spacing: 0; font-weight: 400; }
 .book-tool kbd { right: 13px; bottom: 11px; }
-.ledger-tool { left: 1288px; top: 60px; width: 202px; height: 257px; padding: 19px 13px; transform: rotate(4deg); border-left-width: 12px; background: linear-gradient(130deg,#e9d9b0,#ccaf79); box-shadow: 4px 4px #b2a17b, 7px 7px #f2e6c5, 12px 16px 21px #062b3599; }
-.ledger-tool .tool-edition { font-size: 8px; letter-spacing: .08em; }
-.stock-emblem { display: grid; place-items: center; margin: 13px auto 10px; width: 43px; height: 43px; border: 1px solid #63745b; border-radius: 50%; font: 26px var(--sans); }
-.ledger-tool .tool-title { display: block; font-size: 28px; line-height: 1.1; }
-.ledger-tool small { margin-top: 6px; font-size: 9px; letter-spacing: .08em; }
-.ledger-tool .tool-description { margin-top: 10px; font-size: 11px; }
-.ledger-tool kbd { position: absolute; bottom: 10px; right: 12px; margin: 0; font-size: 11px; }
-.log-tool { left: 1305px; top: 339px; padding: 13px 18px; font-size: 14px; }
-.manual { display: flex; flex-direction: column; border: 5px solid #285c53; border-left-width: 8px; border-radius: 4px 7px 7px 4px; background: #f2ead4; box-shadow: 3px 4px #c9b993, 6px 7px #efe3c3, 12px 16px 24px #082c3877; }
-.manual:before { top: 50px; bottom: 44px; width: 14px; background: linear-gradient(90deg,transparent,#8d7e562d 40%,#8d7e563f 50%,transparent); }
-.manual:after { top: 50px; bottom: 44px; }
-.manual-top { flex: none; height: 50px; padding: 0 10px 0 12px; background: linear-gradient(#346e62,#24574f); }
-.manual-brand { display: flex; align-items: center; gap: 7px; color: #f0c589; font-size: 17px; }
-.manual-brand > span { color: #ece9d2; font: 9px var(--mono); letter-spacing: .07em; }
-.manual-top nav { align-self: stretch; align-items: end; gap: 3px; }
-.manual-top button { height: 43px; min-width: 63px; padding: 0 9px; font-size: 16px; }
-.manual-top button.active { background: #f2ead4; box-shadow: inset 0 3px #d2b789; }
-.book-spread { flex: 1; min-height: 0; height: auto; grid-template-columns: minmax(0,1fr) minmax(0,1fr); background: linear-gradient(90deg,#f6efdc,#eee4c9 49.5%,#f8f1de 50.5%,#f1e8d0); }
-.book-spread > section { min-width: 0; min-height: 0; padding: 14px 18px; overflow: auto; overflow-wrap: anywhere; scrollbar-gutter: auto; }
-.book-spread .eyebrow { font-size: 10px; line-height: 1.3; letter-spacing: .08em; }
-.book-spread h2 { font-size: 33px; line-height: 1; margin: 11px 0 12px; }
-.book-spread h3 { font-size: 23px; line-height: 1.12; margin: 4px 0 12px; }
-.book-spread p { font-size: 17px; line-height: 1.38; margin: 9px 0; }
-.book-spread .manual-intro { font-size: 17px; line-height: 1.35; margin-bottom: 13px; }
-.book-spread .fine-print { font-size: 13px; line-height: 1.35; margin: 10px 0 0; }
-.manual-contents { gap: 3px; margin-top: 0; }
-.manual-contents button { min-height: 35px; font-size: 15px; padding: 5px 0; color: #315747; }
-.manual-steps { list-style: none; counter-reset: checks; margin: 0; padding: 0; }
-.manual-steps li { position: relative; counter-increment: checks; padding: 0 0 9px 30px; margin: 0 0 8px; border-bottom: 1px solid #a9af8d55; font-size: 16px; line-height: 1.35; }
-.manual-steps li:before { content: counter(checks); position: absolute; left: 0; top: 0; width: 20px; height: 20px; display: grid; place-items: center; border: 1px solid #98a486; border-radius: 50%; color: #45654d; font: 11px var(--mono); }
-.manual-steps li:last-child { margin-bottom: 0; padding-bottom: 8px; }
-.manual-footer { flex: none; height: 44px; padding: 0 7px; background: #e8dfc4; }
-.manual-footer button { height: 34px; padding-inline: 11px; font-size: 14px; border-color: #8d9e7e; background: #f5eed8; }
-.manual-footer > span { font-size: 9px; letter-spacing: .04em; }
-.planet-grid { gap: 5px; margin-top: 8px; }
-.planet-grid button { height: 42px; font-size: 16px; gap: 6px; background: #f7f0db; }
-.planet-grid button.selected { background: #d8e7cb; border-color: #4d7a5c; }
-.tiny-world { width: 28px; height: 28px; }
-.manual-destination { align-items: center; gap: 6px; min-width: 0; }
-.manual-destination h3 { font-size: 24px; margin: 0 0 9px; }
-.manual-destination > span { font-size: 9px; white-space: nowrap; }
-.book-spread .resource-row.compact { min-width: 0; min-height: 35px; padding: 6px 0; gap: 6px; }
-.book-spread .resource-row.compact .resource-label { font-size: 16px; min-width: 0; }
-.book-spread .resource-row.compact .resource-value { font-size: 17px; }
-.book-spread .resource-row.compact .resource-value > span { font-size: 14px; }
-.book-spread .resource-label svg { width: 17px; height: 17px; }
-.book-spread .incident-entry { margin-bottom: 8px; }
-.book-spread .incident-entry strong { font-size: 15px; line-height: 1.25; }
-.book-spread .incident-entry span { font-size: 16px; line-height: 1.3; margin-top: 2px; }
-.book-spread .source-label { font-size: 11px !important; line-height: 1.35; }
-.book-spread .science-fact { font-size: 22px; line-height: 1.2; margin: 10px 0; }
-.book-spread .source-link { font-size: 15px; line-height: 1.35; padding: 8px 0; }
-.empty-page { padding-top: 24px; }
-.empty-page > span { font-size: 32px; margin-bottom: 12px; }
-
-/* Inventory is a bound supply ledger, with a fixed header and contained rows. */
-.ledger { display: flex; flex-direction: column; padding: 16px 20px 10px; border: 2px solid #9c956e; border-left: 7px solid #897454; border-top: 7px solid #b89c69; border-radius: 3px 5px 5px 3px; background: linear-gradient(115deg,#f7efda,#ece0bf); box-shadow: 3px 4px #bcab80, 6px 7px #f2e6c6, 11px 15px 24px #082c3877; }
-.ledger-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex: none; }
-.ledger-header .eyebrow { font-size: 9px; letter-spacing: .08em; }
-.ledger-header h2 { font-size: 27px; line-height: 1.1; margin: 6px 0 10px; }
-.ledger-insignia { display: grid; place-items: center; flex: none; width: 35px; height: 35px; margin-bottom: 10px; border: 1px solid #a8ad88; border-radius: 50%; color: #6a7856; font-size: 22px; }
-.ledger-tabs { flex: none; gap: 5px; margin: 0 0 6px; }
-.ledger-tabs button { min-height: 35px; padding: 5px 12px; font-size: 15px; }
-.ledger-tabs button.active { border-color: #598061; border-radius: 3px 3px 0 0; background: #dce2c8; }
-.ledger-content { flex: 1; min-height: 0; height: auto; overflow: auto; overflow-wrap: anywhere; }
-.ledger-column-labels { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0 5px; color: #5c6c50; font: 9px var(--mono); letter-spacing: .08em; }
-.ledger .resource-row.compact { height: 44px; min-width: 0; gap: 6px; padding: 7px 0; border-color: #a8b28d77; }
-.ledger .resource-row .resource-label { min-width: 0; font-size: 17px; gap: 6px; }
-.ledger .resource-row .resource-label svg { width: 18px; height: 18px; }
-.ledger .resource-row .resource-value { font-size: 18px; }
-.ledger .resource-row .resource-value > span { font-size: 14px; }
-.ledger-footer { height: 41px; flex: none; gap: 7px; border-top: 1px solid #a8b28d77; padding-top: 5px; background: none; }
-.ledger-footer > span { font-size: 10px; line-height: 1.3; }
-.ledger-footer button { min-height: 33px; padding: 5px 10px; font-size: 14px; }
-.ledger .log-entry { min-height: 56px; padding: 6px 0; }
-.ledger .log-kind { font-size: 9px; }
-.ledger .log-entry strong { font-size: 17px; }
-.ledger .log-entry > span:last-child { font-size: 13px; line-height: 1.3; }
-
-/* Only one version of a physical reference book is visible at a time. */
-#stage:has(#manual:not([hidden])) .book-tool,
-#stage:has(#ledger:not([hidden])) :is(.ledger-tool,.log-tool) { visibility: hidden; pointer-events: none; }
-.manual { border-color: #2a5a50; border-left-width: 6px; box-shadow: 2px 3px #c6b992, 5px 6px #eee4c9, 10px 14px 22px #082c3866; }
-.manual-top { height: 48px; background: linear-gradient(#2b6256,#28594e); }
-.manual-top button { height: 41px; border-radius: 4px 4px 0 0; font-size: 15px; }
-.manual-top button.active { background: #faf4e5; box-shadow: inset 0 2px #d0b991; }
-.book-spread { background: linear-gradient(90deg,#f6efdc 0%,#eee7d0 49.4%,#fcf6e8 50.6%,#f9f2e2 100%); }
-.book-spread > section { padding: 16px 19px; }
-.manual:before { top: 48px; width: 10px; background: linear-gradient(90deg,transparent,#887b5630,transparent); }
-.manual:after { top: 48px; }
-.manual-footer { border-top-color: #c3bc9c; background: #eee6d1; }
-.manual-footer button { background: #f8f3e5; border-color: #a1ab90; }
-.planet-grid button { border-color: #b4b99d; background: #faf5e7; border-radius: 4px; }
-.planet-grid button.selected { border-color: #567c5a; background: #e1ebd7; box-shadow: inset 3px 0 #567c5a; }
-.empty-page { padding: 35px 8px 15px; text-align: center; }
-.empty-page > span:first-child { display: grid; place-items: center; width: 42px; height: 42px; margin: 0 auto 20px; border: 1px solid #b9bea4; border-radius: 50%; color: #62806a; font: 24px var(--sans); }
-.empty-page .eyebrow { color: #7a8869; font-size: 9px; margin-bottom: 9px; }
-.empty-page h3 { font-size: 22px; margin: 0 0 10px; }
-.empty-page p { font-size: 15px; line-height: 1.5; color: #657158; }
-
+/* The manual is the only reference volume on the desk. */
+#stage:has(#manual:not([hidden])) .book-tool { visibility: hidden; pointer-events: none; }
 /* Empty paper positions are the return controls; the paper itself is the opener. */
-.tray-slots { inset: 31px 24px 10px; gap: 25px; }
-.tray-slot { position: relative; flex: 1; min-width: 0; padding: 12px 5px; border: 1px dashed #b8cfba59; border-radius: 2px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #bed0bd; background: #061e251a; font: 16px var(--mono); }
+.tray-slots { inset: 37px 30px 12px; gap: 39px; }
+.tray-slot { --slot-accent: #82afb0; position: relative; flex: 1; min-width: 0; padding: 8px 4px; border: 2px dashed var(--slot-accent); border-top: 4px solid var(--slot-accent); border-radius: 3px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; color: #e1e8d2; background: #061e253d; font: 16px var(--mono); }
+.tray-slot:nth-child(2) { --slot-accent: #a5c395; }
+.tray-slot:nth-child(3) { --slot-accent: #e2b274; }
 .tray-slot:disabled { visibility: hidden; }
-.tray-slot small { color: #b8ccbb; font: 10px var(--sans); }
+.tray-slot-number { color: var(--slot-accent); font-weight: 800; font-size: 21px; }
+.tray-slot strong { font: 600 12px/1.15 var(--sans); text-align: center; }
+.tray-slot small { color: #cbdac4; font: 10px/1.2 var(--sans); }
 .tray-slot:hover:not(:disabled), .tray-slot:focus-visible { background: #d8e5c61b; border-color: #e0c18a; color: #f0d5a2; }
 .tray-slot:hover small, .tray-slot:focus-visible small { color: #f0d5a2; }
+.tray-slot.return-target { outline: 3px solid var(--slot-accent); outline-offset: 5px; background: #c5dbc72e; }
+.tray-slot.drop-ready { border-style: solid; background: #d6e6b94d; box-shadow: 0 0 18px #dbeab44d; }
+.tray-slot.drop-ready small { color: #fff3c9; font-weight: 800; }
+#stage[data-returning-paper] .document-tray { border-color: #bdcda8; }
+#stage[data-returning-paper] .document-tray:before { content: '↙ RETURN TO THE MATCHING NUMBER'; position: absolute; left: 50%; top: -34px; transform: translateX(-50%); padding: 7px 13px; border: 1px solid #b8c7a1; border-radius: 3px; background: #11383a; color: #f2e3b9; white-space: nowrap; font: 11px var(--mono); box-shadow: 0 3px 8px #08272d66; }
+#stage[data-returning-paper] .document-tray.drop-ready:before { content: '↓ RELEASE TO RETURN THE SHEET'; background: #d6deb7; color: #173e37; border-color: #f7edbe; }
+#stage[data-returning-mode='place'] .document-tray.drop-ready:before { content: 'CLICK OR PRESS ENTER TO RETURN'; }
+.paper-return-cue { color: #4d6753; font-size: 9px; letter-spacing: 0; }
+
+/* Smaller physical tools leave room to spread and compare documents. */
+.book-tool { left: 70px; top: 69px; width: 158px; height: 218px; padding: 16px 13px; border-left-width: 10px; }
+.book-tool .book-cross { margin: 10px auto; font-size: 29px; }
+.book-tool .tool-title { font-size: 19px; }
+.book-tool .tool-edition { font-size: 8px; }
+.book-tool .tool-description { margin-top: 9px; font-size: 10px; }
+.stamp-rack { right: 42px; width: 350px; height: 79px; gap: 17px; padding: 5px 11px; }
+.stamp { height: 56px; }
+.stamp strong { font-size: 19px; }
+.stamp small { font-size: 7px; }
+.desk-caption { left: 596px; bottom: 49px; font-size: 10px; }
 
 /* The wall display owns mission progress, leaving the desk devoted to papers. */
 .wall-monitor { height: 199px; padding: 12px 16px 11px; border: 1px solid #2d6962; border-radius: 8px; background: radial-gradient(ellipse at top,#103e3c,#061f27 75%); color: #d6e6ce; box-shadow: inset 0 0 20px #000e1580, 0 0 0 2px #092e34, 0 4px 10px #051b2380; text-shadow: none; }

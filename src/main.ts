@@ -1,8 +1,11 @@
 import './style.css';
 import './desk-design.css';
 import './report.css';
-import { reportMarkup } from './report';
-import scienceArchive from '../public/science.json';
+import './dispatch.css';
+import { Dispatch, type DispatchBrief } from './dispatch';
+import './manual.css';
+import { manualMarkup, guideOrbitArt, filterManualRoutes, type ManualTab, type RouteFilter } from './manual';
+import { reportMarkup, historyMarkup } from './report';
 import { PROTOCOLS, protocolMarkup } from './protocols';
 import { DESTINATIONS, ENGINEERS, EVENTS, OPERATIONS, RESOURCES, RESOURCE_LABELS, format, units, vector, type Resource, type Resources } from './catalog';
 import { createCampaign, nextProposal, approve, returnProposal, resolveEmergency, authorizeOperation, nextInterlude, finalGrade, type Campaign, type Resolution } from './domain';
@@ -17,7 +20,6 @@ import { VisitorSequence } from './visitor';
 type Phase = 'menu'|'desk'|'transition'|'cinema'|'report'|'emergency'|'operation'|'final';
 interface Preferences {volume:number; muted:boolean; reduced:boolean; clickPlacement:boolean}
 interface Training {lesson:number; step:number; practice:'half'|'full'|'timed'; error:boolean}
-interface Science {id:string;title:string;organization:string;url:string;date?:string;observations:unknown;unit:string;transformation:string;limitations:unknown}
 const $ = <T extends HTMLElement = HTMLElement>(selector:string):T => document.querySelector<T>(selector)!;
 const esc = (value:unknown) => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
 const button = (label:string,action:string,classes='') => `<button type="button" class="${classes}" data-action="${action}">${label}</button>`;
@@ -28,11 +30,12 @@ let paused=false, lastFocus:HTMLElement|null=null, modal='';
 let modalReturnFocus:HTMLElement|null=null;
 let screenHintDismissed=false;
 let pending:Resolution|null=null, emergencyId='', remaining=30000, contribution=0, alarmSecond=-1;
-let protocolSelection:number|null=null;
+let protocolSelection:number|null=null, responseLanding=0;
 let operationId='', operationChoice:'A'|'B'|null=null, communication=0, messageSent=false;
-let bookTab='index', bookDestination:string|null=null, bookPage=0, ledgerTab='stock', ledgerPage=0;
+let bookTab:ManualTab='index', bookDestination:string|null=null, bookPage=0, ledgerPage=0;
+let bookReading=false, bookQuery='', bookFilter:RouteFilter='all';
+let supplyView:'stock'|'record'='stock', supplyPage=0, comparisonReturn=false, manualFlightSeen='', manualCompared='';
 let training:Training|null=null, busy=false, serial=0;
-let science:Science[]=[];
 let cine:{steps:Array<{label:string;visual:string;phase:string}>;index:number;elapsed:number;speed:number;revealed:boolean}|null=null;
 const clock=new GameClock(), sound=new Sound();
 
@@ -42,9 +45,9 @@ $('#app').innerHTML=`<div id="viewport"><main id="stage" aria-label="Space Paper
   <div class="visitor-area"><div id="visitor-portrait" aria-hidden="true"><svg viewBox="0 0 200 340" xmlns="http://www.w3.org/2000/svg"><circle cx="100" cy="53" r="35" fill="#899493"/><path d="M52 114 Q68 91 100 91 Q132 91 148 114 L171 231 L142 237 L132 178 L137 329 H105 L100 224 L95 329 H63 L68 178 L58 237 L29 231 Z" fill="#71817f" stroke="#4c5c5a" stroke-width="5"/></svg></div><div class="visitor-badge"><span>MISSION ENGINEER</span><strong id="visitor-name"></strong></div><div id="speech" class="speech"></div></div>
   <section class="wall-monitor" aria-label="Lunar base mission control"><header class="monitor-heading"><span><i class="monitor-signal" aria-hidden="true"></i>MISSION CONTROL</span><span>LUNAR BASE</span></header><div id="performance" class="performance"></div><div id="base-status" class="base-status" aria-label="Base operations status"></div></section>
   <div class="counter"><span class="counter-label">LUNAR TRANSIT AUTHORITY</span><span class="counter-code">REVIEW • COMPARE • AUTHORIZE</span></div>
-  <div id="tray" class="document-tray" aria-label="Document tray"><div class="proposal-tray-heading"><span>MISSION PROPOSAL</span><span>3 SHEETS · CLICK OR DRAG</span></div><div class="tray-slots" aria-label="Original document positions">${[['flight','Flight plan'],['life','Life support'],['power','Propulsion and energy']].map(([id,label],i)=>`<button type="button" class="tray-slot" data-action="restore-${id}" data-cancel-stamp aria-label="Return ${label.toLowerCase()} to its place" disabled><span aria-hidden="true">0${i+1}</span><small aria-hidden="true">↥ Return here</small></button>`).join('')}</div></div>
+  <div id="tray" class="document-tray" aria-label="Document tray"><div class="proposal-tray-heading"><span>MISSION PROPOSAL</span><span>TAKE A SHEET · DRAG BACK TO RETURN</span></div><div class="tray-slots" aria-label="Original document positions">${[['flight','Flight plan'],['life','Life support'],['power','Propulsion and energy']].map(([id,label],i)=>`<button type="button" class="tray-slot" data-action="restore-${id}" data-cancel-stamp aria-label="Return ${label.toLowerCase()} to its place" disabled><span class="tray-slot-number" aria-hidden="true">0${i+1}</span><strong aria-hidden="true">${label}</strong><small aria-hidden="true">↓ Drag back or click</small></button>`).join('')}</div></div>
   <div class="desk-surface" aria-hidden="true"></div>
-  <div class="desk-tools"><button class="book-tool" data-action="manual" aria-label="Open manual (B)"><span class="tool-edition">FIELD EDITION / 01</span><span class="book-cross" aria-hidden="true">✦</span><span class="tool-title">MISSION<br>MANUAL</span><span class="tool-description">Routes · Rules · Reference</span><kbd>B</kbd></button><button class="ledger-tool" data-action="inventory"><span class="tool-edition">LUNAR SUPPLY OFFICE</span><span class="stock-emblem" aria-hidden="true">▤</span><span class="tool-title">STOCK</span><small>RESOURCE INVENTORY</small><span class="tool-description">One store. Every decision.</span><kbd>I</kbd></button><button class="log-tool" data-action="record">TURN LOG<kbd>R</kbd></button><div class="desk-caption">YOUR DESK. YOUR DECISION.</div></div>
+  <div class="desk-tools"><button class="book-tool" data-action="manual" aria-label="Open manual (B)"><span class="tool-edition">FIELD EDITION / 01</span><span class="book-cover-art" aria-hidden="true">${guideOrbitArt()}</span><span class="tool-title">MISSION<br>MANUAL</span><span class="tool-description">Routes · Review · Field notes</span><span class="book-open-cue">OPEN THE GUIDE ↗</span><kbd>B</kbd></button><div class="desk-caption">YOUR DESK. YOUR DECISION.</div></div>
   <nav class="camera-controls" aria-label="Camera position"><button type="button" data-action="camera-room" aria-pressed="true">Room view</button><button type="button" data-action="camera-desk" aria-pressed="false">Desk view</button></nav>
   <div class="room-tray"><span>INCOMING DOCUMENTS</span><button type="button" data-action="camera-desk">Inspect desk <span aria-hidden="true">↗</span></button></div>
   <div id="task-guide" class="task-guide" role="status" aria-live="polite"></div>
@@ -52,11 +55,11 @@ $('#app').innerHTML=`<div id="viewport"><main id="stage" aria-label="Space Paper
   <footer class="desk-rail"><div class="rail-actions">${button('↙ Store sheets','store')}${button('↔ Place beside book','compare')}${button('Controls','help')}</div><div id="stamp-status" class="stamp-status"><span>Compare first. Then stamp your decision.</span>${button('Cancel stamp','cancel-stamp')}</div><div class="stamp-rack"><button type="button" aria-pressed="false" class="stamp return" data-stamp-tool="return" aria-label="Pick up Return stamp"><span class="stamp-handle"></span><strong>RETURN</strong><small>NO RESOURCES SPENT</small></button><button type="button" aria-pressed="false" class="stamp approve" data-stamp-tool="approve" aria-label="Pick up Approve stamp"><span class="stamp-handle"></span><strong>APPROVE</strong><small>AUTHORIZE RESOURCES</small></button></div></footer>
   <div id="training-guide" class="training-guide" hidden></div><div id="cinema" class="cinema" hidden></div><div id="toast" class="toast" hidden></div>
   <div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
-</main></div><aside id="small-screen" hidden><span>Scroll to explore your desk. Landscape gives you more room.</span><button data-action="dismiss-screen-hint" aria-label="Dismiss screen hint">×</button></aside><div id="modal-layer" class="modal-layer" hidden></div>`;
+</main></div><aside id="small-screen" hidden><span>Scroll to explore your desk. Landscape gives you more room.</span><button data-action="dismiss-screen-hint" aria-label="Dismiss screen hint">×</button></aside><section id="dispatch" class="dispatch-overlay" role="dialog" aria-modal="true" aria-labelledby="dispatch-title" hidden></section><section id="manual-reader" class="manual-reader" role="dialog" aria-modal="true" aria-labelledby="manual-title" hidden></section><div id="reader-timer" class="reader-timer" role="timer" aria-label="Emergency time remaining while reading" hidden></div><div id="modal-layer" class="modal-layer" hidden></div>`;
 const stage=$('#stage');
 const desk=new Desk(stage,{
   announce,
-  presentation:{tray:{x:540,y:210,width:520,height:153},previewScale:.42,previewHeight:260,reading:{x:790,y:376}},
+  presentation:{tray:{x:540,y:182,width:520,height:153},previewScale:.38,previewHeight:260,reading:{x:744,y:410},objectScale:.84},
   onPaper:()=>{sound.play('paper');progressTraining();updateTraySlots();},
   onStamp:stampDecision,
   canStamp:(stamp,target)=>!paused&&!busy&&((visitorSequence.snapshot().phase==='ready'&&phase==='desk'&&!!campaign.proposal&&['flight','life','power'].includes(target))||(phase==='operation'&&target==='order'&&stamp==='approve'&&operationChoice!==null)),
@@ -69,8 +72,8 @@ sceneVisitor.append($('#visitor-portrait'));$('.scene-environment').append(scene
 const engineerViewer = new EngineerViewer($('#visitor-portrait'),state=>$('#visitor-portrait').dataset.viewerState=state);
 const visitorSequence = new VisitorSequence(sceneVisitor,$('.scene-door'),engineerViewer,()=>setStampAvailability());
 window.addEventListener('pagehide',()=>engineerViewer.dispose(),{once:true});
+const dispatch=new Dispatch($('#dispatch'),stage);
 applyPreferences();
-science = scienceArchive.sources as unknown as Science[];
 
 function announce(message:string){$('#announcement').textContent=message;updateStampStatus();}
 function updateStampStatus(){
@@ -79,7 +82,7 @@ function updateStampStatus(){
 }
 let toastTimer=0;
 function toast(message:string){const el=$('#toast');(modal?$('#modal-layer'):stage).append(el);el.textContent=message;el.hidden=false;clock.cancel(toastTimer);toastTimer=clock.after(3500,()=>el.hidden=true);announce(message);}
-function applyPreferences(){visitorSequence.setReducedMotion(prefs.reduced);sound.volume=prefs.volume;sound.muted=prefs.muted;desk.clickPlacement=prefs.clickPlacement;stage.classList.toggle('reduced-motion',prefs.reduced);try{localStorage.setItem('space-papers-preferences-v1',JSON.stringify(prefs));}catch{}}
+function applyPreferences(){visitorSequence.setReducedMotion(prefs.reduced);sound.volume=prefs.volume;sound.muted=prefs.muted;desk.clickPlacement=prefs.clickPlacement;stage.classList.toggle('reduced-motion',prefs.reduced);$('#dispatch').classList.toggle('reduced-motion',prefs.reduced);try{localStorage.setItem('space-papers-preferences-v1',JSON.stringify(prefs));}catch{}}
 function scale(){
   desk.cancel();const width=window.innerWidth,height=window.innerHeight;
   const compact=width<1000||height<560;
@@ -87,7 +90,7 @@ function scale(){
   document.body.classList.toggle('compact-ui',compact);
   document.documentElement.style.setProperty('--ui-scale',String(fitted));
   stage.style.transform=`scale(${s})`;$('#viewport').style.width=`${1600*s}px`;$('#viewport').style.height=`${900*s}px`;
-  $('#small-screen').hidden=!compact||phase==='menu'||screenHintDismissed;
+  $('#small-screen').hidden=!compact||phase==='menu'||screenHintDismissed||dispatch.active||bookReading;
 }
 function updateTraySlots(){
   stage.querySelectorAll<HTMLButtonElement>('[data-action^="restore-"]').forEach(slot=>{
@@ -140,7 +143,7 @@ function updateStatus(){
     {label:'FOOD SUPPLY',state:choices.B03==='A'?(visible.completed.length>=4?'Harvest used':'Crop growing'):choices.B03==='B'?'Stored rations':'Pending',ready:!!choices.B03},
   ];
   $('#base-status').innerHTML=systems.map(system=>`<div class="monitor-system ${system.ready?'ready':''}"><i aria-hidden="true"></i><span>${system.label}</span><strong>${system.state}</strong></div>`).join('');
-  if(desk.items.has('ledger'))renderLedger();
+  if(desk.items.has('manual'))renderManual();
 }
 function setStampAvailability(){
   stage.dataset.phase=phase;
@@ -151,7 +154,7 @@ function setStampAvailability(){
   $<HTMLButtonElement>('[data-stamp-tool="return"]').disabled=paused||busy||phase!=='desk'||!visitorReady;
   $('[data-stamp-tool="return"]').title=phase==='operation'?'Internal order: choose one option and approve it.':'Return the proposal without spending resources';
   $('[data-stamp-tool="approve"] small').textContent=phase==='operation'?'AUTHORIZE BASE ORDER':'AUTHORIZE RESOURCES';
-  desk.enabled=!paused&&!busy&&!modal&&['desk','emergency','operation'].includes(phase);
+  desk.enabled=!paused&&!busy&&!modal&&!bookReading&&['desk','emergency','operation'].includes(phase);
   stage.querySelectorAll<HTMLElement>('.station-header,.desk-tools,.desk-rail,.camera-controls,.room-tray,.document-tray,#training-guide').forEach(el=>el.inert=phase==='cinema');
   $('#objects').inert=camera.position==='room'||phase==='cinema';
   updateTaskGuide();updateStampStatus();
@@ -162,25 +165,45 @@ function start(seed?:string){
   scale();announce('Your shift begins. Inspect the desk, read the route, compare the manual and check inventory before stamping.');
   $('[data-action="camera-desk"]').focus({preventScroll:true});
 }
-function resetSession(){$('#app').scrollTo(0,0);delete $('.visitor-area').dataset.decision;stage.classList.remove('paused');clock.clear();visitorSequence.reset();clock.setPaused(false);sound.pause(false);paused=false;busy=false;pending=null;cine=null;delete stage.dataset.incident;emergencyId='';operationId='';operationChoice=null;communication=0;messageSent=false;desk.clear();bookTab='index';bookDestination=null;bookPage=0;ledgerPage=0;$('#cinema').hidden=true;$('#training-guide').hidden=true;$('#toast').hidden=true;}
+function resetSession(){setManualReading(false,false);dispatch.cancel();responseLanding=0;$('#app').scrollTo(0,0);delete $('.visitor-area').dataset.decision;stage.classList.remove('paused');clock.clear();visitorSequence.reset();clock.setPaused(false);sound.pause(false);paused=false;busy=false;pending=null;cine=null;delete stage.dataset.incident;emergencyId='';operationId='';operationChoice=null;communication=0;messageSent=false;desk.clear();bookTab='index';bookDestination=null;bookPage=0;bookQuery='';bookFilter='all';ledgerPage=0;supplyView='stock';supplyPage=0;comparisonReturn=false;manualFlightSeen='';manualCompared='';$('#cinema').hidden=true;$('#training-guide').hidden=true;$('#toast').hidden=true;}
 function renderProposal(){
   for(const id of ['flight','life','power','order','emergency','worksheet'])desk.remove(id);
-  const p=campaign.proposal;if(!p)return;
+  const p=campaign.proposal;if(!p)return;manualFlightSeen='';manualCompared='';comparisonReturn=false;
   const d=DESTINATIONS.find(d=>d.id===p.destinationId)!;showVisitor(p.engineerId);phase='desk';busy=false;
-  const header=(n:string,title:string,subtitle:string)=>`<header class="paper-header"><span class="paper-form">SP / ${n}</span><span>LUNAR OPERATIONS</span></header><div class="paper-title"><span class="paper-section-number" aria-hidden="true">${n}</span><h2>${title}</h2></div><p class="paper-subtitle">${subtitle}</p>`;
+  const header=(n:string,title:string,subtitle:string)=>`<header class="paper-header"><span class="paper-form">SP / ${n}</span><span class="paper-return-cue">⠿ DRAG · BACK TO ${n} ↗</span></header><div class="paper-title"><span class="paper-section-number" aria-hidden="true">${n}</span><h2>${title}</h2></div><p class="paper-subtitle">${subtitle}</p>`;
   const preview=(n:string,title:string)=>`<div class="paper-preview" aria-hidden="true"><header><span>${n}</span><span>MISSION PAPER</span></header><strong>${title}</strong><span class="preview-rules"></span><footer>SPACE PAPERS <span>CREW OF 04</span></footer></div>`;
   const footer=`<footer class="paper-footer"><span>REQUEST ${p.id.replace('proposal-','').padStart(3,'0')}</span><span>SPACE PAPERS</span></footer><div class="ink-mark" aria-hidden="true"></div>`;
-  mount('flight',`${header('01','Flight plan','LUNAR RETURN EXPEDITION')}${preview('01','Flight<br>plan')}<div class="flight-world">${planet(d.id)}</div><div class="route"><span>MOON</span><strong>→ ${d.name} →</strong><span>MOON</span></div><div class="flight-details"><span>4 crew members</span><strong>${d.mode==='orbit'?'ORBIT ONLY':'LOCAL MODULE'}</strong></div><p class="document-note">${d.mode==='orbit'?'No surface landing.':'Surface visit in this fictional scenario.'}</p>${footer}`,'paper flight-paper',565,242,332,424,'paper',true);
-  mount('life',`${header('02','Life support','REQUESTED SUPPLIES')}${preview('02','Life<br>support')}${resourceRows(p.requested,['food','water','oxygen'])}<p class="document-note">For the complete expedition.<br>Compare with the mission manual.</p>${footer}`,'paper life-paper',730,242,332,424,'paper',true);
-  mount('power',`${header('03','Propulsion<br>& energy','REQUESTED RESOURCES')}${preview('03','Propulsion<br>& energy')}${resourceRows(p.requested,['propellant','energy'])}<p class="document-note">Return journey and reserve included.<br>Energy is used over the mission, not stored in one battery.</p>${footer}`,'paper power-paper',895,242,332,424,'paper',true);
-  setStampAvailability();renderTraining();
+  mount('flight',`${header('01','Flight plan','LUNAR RETURN EXPEDITION')}${preview('01','Flight<br>plan')}<div class="flight-world">${planet(d.id)}</div><div class="route"><span>MOON</span><strong>→ ${d.name} →</strong><span>MOON</span></div><div class="flight-details"><span>4 crew members</span><strong>${d.mode==='orbit'?'ORBIT ONLY':'LOCAL MODULE'}</strong></div><p class="document-note">${d.mode==='orbit'?'No surface landing.':'Surface visit in this fictional scenario.'}</p>${footer}`,'paper flight-paper',571,220,332,424,'paper',true);
+  mount('life',`${header('02','Life support','REQUESTED SUPPLIES')}${preview('02','Life<br>support')}${resourceRows(p.requested,['food','water','oxygen'])}<p class="document-note">For the complete expedition.<br>Compare with the mission manual.</p>${footer}`,'paper life-paper',737,220,332,424,'paper',true);
+  mount('power',`${header('03','Propulsion<br>& energy','REQUESTED RESOURCES')}${preview('03','Propulsion<br>& energy')}${resourceRows(p.requested,['propellant','energy'])}<p class="document-note">Return journey and reserve included.<br>Energy is used over the mission, not stored in one battery.</p>${footer}`,'paper power-paper',903,220,332,424,'paper',true);
+  setStampAvailability();renderTraining();if(desk.items.has('manual'))renderManual();
 }
 function openManual(){
   camera.set('desk');updateTaskGuide();
   let item=desk.items.get('manual');
-  if(!item){mount('manual','','manual',36,382,720,418,'book');item=desk.items.get('manual')!;}
-  item.el.hidden=false;renderManual();desk.focus('manual');sound.play('page');
-  if(training?.lesson===1&&training.step===1){training.step=2;renderTraining();}
+  if(!item){mount('manual','','manual',42,330,760,550,'book');item=desk.items.get('manual')!;}
+  item.el.hidden=false;
+  if(document.body.classList.contains('compact-ui')||bookReading)setManualReading(true);
+  else{renderManual();desk.focus('manual');}
+  sound.play('page');
+  if(training?.lesson===1&&training.step===1){training.step=2;renderTraining();}progressTraining();
+}
+function setManualReading(reading:boolean,focus=true){
+  const item=desk.items.get('manual');if(!item||!reading&&!bookReading)return;
+  desk.cancel();bookReading=reading;
+  const reader=$('#manual-reader');reader.hidden=!reading;reader.inert=!!modal;
+  (reading?reader:$('#objects')).append(item.el);
+  stage.inert=!!modal||dispatch.active||bookReading;
+  $('#reader-timer').hidden=!reading||phase!=='emergency';
+  $('#reader-timer').textContent=`${Math.ceil(remaining/1000)}s · Emergency timer continues · Pause stops time`;
+  $('#small-screen').hidden=!document.body.classList.contains('compact-ui')||screenHintDismissed||bookReading||dispatch.active;
+  setStampAvailability();renderManual();
+  if(focus){if(reading)item.el.querySelector<HTMLElement>('[data-action="manual-reading"]')?.focus({preventScroll:true});else desk.focus('manual');}
+}
+function closeManual(){
+  desk.cancel();setManualReading(false,false);
+  const item=desk.items.get('manual');if(item)item.el.hidden=true;
+  $('.book-tool').focus({preventScroll:true});
 }
 function knownIncidents(){
   const ids=new Set(visible.history.filter(entry=>entry.kind==='emergency').map(entry=>entry.event));
@@ -189,55 +212,36 @@ function knownIncidents(){
 }
 function renderManual(){
   const item=desk.items.get('manual');if(!item)return;
-  const received=knownIncidents();
-  if(bookTab==='emergencies'&&!received.length){bookTab='index';bookPage=0;}
-  const tab=(id:string,label:string)=>`<button data-action="book-${id}" class="${bookTab===id?'active':''}" aria-pressed="${bookTab===id}">${label}</button>`;
-  let left='',right='';
-  if(bookTab==='index'){
-    left=`<span class="eyebrow">FIELD EDITION / 01</span><h2>Mission<br>manual.</h2><p class="manual-intro">A reference for every<br>safe return.</p><div class="manual-contents">${button('01 · Destination minimums','book-destinations')}${button('02 · Desk rules','book-rules')}${received.length?button('03 · Response notes','book-emergencies'):''}</div>`;
-    right=`<span class="eyebrow">YOUR REVIEW / FOUR CHECKS</span><h3>Before you stamp</h3><ol class="manual-steps"><li>Read the route on the flight plan.</li><li>Find its destination in this manual.</li><li>Compare all five requests with the minimums.</li><li>Check stock covers the full request.</li></ol><p class="fine-print">Returning a proposal is free. Approving spends resources, even if the mission fails.</p>`;
-  } else if(bookTab==='destinations'){
-    left=`<span class="eyebrow">FIND YOUR DESTINATION</span><div class="planet-grid">${DESTINATIONS.map(d=>`<button data-action="destination-${d.id}" class="${bookDestination===d.id?'selected':''}" aria-pressed="${bookDestination===d.id}"><span class="tiny-world" aria-hidden="true">${planet(d.id)}</span>${d.name}</button>`).join('')}</div><p class="fine-print">All routes: Moon → destination → Moon.<br>Four crew. Full expedition minimums.</p>`;
-    const d=DESTINATIONS.find(d=>d.id===bookDestination);
-    right=d?`<div class="manual-destination"><h3>${d.name}</h3><span>${d.mode==='orbit'?'ORBIT ONLY':'LOCAL MODULE'}</span></div>${resourceRows(d.minimum,RESOURCES,true)}<p class="fine-print">Fictional game balance. Return and reserve included.</p>`:`<div class="empty-page"><span aria-hidden="true">↖</span><span class="eyebrow">DESTINATION REFERENCE</span><h3>Choose a destination</h3><p>Use the route on the flight plan.<br>Its minimums will appear here.</p></div>`;
-  } else if(bookTab==='rules'){
-    const pages=[
-      [`<h3>Requests ≠ minimums</h3><p>The sheets show what the engineer requests. This book shows the minimum. The stock ledger shows what you have.</p><p>Each resource must meet its own minimum. Extra water cannot replace oxygen.</p>`,`<h3>One signature. One cost.</h3><p>Approve spends the request, including any extra. A failed mission does not refund resources.</p><p>A shortage in stock spends what is available and ends your shift. Return spends nothing.</p>`],
-      [`<h3>Your assignment</h3><p>Complete five different destinations. There are no fixed days or visitor limit.</p><p>Success rate = successful missions ÷ approved missions. Returns and base orders do not count.</p>`,`<h3>Your evaluation</h3><p>100%: certificate.<br>Above 40%, below 100%: office transfer.<br>40% or less: dismissal.</p><p>A stock deficit ends your shift early.</p>`],
-      [`<h3>One shared store</h3><p>The starting stock is assigned once. Expeditions and base operations share the same store.</p><p>It does not guarantee every possible route. There are no refunds or resupplies.</p>`,`<h3>The base needs you</h3><p>After successes 1, 2 and 3, authorize life support, shelter preparation and food supply.</p><p>These orders use the same stock. A local harvest feeds the base; it never refills mission stock.</p>`],
-      [`<h3>Our fictional universe</h3><p>Human journeys to all eight destinations and surface visits to Venus are fiction. Giants have orbital operations only.</p><p>No numerical travel duration is claimed.</p>`,`<h3>Keep units separate</h3><p>kg, L and kWh are not interchangeable. kWh measures energy; kW measures power.</p><p>Breathing oxygen is separate from propellant oxidizer. Mission energy is not battery size.</p>`],
-    ];[left,right]=pages[bookPage%pages.length];
-  } else if(bookTab==='emergencies'){
-    left=`<h3>30 seconds to respond</h3><p>The timer starts when the notice appears. Choose a contribution, then confirm.</p><p>100% guarantees recovery.<br>50% means a 50% chance.<br>0% always fails.</p><p>Moving papers does not stop time. Pause does.</p>`;
-    right=`<h3>Received reports</h3>${received.map(e=>`<div class="incident-entry"><strong>${e.id} · ${e.title}</strong><span>${format(e.cost)} ${RESOURCE_LABELS[e.resource].unit} ${RESOURCE_LABELS[e.resource].label.toLowerCase()}</span></div>`).join('')}<p class="fine-print">Fictional response packages for reports already received.</p>`;
-  } else {
-    const facts=[
-      ['A real solar record','DONKI archived flare','2024-05-10T06:27:00-FLR-001 · v2','Class X3.9. Peak: 06:54 UTC, May 10, 2024.','This historical observation explains why crews monitor the Sun. It does not predict future solar activity or a crew’s radiation dose.','https://ccmc.gsfc.nasa.gov/DONKI/events/30666/2/'],
-      ['Water can circulate','NASA · ISS life support','98% water recovery','NASA demonstrated 98% recovery in the ISS water-recovery system.','Operating a regenerative system needs equipment and power. This does not grant free water or change our fictional mission minimums.','https://www.nasa.gov/missions/station/nasa-achieves-water-recovery-milestone-on-international-space-station/'],
-      ['Growing takes time','NASA · Veg-01','28-day experiment','The Veg-01 experiment planned a 28-day growing cycle with lighting and periodic watering.','Our growing step is compressed simulation time. It is not a trip duration or a NASA crop-yield model. The harvest is used locally.','https://www.nasa.gov/missions/station/veggie-plant-growth-system-activated-on-international-space-station/'],
-      ['A shelter needs shielding','NASA · lunar radiation','Protection is a design problem','Material between people and radiation helps protect a crew. Activities may need to be postponed.','Our power costs operate equipment in an existing shelter. Electricity is not shielding. The shelter is an existing structure in this simulation.','https://science.nasa.gov/science-research/heliophysics/how-nasa-will-protect-astronauts-from-space-radiation-at-the-moon/'],
-      ['A message is not instant','NASA · light travel','About 1.3 seconds one way','Light takes approximately 1.3 seconds to travel between the Moon and Earth.','Our 2.6-second exchange represents an ideal round trip. Real systems and people add delay.','https://science.nasa.gov/mission/webb/science-overview/science-explainers/how-does-webb-see-back-in-time/'],
-    ];const f=facts[bookPage%facts.length];
-    left=`<span class="eyebrow">NASA FIELD NOTE ${bookPage%5+1}/5</span><h3>${f[0]}</h3><p class="source-label">${f[1]}</p><strong class="science-fact">${f[2]}</strong><p>${f[3]}</p>`;
-    right=`<span class="eyebrow">SCIENCE & OUR SIMULATION</span><p>${f[4]}</p><p>Mission quantities, base-order costs and survival probabilities are <strong>fictional game balance</strong>.</p><a class="source-link" href="${f[5]}" target="_blank" rel="noopener">Read the NASA source ↗</a>`;
-  }
-  preserveControlFocus(item.el,()=>{item.el.innerHTML=`<div class="manual-top"><span class="manual-brand">✦ <span>FIELD MANUAL</span></span><nav aria-label="Manual sections">${tab('index','Index')}${tab('destinations','Routes')}${tab('rules','Rules')}${received.length?tab('emergencies','Response'):''}${tab('science','NASA')}</nav></div><div class="book-spread" data-no-drag><section tabindex="0" aria-label="Left manual page">${left}</section><section tabindex="0" aria-label="Right manual page">${right}</section></div><footer class="manual-footer">${button(item.pinned?'Unpin book':'Pin book','pin')}<span>${bookTab==='rules'?`PAGE ${bookPage%4+1} / 4`:bookTab==='science'?`NASA ${bookPage%5+1} / 5`:bookTab==='emergencies'?'RESPONSE NOTES':'LUNAR OPERATIONS'}</span>${['rules','science'].includes(bookTab)?`${button('‹','book-prev')}${button('›','book-next')}`:''}${button('Close','close-manual')}</footer>`;
-  item.el.querySelector('[data-action="book-prev"]')?.setAttribute('aria-label','Previous manual page');item.el.querySelector('[data-action="book-next"]')?.setAttribute('aria-label','Next manual page');
-  item.el.querySelector('[data-action="pin"]')?.setAttribute('aria-pressed',String(!!item.pinned));});
+  supplyPage=Math.min(supplyPage,Math.max(0,Math.ceil(visible.history.length/4)-1));
+  preserveControlFocus(item.el,()=>{
+    item.el.innerHTML=manualMarkup({tab:bookTab,destination:bookDestination,page:bookPage,query:bookQuery,filter:bookFilter,pinned:!!item.pinned,reading:bookReading,received:knownIncidents(),activeIncident:phase==='emergency'?emergencyId:null,proposal:phase==='desk'?campaign.proposal:null,stock:visible.stock,history:visible.history,supplyView,recordPage:supplyPage});
+    filterManualRoutes(item.el,bookQuery,bookFilter);
+    item.el.querySelector('[data-action="book-prev"]')?.setAttribute('aria-label','Previous manual page');
+    item.el.querySelector('[data-action="book-next"]')?.setAttribute('aria-label','Next manual page');
+  });
 }
-function openLedger(tab:string){
+function openSupplies(view:'stock'|'record'){
+  if(busy)return;
   camera.set('desk');updateTaskGuide();
-  ledgerTab=tab;ledgerPage=0;let item=desk.items.get('ledger');if(!item){mount('ledger','','ledger',1158,382,406,418,'ledger');item=desk.items.get('ledger')!;}
-  item.el.hidden=false;renderLedger();desk.focus('ledger');sound.play('page');
-  if(training?.lesson===1&&training.step===4&&tab==='stock'){training.step=5;renderTraining();}
+  bookTab='supplies';supplyView=view;supplyPage=0;comparisonReturn=false;
+  const item=desk.items.get('manual');
+  if(!item||item.el.hidden||document.body.classList.contains('compact-ui')&&!bookReading)openManual();else{renderManual();desk.raise('manual');}
+  const root=desk.items.get('manual')?.el;
+  if(root&&(!root.contains(document.activeElement)||document.activeElement===root))root.querySelector<HTMLElement>('.guide-content')?.focus({preventScroll:true});
+  progressTraining();sound.play('page');
 }
-function logEntries(entries:Resolution[],page:number){return entries.slice(page*4,page*4+4).map(r=>`<div class="log-entry"><span class="log-kind">${r.kind==='return'?'RETURNED':r.kind==='mission'?(r.success?'RETURNED SAFELY':'MISSION STOPPED'):r.kind==='emergency'?'INCIDENT':'BASE ORDER'}</span><strong>${esc(nameOf(r.destination)||r.title)}</strong><span>${r.kind==='return'?'No resources spent':r.kind==='mission'?(r.success?'Crew back on the Moon':r.explanation):r.explanation}</span></div>`).join('')||'<div class="empty-log">A quiet desk.<br>Your decisions will appear here.</div>';}
-function renderLedger(){const item=desk.items.get('ledger');if(!item)return;const history=[...visible.history].reverse();const pages=Math.max(1,Math.ceil(history.length/4));ledgerPage=Math.min(ledgerPage,pages-1);
-  preserveControlFocus(item.el,()=>{item.el.innerHTML=`<header class="ledger-header"><div><span class="eyebrow">LUNAR SUPPLY OFFICE</span><h2>${ledgerTab==='stock'?'Stock ledger':'Turn record'}</h2></div><span class="ledger-insignia" aria-hidden="true">▤</span></header><nav class="ledger-tabs">${button('Inventory','inventory',ledgerTab==='stock'?'active':'')}${button('Record','record',ledgerTab==='record'?'active':'')}</nav><div class="ledger-content" data-no-drag tabindex="0" aria-label="Ledger entries">${ledgerTab==='stock'?'<div class="ledger-column-labels"><span>RESOURCE</span><span>AVAILABLE</span></div>':''}${ledgerTab==='stock'?resourceRows(visible.stock,RESOURCES,true):logEntries(history,ledgerPage)}</div><footer class="ledger-footer">${ledgerTab==='record'?`${button('‹','log-prev')}<span>${ledgerPage+1} / ${pages}</span>${button('›','log-next')}`:'<span>One store. No resupplies.</span>'}${button('Close','close-ledger')}</footer>`;
-  item.el.querySelector('[data-action="inventory"]')?.setAttribute('aria-pressed',String(ledgerTab==='stock'));item.el.querySelector('[data-action="record"]')?.setAttribute('aria-pressed',String(ledgerTab==='record'));
-  const prev=item.el.querySelector<HTMLButtonElement>('[data-action="log-prev"]'),next=item.el.querySelector<HTMLButtonElement>('[data-action="log-next"]');
-  if(prev){prev.disabled=ledgerPage===0;prev.setAttribute('aria-label','Previous record page');}if(next){next.disabled=ledgerPage===pages-1;next.setAttribute('aria-label','Next record page');}});
+function navigateManual(tab:ManualTab){
+  bookTab=tab;bookPage=0;
+  if(tab==='flight'&&phase==='desk'&&campaign.proposal)manualFlightSeen=campaign.proposal.id;
+  if(tab==='compare'&&phase==='desk'&&campaign.proposal&&bookDestination)manualCompared=campaign.proposal.id;
+  renderManual();const root=desk.items.get('manual')?.el;
+  if(root&&document.activeElement===root)root.querySelector<HTMLElement>('.guide-content')?.focus({preventScroll:true});
+  progressTraining();sound.play('page');
 }
+function chooseManualReference(compare=false){
+  comparisonReturn=compare;bookDestination=null;bookQuery='';bookFilter='all';navigateManual('destinations');
+}
+function logEntries(entries:Resolution[],page:number){return historyMarkup(entries,page,nameOf);}
 
 function stampDecision(stamp:'approve'|'return',target:string){
   if(busy||paused)return;
@@ -278,20 +282,34 @@ function advance(){
   if(next.kind==='operation'){showOperation(next.operationId);return;}
   campaign=nextProposal(campaign);visible=campaign;renderProposal();
 }
+function receiveDispatch(brief:DispatchBrief,id:string){
+  setManualReading(false,false);busy=true;responseLanding=0;desk.cancel();
+  const item=desk.items.get(id)!;item.el.classList.add('dispatch-pending');
+  dispatch.show(brief,prefs.reduced,()=>{
+    busy=false;responseLanding=prefs.reduced?0:650;stage.inert=!!modal;$('#small-screen').hidden=!document.body.classList.contains('compact-ui')||screenHintDismissed;
+    item.el.classList.remove('dispatch-pending');item.el.classList.add('dispatch-arriving');
+    if(brief.kind==='operation'&&brief.code==='B02'){communication=2600;messageSent=true;}
+    setStampAvailability();renderTraining();desk.focus(id);sound.play('paper');
+    announce(brief.kind==='emergency'?(brief.practice?'Emergency practice. No time limit.':'Response panel ready. Thirty seconds. Choose support, then confirm.'):'Base order ready. Compare the two plans, then stamp your choice.');
+  });
+  stage.inert=true;$('#small-screen').hidden=true;setStampAvailability();renderTraining();
+  sound.play(brief.kind==='emergency'?'alert':'transmission');
+  announce(`${brief.kind==='emergency'?'Survival alert':'Base operations'}: ${brief.title}. Incoming transmission.`);
+}
 function showEmergency(id:string){
-  camera.set('desk');
+  dispatch.cancel();camera.set('desk');
   phase='emergency';busy=false;emergencyId=id;remaining=30000;contribution=0;alarmSecond=-1;protocolSelection=null;desk.remove('order');desk.remove('worksheet');stage.dataset.incident=id;
   const e=EVENTS.find(e=>e.id===id)!;const max=Math.min(100,Math.floor(campaign.stock[e.resource]*100/e.cost));
   showVisitor('victor');$('#speech').textContent='An incident needs your attention. Choose a contribution, then confirm.';
   const practice=training?.lesson===3&&training.practice!=='timed';
-  mount('emergency',`<header class="emergency-header"><span class="emergency-light"></span><span>PRIORITY TRANSMISSION / ${id}</span><span class="grab-caption">DRAG TO MOVE</span></header><div class="emergency-body"><div class="emergency-heading"><div><span class="eyebrow">LUNAR BASE / RESPONSE REQUIRED</span><h2>${e.title}</h2></div><div class="timer" role="timer" aria-label="Emergency time remaining"><strong id="seconds">${practice?'—':'30'}</strong><span>${practice?'PRACTICE':'SECONDS'}</span></div></div><p>${e.description}</p><div class="emergency-cost"><span>Full intervention</span><strong>${format(e.cost)} ${RESOURCE_LABELS[e.resource].unit} ${RESOURCE_LABELS[e.resource].label.toLowerCase()}</strong></div><label class="contribution-label" for="contribution">Your contribution <strong id="contribution-percent">0%</strong></label><input id="contribution" type="range" min="0" max="${max}" value="0" step="1" aria-describedby="contribution-help"><div class="contribution-scale"><span>0%</span><span>${max}% available</span></div><div class="contribution-summary"><span id="contribution-amount">0 ${RESOURCE_LABELS[e.resource].unit}</span><span><strong id="probability">0%</strong> chance of recovery</span></div><p id="contribution-help" class="fine-print">Only confirming spends stock. Zero contribution always fails.</p><div class="emergency-actions">${button('Stock ledger','inventory')}${PROTOCOLS[id]?button('Inspect report','inspect-incident'):''}${button(practice?'Test this amount':'Confirm contribution','confirm-emergency','primary')}</div></div>`,'emergency',220,245,800,460,'emergency');
+  mount('emergency',`<header class="emergency-header"><span class="emergency-light"></span><span>SURVIVAL RESPONSE / ${id}</span><span class="grab-caption">⠿ DRAG TO MOVE</span></header><div class="emergency-body"><div class="emergency-heading"><span class="response-symbol" aria-hidden="true">${resourceIcon(e.resource)}</span><div class="response-title"><span class="eyebrow">LUNAR BASE / PRIORITY CHANNEL</span><h2>${e.title}</h2></div><div class="timer" role="timer" aria-label="Emergency time remaining"><strong id="seconds">${practice?'—':'30'}</strong><span>${practice?'PRACTICE':'SECONDS'}</span></div></div><p>${e.description}</p><div class="emergency-cost"><span><small>Full intervention</small>${RESOURCE_LABELS[e.resource].label} needed by the base</span><strong>${format(e.cost)} <span>${RESOURCE_LABELS[e.resource].unit}</span></strong></div><div class="response-allocation"><label class="contribution-label" for="contribution">Choose your support <strong id="contribution-percent">0%</strong></label><input id="contribution" type="range" min="0" max="${max}" value="0" step="1" aria-describedby="contribution-help"><div class="contribution-scale"><span>0% · No support</span><span>${max}% available</span></div></div><div class="contribution-summary"><div><span>SUPPORT TO SEND</span><strong id="contribution-amount">0 ${RESOURCE_LABELS[e.resource].unit}</strong></div><div><span>CHANCE OF RECOVERY</span><strong id="probability">0%</strong></div></div><p id="contribution-help" class="fine-print">Only confirming spends stock. Zero contribution always fails.</p><div class="emergency-actions">${button('Open manual','manual')}${PROTOCOLS[id]?button('Inspect report','inspect-incident'):''}${button(practice?'Test this amount':'Send support →','confirm-emergency','primary')}</div></div>`,'emergency',200,300,880,550,'emergency');
   if(desk.items.has('manual'))renderManual();
-  sound.play('alert');setStampAvailability();renderTraining();desk.focus('emergency');announce(practice?'Emergency practice. No time limit.':'Emergency. Thirty seconds. Contribution starts at zero.');
+  receiveDispatch({kind:'emergency',code:id,title:e.title,description:e.description,resource:e.resource,system:`${RESOURCE_LABELS[e.resource].label.toUpperCase()} / RESPONSE REQUIRED`,practice},'emergency');
 }
 function openWorksheet(){
   if(phase!=='emergency'||!PROTOCOLS[emergencyId])return;
   const existing=desk.items.get('worksheet');if(existing){desk.focus('worksheet');return;}
-  mount('worksheet',protocolMarkup(emergencyId,protocolSelection),'paper protocol-sheet',1050,275,500,535,'book');
+  mount('worksheet',protocolMarkup(emergencyId,protocolSelection),'paper protocol-sheet dispatch-arriving',1030,330,500,535,'book');
   desk.focus('worksheet');sound.play('page');
 }
 function updateContribution(){
@@ -302,6 +320,7 @@ function updateContribution(){
 }
 function confirmEmergency(expired=false){
   if(phase!=='emergency'||busy||paused)return;
+  setManualReading(false,false);
   if(training?.lesson===3&&training.practice!=='timed'){
     const required=training.practice==='half'?50:100;
     if(contribution!==required){toast(`For this practice step, select ${required}%.`);return;}
@@ -310,24 +329,27 @@ function confirmEmergency(expired=false){
     showEmergency('E02');return;
   }
   busy=true;setStampAvailability();const tx=resolveEmergency(campaign,emergencyId,expired?0:contribution,`incident-${++serial}`);campaign=tx.state;pending=tx.resolution;
-  sound.play('confirm');desk.remove('emergency');desk.remove('worksheet');delete stage.dataset.incident;startCinema(tx.resolution);
+  sound.play('confirm');desk.cancel();
+  desk.items.get('emergency')?.el.classList.add('dispatch-sent');
+  announce('Response sent. The intervention team is taking over.');
+  clock.after(prefs.reduced?120:480,()=>{desk.remove('emergency');desk.remove('worksheet');delete stage.dataset.incident;startCinema(tx.resolution);});
 }
 function showOperation(id:string){
-  camera.set('desk');
+  dispatch.cancel();camera.set('desk');
   phase='operation';busy=false;operationId=id;operationChoice=null;desk.remove('emergency');
   const op=OPERATIONS.find(o=>o.id===id)!;showVisitor('adan');$('#speech').textContent='A decision for the base. Compare the costs, choose one option, then approve this order.';
-  mount('order',`<header class="order-header"><span>INTERNAL ORDER / ${id}</span><span>SHARED STOCK</span></header><h2>${op.title}</h2><p class="order-intro">Choose one plan. Stamp this order to authorize its cost.</p><div class="order-choices">${op.choices.map(c=>`<button class="order-choice" data-action="choice-${c.id}" aria-pressed="false"><span class="choice-letter">${c.id}</span><div><strong>${c.name}</strong><p>${c.description}</p><span class="choice-cost">${costText(c.cost)}</span></div></button>`).join('')}</div><div id="message-status" class="message-status">${id==='B02'?'↗ Consulting Earth… ideal signal round trip: 2.6 seconds.':'Resources are spent once. No mission approval is counted.'}</div><p class="fine-print">Fictional operation packages. Compare costs with the stock ledger. Insufficient stock ends your shift.</p><div class="order-bottom">${button('Stock ledger','inventory')}${button('NASA field notes','operation-science')}<span id="order-selected">SELECT A OR B</span></div><div class="ink-mark" aria-hidden="true"></div>`,'order paper',385,325,740,455,'order');
-  if(id==='B02'){communication=2600;messageSent=true;}else{communication=0;messageSent=false;}
-  setStampAvailability();renderTraining();desk.focus('order');
+  mount('order',`<header class="order-header"><span>BASE OPERATIONS / ${id}</span><span>⠿ DRAG TO MOVE</span></header><div class="order-hero"><span class="response-symbol" aria-hidden="true">${resourceIcon(id==='B01'?'oxygen':id==='B02'?'energy':'food')}</span><div><span class="eyebrow">HABITAT / PLANNING DESK</span><h2>${op.title}</h2></div><span class="order-seal" aria-hidden="true">SP<br>04</span></div><p class="order-intro">Two plans. One shared stock. Choose, then stamp to authorize.</p><div class="order-choices">${op.choices.map(c=>`<button class="order-choice" data-action="choice-${c.id}" aria-pressed="false"><span class="choice-letter">${c.id}</span><div><strong>${c.name}</strong><p>${c.description}</p><span class="choice-cost">${costText(c.cost)}</span><span class="choice-state">Select this plan <span aria-hidden="true">↗</span></span></div></button>`).join('')}</div><div id="message-status" class="message-status">${id==='B02'?'↗ Consulting Earth… ideal signal round trip: 2.6 seconds.':'No countdown. Take a moment to compare both plans.'}</div><p class="fine-print">Fictional operation packages. Compare costs with Inventory in the manual. Insufficient stock ends your shift.</p><div class="order-bottom">${button('Open manual','manual')}${button('NASA field notes','operation-science')}<span id="order-selected">SELECT A OR B</span></div><div class="ink-mark" aria-hidden="true"></div>`,'order paper',360,290,860,570,'order');
+  communication=0;messageSent=false;
+  receiveDispatch({kind:'operation',code:id,title:op.title,description:id==='B01'?'The habitat needs a life-support plan. Choose how to keep the crew supplied.':id==='B02'?'Prepare a safe shelter for the crew and decide which activities can continue.':'The crew needs a food-supply plan. Compare growing locally with using stored rations.',resource:id==='B01'?'oxygen':id==='B02'?'energy':'food',system:'HABITAT / PLANNING REQUEST'},'order');
 }
 function chooseOperation(choice:'A'|'B'){
   if(phase!=='operation'||busy)return;operationChoice=choice;
-  document.querySelectorAll<HTMLElement>('.order-choice').forEach(el=>{const active=el.dataset.action===`choice-${choice}`;el.classList.toggle('chosen',active);el.setAttribute('aria-pressed',String(active));});
+  document.querySelectorAll<HTMLElement>('.order-choice').forEach(el=>{const active=el.dataset.action===`choice-${choice}`;el.classList.toggle('chosen',active);el.setAttribute('aria-pressed',String(active));const label=el.querySelector('.choice-state');if(label)label.textContent=active?'✓ Selected · approve to authorize':'Select this plan ↗';});
   $('#order-selected').textContent=`OPTION ${choice} · READY TO STAMP`;setStampAvailability();sound.play('confirm');announce(`Option ${choice} selected. Apply the Approve stamp to this order.`);
 }
 
 function makeSteps(r:Resolution){
-  if(r.kind!=='mission')return [{label:r.kind==='emergency'?'Intervention in progress':'Preparing the base operation',visual:'base',phase:'base'}];
+  if(r.kind!=='mission')return (r.kind==='emergency'?['Response transmitted to the base','Intervention team at work','Checking habitat systems']:['Preparing the selected plan','Base team carrying out the order','Checking habitat systems']).map(label=>({label,visual:'base',phase:'base'}));
   const d=DESTINATIONS.find(d=>d.id===r.destination)!;
   const steps=[{label:'Preparing the lunar module',visual:'launch',phase:'launch'},{label:'Ascending from the Moon',visual:'ascent',phase:'outbound'},{label:'Transfer to the orbital transport',visual:'transfer',phase:'outbound'},{label:`Outbound to ${d.name}`,visual:'outbound',phase:'outbound'},{label:d.mode==='orbit'?`Orbital operations at ${d.name}`:`Local module operations on ${d.name}`,visual:d.mode==='orbit'?'orbit':'surface',phase:'destination'},{label:'Returning to the Moon',visual:'return',phase:'return'},{label:'Lunar module descent',visual:'landing',phase:'return'},{label:'Touchdown on the Moon',visual:'home',phase:'return'}];
   if(r.success)return steps;
@@ -335,7 +357,7 @@ function makeSteps(r:Resolution){
   return steps.slice(0,stop+1);
 }
 function startCinema(r:Resolution){
-  phase='cinema';busy=true;desk.cancel();setStampAvailability();$('#training-guide').hidden=true;
+  setManualReading(false,false);dispatch.cancel();phase='cinema';busy=true;desk.cancel();setStampAvailability();$('#training-guide').hidden=true;
   for(const item of desk.items.values())item.el.hidden=true;
   cine={steps:makeSteps(r),index:0,elapsed:0,speed:1,revealed:false};pending=r;
   $('#cinema').hidden=false;$('#objects').inert=true;renderCinema();const next=$('#cinema [data-action="skip"]');next.focus({preventScroll:true});if(document.body.classList.contains('compact-ui'))next.scrollIntoView({block:'nearest',inline:'nearest',behavior:'instant'});
@@ -347,7 +369,7 @@ function renderCinema(){
   const world=['launch','ascent','transfer','landing','home'].includes(visual)?'moon':r.destination??'moon';
   const surface=['launch','ascent','surface','landing','home'].includes(visual);
   const baseStates={lifeSupport:visible.operationChoices.B01==='A'?'regenerative':'pending',refuge:visible.operationChoices.B02?'ready':'pending',food:visible.operationChoices.B03==='A'?'growing':'pending'};
-  const art=visual.startsWith('base')?`<div class="cinema-base">${baseView(baseStates,reveal?(r.success?'stable':'lost'):'intervention')}</div>`:`<div class="cinema-world ${surface?'surface-world':''}">${planet(world)}</div><div class="cinema-stars" aria-hidden="true">✦<span>·</span>✧<span>·</span>✦</div>${surface?'<div class="cinema-ground"></div><div class="landing-pad"></div>':''}<div class="cinema-ship ${visual} ${reveal&&!r.success?'stopped':''}">${ship(surface?'module':'transport')}</div>${visual==='transfer'?`<div class="transfer-module">${ship('module')}</div>`:''}`;
+  const art=visual.startsWith('base')?`<div class="cinema-base">${baseView(baseStates,reveal?(r.success?'stable':'lost'):r.kind==='emergency'?'intervention':'normal')}</div>`:`<div class="cinema-world ${surface?'surface-world':''}">${planet(world)}</div><div class="cinema-stars" aria-hidden="true">✦<span>·</span>✧<span>·</span>✦</div>${surface?'<div class="cinema-ground"></div><div class="landing-pad"></div>':''}<div class="cinema-ship ${visual} ${reveal&&!r.success?'stopped':''}">${ship(surface?'module':'transport')}</div>${visual==='transfer'?`<div class="transfer-module">${ship('module')}</div>`:''}`;
   preserveControlFocus($('#cinema'),()=>{$('#cinema').innerHTML=`<div class="projection-frame"><header><span>MISSION PROJECTION</span><span>${r.kind==='mission'?`${nameOf(r.destination).toUpperCase()} / CREW OF 04`:'LUNAR BASE / OPERATIONS'}</span></header><div class="projection-view ${visual} ${reveal?'revealed':''}">${art}${reveal?`<div class="consequence-mark ${r.success?'positive':'negative'}">${r.success?'✓':'!'}</div>`:''}</div><div class="cine-sequence" aria-label="${reveal?'Outcome revealed':`Sequence ${c.index+1} of ${c.steps.length}`}">${c.steps.map((_,i)=>`<i class="${i<c.index||reveal?'complete':i===c.index?'current':''}" aria-hidden="true"></i>`).join('')}</div><div class="cine-caption"><span class="eyebrow">${reveal?'CONSEQUENCE':`SEQUENCE ${c.index+1} / ${c.steps.length}`}</span><h2>${label}</h2><p>${reveal?esc(r.explanation):'Observe the mission. The report follows the outcome.'}</p></div><footer>${button('Ⅱ Pause','pause')}${button(c.speed===1?'Speed ×1':'Speed ×4','speed')}${button(reveal?'Open report':'See outcome','skip','primary')}</footer></div>`;});
   $('#cinema [data-action="speed"]').setAttribute('aria-pressed',String(c.speed===4));
   $('#cinema').dataset.speed=String(c.speed);
@@ -359,7 +381,7 @@ function showReport(){
   showModal('report',reportMarkup(r,nameOf(r.destination),!!training&&(training.error||r.fatal)));
 }
 function archive(){
-  closeModal();for(const id of ['manual','ledger']){const item=desk.items.get(id);if(item)item.el.hidden=false;}
+  closeModal();for(const id of ['manual']){const item=desk.items.get(id);if(item)item.el.hidden=false;}
   if(training){const lesson=training.lesson;if(training.error||pending?.fatal){setupTraining(lesson);return;}if(lesson===1){setupTraining(2);return;}if(lesson===3){setupTraining(4);return;}if(lesson===4){trainingFinished();return;}}
   advance();
 }
@@ -371,7 +393,8 @@ function showFinal(grade:'certificate'|'office'|'dismissal'){
 function renderFinalLog(){const entries=[...campaign.history].reverse(),pages=Math.max(1,Math.ceil(entries.length/4));ledgerPage=Math.max(0,Math.min(ledgerPage,pages-1));$('#final-log').innerHTML=logEntries(entries,ledgerPage);$('#final-page').textContent=`${ledgerPage+1} / ${pages}`;$<HTMLButtonElement>('[data-action="final-prev"]').disabled=ledgerPage===0;$<HTMLButtonElement>('[data-action="final-next"]').disabled=ledgerPage===pages-1;}
 
 function setupTraining(lesson:number){
-  clock.clear();desk.cancel();closeModal();$('#cinema').hidden=true;cine=null;pending=null;busy=false;paused=false;clock.setPaused(false);sound.pause(false);
+  manualFlightSeen='';manualCompared='';comparisonReturn=false;
+  setManualReading(false,false);dispatch.cancel();clock.clear();desk.cancel();closeModal();$('#cinema').hidden=true;cine=null;pending=null;busy=false;paused=false;clock.setPaused(false);sound.pause(false);
   stage.classList.remove('paused');camera.set('desk');training={lesson,step:0,practice:'half',error:false};stage.classList.remove('menu-mode');
   for(const id of ['flight','life','power','order','emergency','worksheet'])desk.remove(id);
   campaign=createCampaign(`training-${lesson}`);campaign.stock=vector(200000,400000,100000,20000000,20000000);campaign.initial={...campaign.stock};campaign.events.forEach(e=>e.resolved=true);
@@ -383,14 +406,16 @@ function setupTraining(lesson:number){
 function progressTraining(){
   if(!training)return;
   if(training.lesson===1){
-    if(training.step===0&&!desk.items.get('flight')?.stored){training.step=1;renderTraining();}
-    if(training.step===3&&['flight','life','power'].every(id=>desk.items.get(id)?.stored===false)){training.step=4;renderTraining();}
+    if(training.step===0&&(manualFlightSeen===campaign.proposal?.id||!desk.items.get('flight')?.stored)){training.step=1;renderTraining();}
+    if(training.step===1&&desk.items.get('manual')&&!desk.items.get('manual')!.el.hidden){training.step=2;renderTraining();}
+    if(training.step===3&&(manualCompared===campaign.proposal?.id||['flight','life','power'].every(id=>desk.items.get(id)?.stored===false))){training.step=4;renderTraining();}
+    if(training.step===4&&bookTab==='supplies'&&supplyView==='stock'){training.step=5;renderTraining();}
   }
 }
 function renderTraining(){
   const guide=$('#training-guide');guide.hidden=!training||['cinema','report'].includes(phase);if(!training)return;
-  const first=['Take the flight plan from the tray. Hold and drag it onto the desk.','Open the Mission Manual. Press B or use the book at the left.','Open Routes and find Earth yourself. The book will never choose for you.','Take both resource sheets. Compare all five requests with Earth’s minimums.','Open the stock ledger with I. The stock must cover the entire request.','Take APPROVE and release it on a sheet. Every request equals its minimum.'];
-  const instruction=training.lesson===1?first[training.step]:training.lesson===2?'The next route is Mars. Food requested: 6,900 kg. Find its minimum in the manual. Return the proposal if something is missing.':training.lesson===3?(training.practice==='half'?'Practice without a clock: select 50% and test the amount. How many kilograms is that?':training.practice==='full'?'Now select 100%. Full support guarantees recovery. Test it, then try with the clock.':'The clock is running. Contribution starts at zero. Choose your amount and confirm within 30 seconds.'):'The base also needs resources. Read both options, check the stock and stamp the chosen internal order.';
+  const first=['Take the flight plan from the tray, or use Read the flight plan in the manual.','Open the Mission Manual. Press B or use the book at the left.','Open Routes and find Earth yourself. The book will never choose for you.','Take both resource sheets. Compare all five requests with Earth’s minimums.','Open Stock & log in the manual, then Inventory. The stock must cover the full request.','Take APPROVE and release it on a sheet. Every request equals its minimum.'];
+  const instruction=training.lesson===1?first[training.step]:training.lesson===2?'The next route is Mars. Food requested: 6,900 kg. Find its minimum in the manual. Return the proposal if something is missing.':training.lesson===3?(training.practice==='half'?'Practice without a clock: select 50% and test the amount. How many kilograms is that?':training.practice==='full'?'Now select 100%. Full support guarantees recovery. Test it, then try with the clock.':'The clock is running. Contribution starts at zero. Choose your amount and confirm within 30 seconds.'):'The base also needs resources. Read both options, check Inventory in the manual and stamp the chosen internal order.';
   guide.innerHTML=`<div class="training-heading"><span>TRAINING / ${training.lesson} OF 4</span>${button('Repeat','repeat-lesson')}${button('Exit','exit-training')}</div><p>${instruction}</p><div class="training-progress" role="img" aria-label="Lesson ${training.lesson} of 4">${[1,2,3,4].map(n=>`<i class="${n<=training!.lesson?'active':''}"></i>`).join('')}</div>`;
 }
 function trainingFinished(){training=null;phase='menu';$('#training-guide').hidden=true;setStampAvailability();showModal('training-finished',`<section class="small-panel"><span class="eyebrow">TRAINING COMPLETE</span><h1>You know the desk.</h1><p>You compared a request, returned an unsafe plan, handled an emergency and paid for a base operation.</p><p>Your real shift starts with a new seed and its own inventory.</p>${button('Begin a new shift →','new-shift','primary')}${button('Back to menu','menu')}</section>`);}
@@ -402,11 +427,11 @@ function showModal(name:string,html:string){
   layer.setAttribute('role','dialog');layer.setAttribute('aria-modal','true');layer.tabIndex=-1;
   const heading=layer.querySelector('h1');if(heading){heading.id='modal-title';layer.setAttribute('aria-labelledby','modal-title');}
   else{layer.removeAttribute('aria-labelledby');layer.setAttribute('aria-label','Space Papers');}
-  stage.inert=true;desk.enabled=false;$('#small-screen').hidden=true;
+  stage.inert=true;$('#manual-reader').inert=true;$('#dispatch').inert=true;desk.enabled=false;$('#small-screen').hidden=true;
   queueMicrotask(()=>{const first=modalFocusables()[0];(first??layer).focus({preventScroll:true});});
 }
 function closeModal(){
-  modal='';const layer=$('#modal-layer');stage.append($('#toast'));layer.hidden=true;layer.innerHTML='';stage.inert=false;$('#small-screen').hidden=!document.body.classList.contains('compact-ui')||phase==='menu'||screenHintDismissed;
+  modal='';const layer=$('#modal-layer');stage.append($('#toast'));layer.hidden=true;layer.innerHTML='';stage.inert=dispatch.active||bookReading;$('#manual-reader').inert=false;$('#dispatch').inert=false;$('#small-screen').hidden=!document.body.classList.contains('compact-ui')||phase==='menu'||screenHintDismissed||dispatch.active||bookReading;
   $('#objects').inert=camera.position==='room'||phase==='cinema';
   const target=modalReturnFocus;modalReturnFocus=null;
   if(target?.isConnected&&!target.closest('[hidden],[inert]'))target.focus({preventScroll:true});
@@ -419,7 +444,7 @@ function showPause(){showModal('pause',`<section class="small-panel"><span class
 function resume(){closeModal();paused=false;stage.classList.remove('paused');clock.setPaused(false);sound.pause(false);setStampAvailability();if(phase==='report')showReport();else if(phase==='final')showFinal(finalGrade(campaign.completed.length,campaign.approvals,!!campaign.terminal));else lastFocus?.isConnected&&lastFocus.focus({preventScroll:true});}
 function options(){showModal('options',`<section class="small-panel options-panel"><span class="eyebrow">PERSONAL EQUIPMENT SETTINGS</span><h1>Make it yours.</h1><label class="setting"><span>Sound volume <output id="volume-value">${Math.round(prefs.volume*100)}%</output></span><input type="range" id="volume" min="0" max="100" value="${Math.round(prefs.volume*100)}"></label><label class="setting"><span>Mute sound</span><input type="checkbox" id="muted" ${prefs.muted?'checked':''}></label><label class="setting"><span>Reduce motion<small>Keep animation and camera movement still</small></span><input type="checkbox" id="reduced" ${prefs.reduced?'checked':''}></label><label class="setting"><span>Place objects with two clicks<small>Select an object, then choose a spot. No dragging needed.</small></span><input type="checkbox" id="click-placement" ${prefs.clickPlacement?'checked':''}></label><p class="fine-print">You can always use the keyboard. English edition. Campaigns are not saved; these preferences are.</p>${button('Full screen','fullscreen')}${button('Done','settings-done','primary')}</section>`);}
 function credits(){showModal('credits',`<section class="credits-panel"><span class="eyebrow">SPACE PAPERS / LOS VALAR</span><h1>Science behind<br>the paperwork.</h1><div class="credits-columns"><div><h3>An original lunar desk</h3><p>Game concept and direction: Los valar. Implementation and original vector stand-ins: assisted by OpenAI Codex and Terra agents.</p><p>Room, desk and door: original Blender renders supplied by Los valar, integrated as layered WebP images. The nine engineers use the team’s supplied transparent renders for idle, speech and stamp reactions; the original rigged walking cycle is re-rendered in consecutive frames. Remaining procedural illustrations are provisional.</p><p>Interaction research references Papers, Please by Lucas Pope. No art, text, audio or code from that game is used.</p><p>Sound cues are synthesized locally. System fonts. No player analytics, account or live API connection.</p></div><div><h3>NASA field references</h3><ul><li><a href="https://ccmc.gsfc.nasa.gov/DONKI/events/30666/2/" target="_blank" rel="noopener">DONKI · May 10, 2024 · X3.9</a></li><li><a href="https://www.nasa.gov/missions/station/nasa-achieves-water-recovery-milestone-on-international-space-station/" target="_blank" rel="noopener">ISS water-recovery milestone</a></li><li><a href="https://www.nasa.gov/missions/station/veggie-plant-growth-system-activated-on-international-space-station/" target="_blank" rel="noopener">Veg-01 growing experiment</a></li><li><a href="https://science.nasa.gov/science-research/heliophysics/how-nasa-will-protect-astronauts-from-space-radiation-at-the-moon/" target="_blank" rel="noopener">Radiation protection at the Moon</a></li><li><a href="https://science.nasa.gov/mission/webb/science-overview/science-explainers/how-does-webb-see-back-in-time/" target="_blank" rel="noopener">Light travel time</a></li></ul><p>All economic costs and survival probabilities are fictional game balance. Scientific observations remain separate. NASA does not endorse this game.</p></div></div>${button('Back','settings-done','primary')}</section>`);}
-function help(){if(phase!=='menu'&&!paused)pause();showModal('help',`<section class="small-panel"><span class="eyebrow">YOUR DESK / QUICK REFERENCE</span><h1>Every paper<br>has a place.</h1><dl class="controls-list"><dt>Hold + drag</dt><dd>Move a sheet, book or stamp</dd><dt>Click stamp, then sheet</dt><dd>Stamp without dragging</dd><dt>B / I / R</dt><dd>Manual / inventory / record</dd><dt>1 / 2 / 3</dt><dd>Find a covered sheet</dd><dt>Tab · Enter · arrows</dt><dd>Focus, take, move and place</dd><dt>Escape / F</dt><dd>Pause / full screen</dd></dl><p>Store sheets by dropping them into the tray. Click an empty proposal slot to return its sheet. Use 1, 2 or 3 to recover a covered sheet. Escape first cancels a held object or stamp; press again to pause. Options includes two-click placement.</p>${button('Back to desk','resume','primary')}</section>`);}
+function help(){if(phase!=='menu'&&!paused)pause();showModal('help',`<section class="small-panel"><span class="eyebrow">YOUR DESK / QUICK REFERENCE</span><h1>Every paper<br>has a place.</h1><dl class="controls-list"><dt>Hold + drag</dt><dd>Move a sheet, book or stamp</dd><dt>Click stamp, then sheet</dt><dd>Stamp without dragging</dd><dt>B / I / R</dt><dd>Manual / its inventory / its turn record</dd><dt>1 / 2 / 3</dt><dd>Find a covered sheet</dd><dt>Tab · Enter · arrows</dt><dd>Focus, take, move and place</dd><dt>Escape / F</dt><dd>Pause / full screen</dd></dl><p>Drag a sheet back to its matching number and color in the proposal tray. Release when it says “Release to return”. You can also click its empty slot to return it. Use 1, 2 or 3 to recover a covered sheet. Escape first cancels a held object or stamp; press again to pause. Options includes two-click placement.</p>${button('Back to desk','resume','primary')}</section>`);}
 
 document.addEventListener('click',event=>{
   const target=(event.target as HTMLElement).closest<HTMLElement>('[data-action],[data-stamp-target]');if(!target)return;
@@ -435,6 +460,7 @@ document.addEventListener('click',event=>{
   if(action==='leave'||action==='exit-training'){if(!paused&&phase!=='menu')pause();showModal('leave',`<section class="small-panel"><h1>Leave this shift?</h1><p>Your current campaign will end. Only preferences are saved.</p>${button('Keep playing','resume','primary')}${button('End shift and leave','menu')}</section>`);return;}
   if(action==='help'){help();return;}if(action==='repeat-lesson'&&training){setupTraining(training.lesson);return;}
   if(paused)return;
+  if(action==='open-dispatch'){dispatch.open();return;}
   if(action==='archive'){archive();return;}if(action==='speed'&&cine){cine.speed=cine.speed===1?4:1;renderCinema();return;}
   if(action==='skip'&&cine){if(cine.revealed)showReport();else{cine.index=cine.steps.length-1;reveal();}return;}
   if(action==='final-prev'){ledgerPage--;renderFinalLog();return;}if(action==='final-next'){ledgerPage++;renderFinalLog();return;}
@@ -444,15 +470,28 @@ document.addEventListener('click',event=>{
     desk.cancel();desk.store(id);item.el.focus({preventScroll:true});sound.play('paper');updateTraySlots();
     announce(`${item.el.getAttribute('aria-label')} returned to its place.`);return;
   }
-  if(action==='manual'){openManual();return;}if(action==='inventory'){openLedger('stock');return;}if(action==='record'){openLedger('record');return;}
-  if(action==='close-manual'){desk.items.get('manual')!.el.hidden=true;$('.book-tool').focus();return;}if(action==='close-ledger'){desk.items.get('ledger')!.el.hidden=true;$('.ledger-tool').focus();return;}
+  if(action==='manual'){openManual();return;}
+  if(action==='close-manual'){closeManual();return;}
   if(action==='pin'){const item=desk.items.get('manual')!;desk.setPinned('manual',!item.pinned);renderManual();return;}
   if(action==='store'){desk.storeAll();return;}if(action==='compare'){desk.beside(desk.selected);progressTraining();return;}if(action==='cancel-stamp'){desk.cancel();announce('Stamp cancelled.');return;}
-  if(action==='log-prev'){ledgerPage=Math.max(0,ledgerPage-1);renderLedger();return;}if(action==='log-next'){ledgerPage++;renderLedger();return;}
+  if(action==='manual-reading'){setManualReading(!bookReading);return;}
+  if(action==='manual-atlas'){bookDestination=null;bookTab='destinations';renderManual();return;}
+  if(action==='manual-stock'){openSupplies('stock');return;}
+  if(action==='manual-record'){openSupplies('record');return;}
+  if(action==='manual-flight'){if(phase==='desk'&&campaign.proposal)navigateManual('flight');return;}
+  if(action==='manual-choose-route'){chooseManualReference();return;}
+  if(action==='manual-compare-reference'){chooseManualReference(true);return;}
+  if(action==='manual-compare'){if(phase==='desk'&&campaign.proposal)navigateManual('compare');return;}
+  if(action==='manual-log-prev'||action==='manual-log-next'){const max=Math.max(0,Math.ceil(visible.history.length/4)-1);supplyPage=Math.max(0,Math.min(max,supplyPage+(action==='manual-log-prev'?-1:1)));renderManual();return;}
+  if(action.startsWith('manual-sheet-')){const id=action.slice(13);setManualReading(false,false);desk.focus(id);desk.beside(id);progressTraining();return;}
+  if(action.startsWith('manual-filter-')){const filter=action.slice(14);if(['all','surface','orbit'].includes(filter)){bookFilter=filter as RouteFilter;renderManual();}return;}
+  if(action==='manual-clear-search'){bookQuery='';bookFilter='all';renderManual();desk.items.get('manual')?.el.querySelector<HTMLElement>('#manual-search')?.focus();return;}
+  if(action.startsWith('manual-rule-')){bookTab='rules';bookPage=Number(action.slice(12));renderManual();sound.play('page');return;}
+  if(action.startsWith('manual-science-')){bookTab='science';bookPage=Number(action.slice(15));renderManual();sound.play('page');return;}
   if(action==='book-prev'){bookPage=(bookPage+(bookTab==='rules'?3:bookTab==='science'?4:1))%(bookTab==='rules'?4:bookTab==='science'?5:2);renderManual();return;}
   if(action==='book-next'){bookPage=(bookPage+1)%(bookTab==='rules'?4:bookTab==='science'?5:2);renderManual();return;}
-  if(action.startsWith('book-')){bookTab=action.slice(5);bookPage=0;renderManual();sound.play('page');return;}
-  if(action.startsWith('destination-')){bookDestination=action.slice(12);bookTab='destinations';renderManual();sound.play('page');if(training?.lesson===1&&training.step===2&&bookDestination==='earth'){training.step=3;renderTraining();progressTraining();}return;}
+  if(action.startsWith('book-')){comparisonReturn=false;navigateManual(action.slice(5) as ManualTab);return;}
+  if(action.startsWith('destination-')){bookDestination=action.slice(12);const tab=comparisonReturn?'compare':'destinations';comparisonReturn=false;navigateManual(tab);if(training?.lesson===1&&training.step===2&&bookDestination==='earth'){training.step=3;renderTraining();progressTraining();}return;}
   if(action==='inspect-incident'){openWorksheet();return;}
   if(action.startsWith('protocol-')&&phase==='emergency'){protocolSelection=Number(action.slice(9));const sheet=desk.items.get('worksheet');if(sheet){sheet.el.innerHTML=protocolMarkup(emergencyId,protocolSelection);sheet.el.querySelector<HTMLElement>(`[data-action="${action}"]`)?.focus();}sound.play('confirm');return;}
   if(action==='confirm-emergency'){confirmEmergency();return;}
@@ -461,7 +500,7 @@ document.addEventListener('click',event=>{
 });
 document.addEventListener('click',event=>{const tool=(event.target as HTMLElement).closest<HTMLElement>('[data-stamp-tool]');if(tool&&!(tool as HTMLButtonElement).disabled&&!desk.stamp)desk.selectStamp(tool.dataset.stampTool as 'approve'|'return');});
 document.addEventListener('input',event=>{
-  const input=event.target as HTMLInputElement;if(input.id==='contribution'){updateContribution();return;}
+  const input=event.target as HTMLInputElement;if(input.id==='manual-search'){bookQuery=input.value;const root=desk.items.get('manual')?.el;if(root)filterManualRoutes(root,bookQuery,bookFilter);return;}if(input.id==='contribution'){updateContribution();return;}
   if(input.id==='inspection-dial'&&phase==='emergency'){protocolSelection=Number(input.value);const p=PROTOCOLS[emergencyId];const feedback=document.querySelector('.protocol-feedback');if(p&&feedback)feedback.textContent=p.feedback[protocolSelection];document.querySelectorAll<HTMLElement>('.protocol-options [data-action]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.action===`protocol-${protocolSelection}`)));return;}
   if(input.id==='volume'){prefs.volume=Number(input.value)/100;$('#volume-value').textContent=`${input.value}%`;input.setAttribute('aria-valuetext',`${input.value}%`);}
   if(input.id==='muted')prefs.muted=input.checked;
@@ -472,13 +511,26 @@ document.addEventListener('input',event=>{
 document.addEventListener('keydown',event=>{
   if(event.key==='Tab'&&modal){const focusables=modalFocusables(),first=focusables[0],last=focusables.at(-1);if(!first){event.preventDefault();$('#modal-layer').focus();}else if(!$('#modal-layer').contains(document.activeElement)||event.shiftKey&&document.activeElement===first){event.preventDefault();(event.shiftKey?last:first)?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}return;}
   if(event.key==='Tab'&&phase==='cinema'&&!paused){const controls=Array.from($('#cinema').querySelectorAll<HTMLButtonElement>('button:not(:disabled)'));const first=controls[0],last=controls.at(-1);if(!$('#cinema').contains(document.activeElement)||event.shiftKey&&document.activeElement===first){event.preventDefault();(event.shiftKey?last:first)?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}return;}
+  if(event.key==='Escape'&&bookReading&&!paused&&!modal){event.preventDefault();setManualReading(false);return;}
   if(event.key==='Escape'){event.preventDefault();if(paused){if(modal==='pause')resume();else showPause();}else if(phase!=='menu')pause();else menu();return;}
   if(modal)return;
+  if(dispatch.active){
+    if(event.key==='Tab'){event.preventDefault();const controls=Array.from($('#dispatch').querySelectorAll<HTMLButtonElement>('button'));const index=controls.indexOf(document.activeElement as HTMLButtonElement);controls[(index+(event.shiftKey?-1:1)+controls.length)%controls.length]?.focus();}
+    return;
+  }
+  if(bookReading){
+    if(event.key==='Tab'){
+      const controls=Array.from($('#manual-reader').querySelectorAll<HTMLElement>('button:not(:disabled),input,a[href],[tabindex="0"]')).filter(el=>el.checkVisibility());
+      const index=controls.indexOf(document.activeElement as HTMLElement);
+      if(index<0||event.shiftKey&&index===0||!event.shiftKey&&index===controls.length-1){event.preventDefault();controls[event.shiftKey?controls.length-1:0]?.focus();}
+    }else if(!(event.target as HTMLElement).matches('input,textarea,select')&&!event.ctrlKey&&!event.metaKey&&!event.altKey&&['i','r'].includes(event.key.toLowerCase())){event.preventDefault();openSupplies(event.key.toLowerCase()==='i'?'stock':'record');}
+    return;
+  }
   if((event.target as HTMLElement).matches('input,textarea,select')||event.ctrlKey||event.metaKey||event.altKey)return;
   if(event.repeat&&['Enter',' '].includes(event.key)){event.preventDefault();return;}
   if(event.key.toLowerCase()==='f'){event.preventDefault();if(document.fullscreenElement)void document.exitFullscreen().catch(()=>{});else if(document.documentElement.requestFullscreen)void document.documentElement.requestFullscreen().catch(()=>toast('Full screen is unavailable.'));return;}
   if(paused||!['desk','emergency','operation'].includes(phase))return;
-  const key=event.key.toLowerCase();if(key==='b'){event.preventDefault();openManual();}if(key==='i'){event.preventDefault();openLedger('stock');}if(key==='r'){event.preventDefault();openLedger('record');}
+  const key=event.key.toLowerCase();if(key==='b'){event.preventDefault();openManual();}if(key==='i'){event.preventDefault();openSupplies('stock');}if(key==='r'){event.preventDefault();openSupplies('record');}
   if(['1','2','3'].includes(key)){event.preventDefault();camera.set('desk');desk.focus(['flight','life','power'][Number(key)-1]);updateTaskGuide();}
 });
 clock.subscribe(dt=>{
@@ -489,13 +541,16 @@ clock.subscribe(dt=>{
   const unusedSceneTime=visitorSequence.tick(dt);
   const phaseTime=phase===previousPhase?dt:unusedSceneTime;
   $('.visitor-area').dataset.ready=String(visitorSequence.snapshot().phase==='ready'&&phase==='desk'||phase==='transition'&&['reacting','approved'].includes(visitorSequence.snapshot().phase));
-  if(phase==='emergency'&&!(training?.lesson===3&&training.practice!=='timed')){
-    remaining=Math.max(0,remaining-phaseTime);const sec=Math.ceil(remaining/1000);const counter=$('#seconds');if(counter)counter.textContent=String(sec);
+  const deliveredTime=dispatch.tick(phaseTime),landingTime=Math.min(responseLanding,deliveredTime);
+  responseLanding-=landingTime;const responseTime=deliveredTime-landingTime;
+  if(phase==='emergency'&&!busy&&!(training?.lesson===3&&training.practice!=='timed')){
+    remaining=Math.max(0,remaining-responseTime);desk.items.get('emergency')?.el.style.setProperty('--time-left',`${remaining/30000*100}%`);
+    const sec=Math.ceil(remaining/1000);if(bookReading){const text=`${sec}s · Emergency timer continues · Pause stops time`;if($('#reader-timer').textContent!==text)$('#reader-timer').textContent=text;}const counter=$('#seconds');if(counter)counter.textContent=String(sec);
     desk.items.get('emergency')?.el.classList.toggle('urgent',remaining<=10000);
     if(sec<=10&&sec!==alarmSecond){alarmSecond=sec;sound.play('alert');if([10,5].includes(sec))announce(`${sec} seconds remaining.`);}
     if(remaining===0)confirmEmergency(true);
   }
-  if(communication>0){communication=Math.max(0,communication-dt);if(communication===0&&messageSent){const status=$('#message-status');if(status)status.textContent='↙ Earth received the message. Local protocol remains your responsibility.';announce('Earth received the message. No additional resources.');}}
+  if(communication>0){communication=Math.max(0,communication-responseTime);if(communication===0&&messageSent){const status=$('#message-status');if(status)status.textContent='↙ Earth received the message. Local protocol remains your responsibility.';announce('Earth received the message. No additional resources.');}}
   if(cine&&phase==='cinema'){
     cine.elapsed+=phaseTime*cine.speed;
     if(cine.revealed){if(cine.elapsed>=2400)showReport();}
@@ -507,12 +562,12 @@ scale();menu();clock.start();
 // Development-only inspection and fixtures. Vite removes this branch in production.
 if(import.meta.env.DEV){
   Object.assign(window,{__SPACE_PAPERS__:{
-    state:()=>structuredClone(campaign),view:()=>({phase,paused,cinemaElapsed:cine?.elapsed??null,camera:camera.position,remaining,contribution,bookDestination,training:training&&{...training},pending:pending&&{...pending}}),
+    state:()=>structuredClone(campaign),view:()=>({phase,paused,cinemaElapsed:cine?.elapsed??null,camera:camera.position,remaining,contribution,bookDestination,bookTab,bookPage,bookReading,supplyView,supplyPage,training:training&&{...training},dispatch:dispatch.snapshot(),responseLanding,pending:pending&&{...pending}}),
     visitor:()=>visitorSequence.snapshot(),manualTime:()=>clock.stop(),advanceTime:(ms:number)=>clock.step(ms),
     start,training:setupTraining,engineer:(id:string)=>{if(ENGINEERS.some(e=>e.id===id)){showVisitor(id);camera.set('room');}},
     scenario:(kind:string)=>{start('qa-scenario');campaign.events.forEach(e=>e.resolved=true);campaign.stock=vector(200000,400000,100000,30000000,30000000);
       if(kind.startsWith('emergency')){const eventId=kind.split(':')[1]||'E02';campaign.events=[{id:eventId,afterSuccess:0,resolved:false}];visible=campaign;for(const id of ['flight','life','power'])desk.remove(id);showEmergency(eventId);}
-      else if(kind==='operation'){campaign.completed=['earth'];visible=campaign;for(const id of ['flight','life','power'])desk.remove(id);showOperation('B01');}
+      else if(kind.startsWith('operation')){const op=OPERATIONS.find(o=>o.id===(kind.split(':')[1]||'B01'))!;campaign.completed=DESTINATIONS.slice(0,op.afterSuccess).map(d=>d.id);campaign.approvals=campaign.completed.length;campaign.operationsResolved=OPERATIONS.filter(o=>o.afterSuccess<op.afterSuccess).map(o=>o.id);visible=campaign;for(const id of ['flight','life','power'])desk.remove(id);showOperation(op.id);}
       else{const d=DESTINATIONS.find(d=>d.id==='earth')!;campaign.proposal={id:'qa',destinationId:d.id,engineerId:'adan',minimum:{...d.minimum},requested:{...d.minimum}};if(kind==='short')campaign.proposal.requested.food=units(6900);if(kind==='stock')campaign.stock.energy=0;visible=campaign;renderProposal();}updateStatus();},
   }});
 }
