@@ -13,3 +13,18 @@
   --sans: 'Avenir Next', 'Trebuchet MS', 'Segoe UI', sans-serif;
   --mono: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
 }
+
+/* Shared interaction and material tokens. No remote fonts or runtime assets. */
+:root {
+  --ink-muted: #466056;
+  --paper-border: #a9ab8e;
+  --surface-dark: #10363c;
+  --surface-hover: #ffffff14;
+  --focus: #ffcf83;
+  --danger: #9b432f;
+  --success: #28624c;
+  --radius-control: 5px;
+  --ease-out: cubic-bezier(.2, .7, .2, 1);
+  --duration-fast: 140ms;
+  --duration-panel: 220ms;
+}

@@ -14,7 +14,9 @@
     "test:training": "node tests/training-browser.mjs",
     "test:characters": "node tests/characters-browser.mjs",
     "test:offline": "node tests/offline-browser.mjs",
-    "test:visitors": "node tests/visitor-browser.mjs"
+    "test:visitors": "node tests/visitor-browser.mjs",
+    "test:ux": "node tests/ux-browser.mjs",
+    "test:accessibility": "node tests/desk-accessibility-browser.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.19.0",
