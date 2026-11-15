@@ -34,10 +34,14 @@ pnpm test:camera
 pnpm test:training
 pnpm test:characters
 pnpm test:visitors
+pnpm test:ux
+pnpm test:accessibility
 pnpm test:offline # after pnpm build
 ```
 
 Browser suites use development-only fixtures and default to port 4173. Set `PREVIEW_URL` for another development URL. Screenshots are written to ignored `test-results/`.
+
+The [15 November UX review](docs/UX_REVIEW_2026-11-15.md) records the interface findings, verification coverage and remaining human-usability checks. Menus and dialogs adapt to compact screens; the physical desk preserves readable paper sizes through scrolling. A desktop or landscape tablet is recommended for comparing several documents at once.
 
 ## Controls
 
