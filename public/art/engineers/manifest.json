@@ -1,7 +1,7 @@
 {
   "format": "transparent-webp-atlas",
-  "frameWidth": 256,
-  "frameHeight": 256,
+  "frameWidth": 512,
+  "frameHeight": 512,
   "columns": 8,
   "rows": 3,
   "clips": {
@@ -48,10 +48,10 @@
   "export": {
     "blender": "5.3",
     "engine": "EEVEE",
-    "samples": 8,
+    "samples": 32,
     "cameraLensMultiplier": 1.5,
     "sampling": "8 evenly spaced frames per action, excluding endpoint",
-    "webpQuality": 90
+    "webpLossless": true
   },
   "warnings": [
     "Source is Grease Pencil; transparent images preserve its strokes and fills.",
@@ -68,14 +68,14 @@
         "sha256": "16de9880ae8c93b9108a595fd1e8027e2550152d4f733fdd292ffde2d65d275f"
       },
       "bones": 18,
+      "maxBoneRestMatrixDifference": 0.0,
       "greasePencilObjects": 20,
       "camera": {
         "type": "PERSP",
         "lens": 75.0
       },
       "sourceFps": 24.0,
-      "bytes": 138854,
-      "maxBoneRestMatrixDifference": 0.0
+      "bytes": 538740
     },
     "adan": {
       "file": "adan.webp",
@@ -86,14 +86,14 @@
         "sha256": "db8cac03050d7f4e90c57a4803b4dbd226d79493163a37e214839b7753b8afff"
       },
       "bones": 18,
+      "maxBoneRestMatrixDifference": 0.0,
       "greasePencilObjects": 19,
       "camera": {
         "type": "PERSP",
         "lens": 75.0
       },
       "sourceFps": 24.0,
-      "bytes": 126954,
-      "maxBoneRestMatrixDifference": 0.0
+      "bytes": 479052
     },
     "leo": {
       "file": "leo.webp",
@@ -104,14 +104,14 @@
         "sha256": "f85bb56a9699cedc2038fd5a259a8849df0a249810e293840747100c51804639"
       },
       "bones": 18,
+      "maxBoneRestMatrixDifference": 0.0,
       "greasePencilObjects": 20,
       "camera": {
         "type": "PERSP",
         "lens": 75.0
       },
       "sourceFps": 24.0,
-      "bytes": 126754,
-      "maxBoneRestMatrixDifference": 0.0
+      "bytes": 472776
     },
     "max": {
       "file": "max.webp",
@@ -122,14 +122,14 @@
         "sha256": "9f0247e2bb5756cbf348be7ab4d1dc4bfc6e143866ce6a160c8737454ae84081"
       },
       "bones": 18,
+      "maxBoneRestMatrixDifference": 0.0,
       "greasePencilObjects": 19,
       "camera": {
         "type": "PERSP",
         "lens": 75.0
       },
       "sourceFps": 24.0,
-      "bytes": 131504,
-      "maxBoneRestMatrixDifference": 0.0
+      "bytes": 486420
     },
     "saul": {
       "file": "saul.webp",
@@ -140,14 +140,14 @@
         "sha256": "b2b4658a4d193d98c7dc734c3bb15b03d4870c5d66b9f43677bac03614955ad3"
       },
       "bones": 18,
+      "maxBoneRestMatrixDifference": 0.0,
       "greasePencilObjects": 18,
       "camera": {
         "type": "PERSP",
         "lens": 75.0
       },
       "sourceFps": 24.0,
-      "bytes": 117930,
-      "maxBoneRestMatrixDifference": 0.0
+      "bytes": 497682
     },
     "dante": {
       "file": "dante.webp",
@@ -158,14 +158,14 @@
         "sha256": "57e3a8d24dc7b6918a7e53c1635f432093d3ff895c1b991662c4aca65d02c34c"
       },
       "bones": 18,
+      "maxBoneRestMatrixDifference": 0.0,
       "greasePencilObjects": 20,
       "camera": {
         "type": "PERSP",
         "lens": 75.0
       },
       "sourceFps": 24.0,
-      "bytes": 126050,
-      "maxBoneRestMatrixDifference": 0.0
+      "bytes": 513934
     },
     "victor": {
       "file": "victor.webp",
@@ -176,14 +176,14 @@
         "sha256": "e6c3b47b13dceeb79d15199e6d2fc9ce58e5a4ba9e63e17a54e526d01141b31a"
       },
       "bones": 18,
+      "maxBoneRestMatrixDifference": 0.0,
       "greasePencilObjects": 19,
       "camera": {
         "type": "PERSP",
         "lens": 75.0
       },
       "sourceFps": 24.0,
-      "bytes": 128128,
-      "maxBoneRestMatrixDifference": 0.0
+      "bytes": 502080
     },
     "teo": {
       "file": "teo.webp",
@@ -194,14 +194,14 @@
         "sha256": "73df60cb2de367465859f7e606f87820010a0ef6a461946e4a3d4ac5ddce6c16"
       },
       "bones": 18,
+      "maxBoneRestMatrixDifference": 0.0,
       "greasePencilObjects": 20,
       "camera": {
         "type": "PERSP",
         "lens": 75.0
       },
       "sourceFps": 24.0,
-      "bytes": 129358,
-      "maxBoneRestMatrixDifference": 0.0
+      "bytes": 493084
     },
     "ren": {
       "file": "ren.webp",
@@ -212,14 +212,14 @@
         "sha256": "b0ff8632f75111620ffce56f2cf504cb311ebe5a6cfb3787c8248152862692c7"
       },
       "bones": 18,
+      "maxBoneRestMatrixDifference": 0.0,
       "greasePencilObjects": 20,
       "camera": {
         "type": "PERSP",
         "lens": 75.0
       },
       "sourceFps": 24.0,
-      "bytes": 126288,
-      "maxBoneRestMatrixDifference": 0.0
+      "bytes": 491842
     }
   }
 }

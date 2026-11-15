@@ -89,9 +89,9 @@ function showVisitor(id:string){
   $('.visitor-area').style.setProperty('--engineer-color',engineer.color);
   $('#visitor-name').textContent=engineer.name;$('#speech').textContent=engineer.greeting;visitor.classList.remove('departing');
   const frame=(n:string)=>door.style.setProperty('--door-frame',`url("${assetUrl(`art/scene/door-${n}.webp`)}")`);
-  if(prefs.reduced){frame('0032');delete visitor.dataset.arriving;return;}
+  if(prefs.reduced){frame('0016');delete visitor.dataset.arriving;return;}
   visitor.dataset.arriving='true';frame('0001');
-  ['0008','0016','0024','0032'].forEach((n,index)=>doorTasks.push(clock.after((index+1)*160,()=>{frame(n);if(n==='0032'){delete visitor.dataset.arriving;engineerViewer.setAnimation('arrive');}})));
+  ['0008','0016'].forEach((n,index)=>doorTasks.push(clock.after((index+1)*220,()=>{frame(n);if(n==='0016'){delete visitor.dataset.arriving;engineerViewer.setAnimation('arrive');}})));
 }
 function updateStatus(){
   $('#performance').innerHTML=`<span>SUCCESSFUL RETURNS</span><strong>${visible.completed.length}<small>/5</small></strong><span>${visible.approvals?`${visible.approvals} approved · ${Math.round(visible.completed.length/visible.approvals*100)}% success`:'Not yet evaluated'}</span>`;

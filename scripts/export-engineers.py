@@ -32,7 +32,8 @@ SOURCES_META = {
     'ren': ('1b7waEkFyGxbVxa3ExwNsdqpSpXBpeER8', 'IngenieroRen.blend', '2026-11-15T00:26:19.255Z'),
 }
 CLIPS = [('idle', 1, 29), ('caminar', 1, 213), ('Hablar', 1, 23)]
-SIZE = 256
+SIZE = 512
+SAMPLES = 32
 
 def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -59,7 +60,7 @@ def worker(slug, directory):
         raise RuntimeError('Character and animation template bone rest poses differ')
     scene = bpy.context.scene
     scene.render.engine = 'BLENDER_EEVEE'
-    scene.eevee.taa_render_samples = 8
+    scene.eevee.taa_render_samples = SAMPLES
     scene.render.resolution_x = scene.render.resolution_y = SIZE
     scene.render.resolution_percentage = 100
     scene.render.film_transparent = True
@@ -96,14 +97,14 @@ def main():
             folder = Path(temp) / slug
             folder.mkdir()
             subprocess.run([BLENDER, '-b', '--python', str(Path(__file__).resolve()), '--', '--worker', slug, str(folder)], check=True)
-            node = '''const sharp=require(process.argv[1]); const path=require('path'); const dir=process.argv[2]; const out=process.argv[3]; const items=[]; for(let r=0;r<3;r++)for(let c=0;c<8;c++)items.push({input:path.join(dir,`${r}-${c}.png`),left:c*256,top:r*256}); sharp({create:{width:2048,height:768,channels:4,background:{r:0,g:0,b:0,alpha:0}}}).composite(items).webp({quality:90,alphaQuality:100,effort:6}).toFile(out).catch(e=>{console.error(e);process.exit(1)});'''
-            subprocess.run([NODE, '-e', node, SHARP, str(folder), str(OUTPUT / (slug + '.webp'))], check=True)
+            node = '''const sharp=require(process.argv[1]); const path=require('path'); const dir=process.argv[2]; const out=process.argv[3]; const size=Number(process.argv[4]); const items=[]; for(let r=0;r<3;r++)for(let c=0;c<8;c++)items.push({input:path.join(dir,`${r}-${c}.png`),left:c*size,top:r*size}); sharp({create:{width:8*size,height:3*size,channels:4,background:{r:0,g:0,b:0,alpha:0}}}).composite(items).webp({lossless:true,effort:3}).toFile(out).catch(e=>{console.error(e);process.exit(1)});'''
+            subprocess.run([NODE, '-e', node, SHARP, str(folder), str(OUTPUT / (slug + '.webp')), str(SIZE)], check=True)
             entries[slug] = {'file': slug + '.webp', 'source': {'fileId': file_id, 'name': name, 'modifiedTime': modified, 'sha256': sha(SOURCES / (slug + '.blend'))}, **json.loads((folder / 'info.json').read_text()), 'bytes': (OUTPUT / (slug + '.webp')).stat().st_size}
     manifest = {'format': 'transparent-webp-atlas', 'frameWidth': SIZE, 'frameHeight': SIZE, 'columns': 8, 'rows': 3,
                 'clips': {name: {'row': row, 'frames': 8, 'sourceFrames': [start, end], 'durationSeconds': (end-start)/24} for row,(name,start,end) in enumerate(CLIPS)},
                 'aliases': {'idle': 'idle', 'walk': 'caminar', 'talk': 'Hablar', 'greet': None},
                 'template': {'fileId': '158IHHPwkFcrW6acZPBDNuOX0OsIZYAHm', 'name': 'Animaciones.blend', 'modifiedTime': '2026-11-15T00:48:46.976Z', 'sha256': sha(template)},
-                'export': {'blender': '5.3', 'engine': 'EEVEE', 'samples': 8, 'cameraLensMultiplier': 1.5, 'sampling': '8 evenly spaced frames per action, excluding endpoint', 'webpQuality': 90},
+                'export': {'blender': '5.3', 'engine': 'EEVEE', 'samples': SAMPLES, 'cameraLensMultiplier': 1.5, 'sampling': '8 evenly spaced frames per action, excluding endpoint', 'webpLossless': True},
                 'warnings': ['Source is Grease Pencil; transparent images preserve its strokes and fills.', 'No greeting action is present in the template.', 'Saul’s source has a blue suit; the Notion reference describes a yellow badge. The supplied artwork was retained.'], 'engineers': entries}
     (OUTPUT / 'manifest.json').write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + '\n')
 

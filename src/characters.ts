@@ -2,7 +2,7 @@ import { assetUrl } from './assets';
 export type EngineerViewerStatus = 'loading' | 'ready' | 'fallback';
 export type EngineerAnimation = 'arrive' | 'idle' | 'depart';
 
-const FRAME_SIZE = 256;
+const FRAME_SIZE = 512;
 const COLUMNS = 8;
 // The source actions were sampled uniformly from their original 24 fps timelines.
 // The walk is compressed to fit the room’s short departure transition.
@@ -66,6 +66,8 @@ export class EngineerViewer {
         this.cache.set(slug, promise);
         promise.catch(() => { if (this.cache.get(slug) === promise) this.cache.delete(slug); });
       }
+      this.cache.delete(slug);this.cache.set(slug,promise);
+      while(this.cache.size>2){const oldest=this.cache.keys().next().value;if(oldest)this.cache.delete(oldest);else break;}
       const image = await promise;
       if (this.disposed || serial !== this.serial) return;
       this.image = image;
@@ -155,11 +157,12 @@ export class EngineerViewer {
     if (!force && frame === this.renderedFrame) return;
     this.renderedFrame = frame;
     const context = this.context;
+    context.imageSmoothingEnabled=true;context.imageSmoothingQuality='high';
     context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     // Preserve the square source and anchor its feet at the floor of the host.
-    // The shared source camera leaves at least 27 transparent pixels under the feet.
+    // The shared source camera leaves at least 53 transparent pixels under the feet.
     const side = this.canvas.height;
     context.drawImage(this.image, frame * FRAME_SIZE, clip.row * FRAME_SIZE, FRAME_SIZE, FRAME_SIZE,
-      (this.canvas.width - side) / 2, this.canvas.height - side + side * 27 / FRAME_SIZE, side, side);
+      (this.canvas.width - side) / 2, this.canvas.height - side + side * 53 / FRAME_SIZE, side, side);
   }
 }

@@ -1,0 +1,58 @@
+{
+  "canvas": [
+    1920,
+    1080
+  ],
+  "encoding": "WebP lossless",
+  "doorOcclusion": "The wall header masks door pixels above y=160 on the original canvas. This is a compositing correction, not a change to the supplied geometry.",
+  "sources": [
+    {
+      "output": "scene-base.webp",
+      "original": "Escenario Final.png",
+      "driveId": "1xKYoHYxRwfZlNIR9yEecu5izHVjL6O7u",
+      "modifiedTime": "2026-11-14T23:01:33.996Z",
+      "bytes": 2364507,
+      "sha256": "914bd71c58ef3b664d01c5a7c4f818b266dacf84abe75ad3397f53593ca4b6d8"
+    },
+    {
+      "output": "door-0001.webp",
+      "original": "0001.png",
+      "driveId": "1TYnXcPZFv4XHsiI9HOm33i8BRmpHKS5R",
+      "modifiedTime": "2026-11-14T20:47:56.215Z",
+      "bytes": 802411,
+      "sha256": "f2bfe7e841f2f2bed71baae7d8d5eb600e2c2cb24d9e9a4e98d3b0c89f62ed8c"
+    },
+    {
+      "output": "door-0008.webp",
+      "original": "0008.png",
+      "driveId": "18_ADQabDAERnAEB7uNn_k5H5Nymw2vQ5",
+      "modifiedTime": "2026-11-14T20:48:02.476Z",
+      "bytes": 791514,
+      "sha256": "798db5d979844854acdae29d5a4bf56eb6579f72bd3f0bc8661f19b554721af4"
+    },
+    {
+      "output": "door-0016.webp",
+      "original": "0016.png",
+      "driveId": "1zDSqM26oURhFngFtAFb0oqoyD4ds3tnQ",
+      "modifiedTime": "2026-11-14T20:48:09.611Z",
+      "bytes": 783510,
+      "sha256": "72ea8289a23e03af92dfe8f5a97a30ba4ac32aa56ca7b340c9c88596b4269955"
+    },
+    {
+      "output": "door-0024.webp",
+      "original": "0024.png",
+      "driveId": "1B50djWHVkVGhlGmz1aTOjPNe4-nG58HQ",
+      "modifiedTime": "2026-11-14T20:48:16.900Z",
+      "bytes": 794924,
+      "sha256": "7dc279f36ab9fec64f82f197c5b7d8ab8994337779a500e6071ba3a8c27df5e6"
+    },
+    {
+      "output": "door-0032.webp",
+      "original": "0032.png",
+      "driveId": "11AAuL2dCu2wL06_Pqzy_5J8HiVgynGA0",
+      "modifiedTime": "2026-11-14T20:48:24.157Z",
+      "bytes": 799473,
+      "sha256": "5623e66340640b2e3b913abfcbe1155363e27482db6d100337e85317a9d21a08"
+    }
+  ]
+}
