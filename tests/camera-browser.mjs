@@ -15,6 +15,8 @@ try {
   mkdirSync('test-results',{recursive:true});
   await page.screenshot({path:'test-results/camera-room.png'});
   for(let i=0;i<3;i++){await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>!!document.activeElement?.closest('.desk-tools, .desk-rail, #objects')),false,'hidden desk controls must not receive focus');}
+  // Tabbing beyond page controls may move focus to browser chrome and pause the game.
+  if ((await view()).paused) await page.locator('[data-action="resume"]').click();
   const initial=await state();
   await page.getByRole('button',{name:/Inspect desk/}).click();
   assert.equal((await view()).camera,'desk');
