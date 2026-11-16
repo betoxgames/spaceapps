@@ -4,7 +4,7 @@
 
 Bienvenido a la oficina de operaciones lunares. Aquí llegan ingenieros con propuestas, emergencias y misiones que necesitan una decisión. Tu trabajo es revisar los papeles, consultar el manual y decidir qué hacer antes de que el tiempo se agote.
 
-**Space Papers** es un videojuego de navegador creado por **Los valar** para niñas y niños de 7 a 12 años. Combina exploración espacial, toma de decisiones y un escritorio lleno de cosas por descubrir.
+**Space Papers** es un videojuego de navegador creado por **Los valar** para niñas y niños de 10 a 12 años. Combina exploración espacial, toma de decisiones y un escritorio lleno de cosas por descubrir.
 
 ## ¿Cómo se juega?
 
